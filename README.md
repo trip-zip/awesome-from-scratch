@@ -10,9 +10,8 @@ I want to help demystify some of the magic of Awesome and hopefully add another 
 The plan is to start with a default config, and then add functionality and polish over time.  I'll try to keep the commits small and focused so that it's easy to follow along.
 
 ## Why awesome?
-* It has a reputation of being "intimidating" in the ricing scene, but really it doesn't have to be.
-* The [API documentation](https://awesomewm.org/apidoc/) is fantastic, BUT, it's often geared towards developers which can sometimes also contribute to the intimidation factor.
-* I don't claim to be some kind of Awesome expert or a "rice" wizard, but I love finding ways to improve my workflow and increase functionality.
+* It has a reputation of being "intimidating", but really it doesn't have to be.
+* The [API documentation](https://awesomewm.org/apidoc/) is fantastic, BUT, it's often geared towards developers which can contribute to the intimidation factor.
 * It's insanely configurable, fast, extensible. Even right out of the box it's highly useable.
 * If you're just looking to get work done, honestly, double check the keybindings close this tab, and get to work.  It works really nice right out of the box.
 
