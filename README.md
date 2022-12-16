@@ -1,6 +1,8 @@
 ###### Table of Contents
 * [Section 1 - Default Config](https://github.com/trip-zip/awesome-from-scratch/blob/main/README.md)
 * [Section 2 - Initial Tweaks](https://github.com/trip-zip/awesome-from-scratch/blob/01-initial-tweaks/README.md)
+* [Section 3 - Intro to Widgets](https://github.com/trip-zip/awesome-from-scratch/blob/01-initial-tweaks/README.md)
+
 
 # Awesome From Scratch
 
