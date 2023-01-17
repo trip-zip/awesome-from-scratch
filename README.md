@@ -1,10 +1,11 @@
 ###### Table of Contents
 * Section 0 - Default Config
-* Section 1 - Theme & Keybindings
-* Section 2 - Wibar
-* Section 3 - Notifications
-* Section 4 - Titlebars
-* Section 5 - Logout Screen
+* Section 1 - Theme Variables
+* Section 2 - Keybindings
+* Section 3 - Wibar
+* Section 4 - Notifications
+* Section 5 - Titlebars
+* Section 6 - Logout Screen
 * ??
 
 
@@ -52,7 +53,7 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
 * I'll keep it simple for now, but we'll expand on that in the future with better semantic naming, and using them for more than just these few options.
 * Pick colors that make sense for you, or set them to nil if you don't want something like border colors on your clients
 
-#### Titlebar functionality
+#### Titlebar tweaks
 * First, everything is kind of tiny on my huge monitor.  Increase your font size to automatically increase the height of the titlebars (and the wibar as well)
   * I admit, I like the default theme fine, but I NEVER use most of the buttons on the titlebar.  Let's just remove the ones I don't use.
   * I don't like the `maximize` (and consequently `minimize`), `sticky`, or `ontop` buttons.  I will add some keybindings to handle those if I need, but I can probably get by with just the `floating` and the `close` buttons.  Let's just set the titlebar_button images to `nil`.  Technically you could remove the delete the theme options completely OR just comment them out.  I will set them to nil so it's clear what's happening under the hood, not just relying on silent defaults.
@@ -86,4 +87,73 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
           { -- Title
             halign = "center",
   ```
+#### Wibar tweaks
+  * Let's start left to right.
+  * I'll leave the awesome icon launcher on the far left for now.
+  * Taglist can use a little work
+    * I appreciate the indication that a tag has clients in it, but I think I would rather just color the numbered text instead
+    * Let's remove the `taglist_squares` and add some colors for the taglist variables.  If the tag is empty, just show the fg color
   * We'll also disable the icons in the `tasklist` up at the top by setting `theme.tasklist_disable_icon = true`.  Much easier.  We'll change how the titlebar works soon.
+  * I generally don't like having the systray always visible since it's not as easy to style the way I want.
+    * [Pavel Makhov](https://pavelmakhov.com/awesome-wm-widgets/) not only wrote a great resource for widgets, but also wrote a few tips & tricks that are super useful.  Let's follow how "Systray Tip" to make our systray toggle-able.  But defaults to `visible = false`
+    ```
+      s.systray = wibox.widget.systray()
+      s.systray.visible = false
+
+      -- @DOC_WIBAR@
+      -- Create the wibox
+      s.mywibox = awful.wibar({
+        position = "top",
+        screen = s,
+        -- @DOC_SETUP_WIDGETS@
+        widget = {
+          layout = wibox.layout.align.horizontal,
+          { -- Left widgets
+            layout = wibox.layout.fixed.horizontal,
+            mylauncher,
+            s.mytaglist,
+            s.mypromptbox,
+          },
+          s.mytasklist, -- Middle widget
+          { -- Right widgets
+            layout = wibox.layout.fixed.horizontal,
+            mykeyboardlayout,
+            s.systray,  <----------------Replace the old systray with our new one
+            mytextclock,
+            s.mylayoutbox,
+          },
+        },
+      })
+    ```
+    * Then we can add the keybinding just in the global_keybingdings under the modkey+p (Show the menubar) binding
+    ```
+      awful.key({ modkey }, "=", function ()
+          awful.screen.focused().systray.visible = not awful.screen.focused().systray.visible
+      end, {description = "Toggle systray visibility", group = "custom"}),
+    ```
+  * Last, let's get rid of the `mykeyboard` layout widget.
+#### Finish up and minor cleanup
+* I'm going to use [stylua](https://github.com/JohnnyMorganz/StyLua) to auto-format my code.
+* Let's make it so we start with the `tile` layout instead of floating by reordering the layouts in the rc.lua
+* Lastly, when I open a new client, I want to preserve the `primary` client in its position.  So let's add a callback to the global client rule that will place the client in the secondary section.
+```
+-- {{{ Rules
+-- Rules to apply to new clients.
+-- @DOC_RULES@
+  ruled.client.connect_signal("request::rules", function()
+    -- @DOC_GLOBAL_RULE@
+    -- All clients will match this rule.
+    ruled.client.append_rule({
+      id = "global",
+      rule = {},
+      properties = {
+        focus = awful.client.focus.filter,
+        raise = true,
+        screen = awful.screen.preferred,
+        placement = awful.placement.no_overlap + awful.placement.no_offscreen,
+      },
+      callback = function(c) <---------This is the difference maker here
+        c:to_secondary_section()
+      end,
+    })
+```

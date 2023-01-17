@@ -120,8 +120,8 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 -- Table of layouts to cover with awful.layout.inc, order matters.
 tag.connect_signal("request::default_layouts", function()
   awful.layout.append_default_layouts({
-    awful.layout.suit.floating,
     awful.layout.suit.tile,
+    awful.layout.suit.floating,
     awful.layout.suit.tile.left,
     awful.layout.suit.tile.bottom,
     awful.layout.suit.tile.top,
@@ -159,9 +159,6 @@ end)
 -- }}}
 
 -- {{{ Wibar
-
--- Keyboard map indicator and switcher
-mykeyboardlayout = awful.widget.keyboardlayout()
 
 -- Create a textclock widget
 mytextclock = wibox.widget.textclock()
@@ -243,6 +240,9 @@ screen.connect_signal("request::desktop_decoration", function(s)
     },
   })
 
+  s.systray = wibox.widget.systray()
+  s.systray.visible = false
+
   -- @DOC_WIBAR@
   -- Create the wibox
   s.mywibox = awful.wibar({
@@ -260,8 +260,7 @@ screen.connect_signal("request::desktop_decoration", function(s)
       s.mytasklist, -- Middle widget
       { -- Right widgets
         layout = wibox.layout.fixed.horizontal,
-        mykeyboardlayout,
-        wibox.widget.systray(),
+        s.systray,
         mytextclock,
         s.mylayoutbox,
       },
@@ -310,6 +309,9 @@ awful.keyboard.append_global_keybindings({
   awful.key({ modkey }, "p", function()
     menubar.show()
   end, { description = "show the menubar", group = "launcher" }),
+  awful.key({ modkey }, "=", function ()
+      awful.screen.focused().systray.visible = not awful.screen.focused().systray.visible
+  end, {description = "Toggle systray visibility", group = "custom"}),
 })
 
 -- Tags related keybindings
@@ -531,6 +533,9 @@ ruled.client.connect_signal("request::rules", function()
       screen = awful.screen.preferred,
       placement = awful.placement.no_overlap + awful.placement.no_offscreen,
     },
+    callback = function(c)
+      c:to_secondary_section()
+    end,
   })
 
   -- @DOC_FLOATING_RULE@

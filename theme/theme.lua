@@ -93,11 +93,6 @@ theme.border_color_marked = color.red
 -- Example:
 --theme.taglist_bg_focus = "#ff0000"
 
--- Generate taglist squares:
-local taglist_square_size = dpi(4)
-theme.taglist_squares_sel = theme_assets.taglist_squares_sel(taglist_square_size, theme.fg_normal)
-theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(taglist_square_size, theme.fg_normal)
-
 -- Variables set for theming notifications:
 -- notification_font
 -- notification_[bg|fg]
@@ -443,16 +438,16 @@ theme.snapper_gap = nil
 theme.systray_icon_spacing = dpi(2)
 theme.systray_max_rows = nil
 
-theme.taglist_bg_empty = nil
-theme.taglist_bg_focus = nil
+theme.taglist_bg_empty = color.bg
+theme.taglist_bg_focus = color.grey1
 theme.taglist_bg_occupied = nil
-theme.taglist_bg_urgent = nil
+theme.taglist_bg_urgent = color.soft_red
 theme.taglist_bg_volatile = nil
 theme.taglist_disable_icon = nil
-theme.taglist_fg_empty = nil
-theme.taglist_fg_focus = nil
-theme.taglist_fg_occupied = nil
-theme.taglist_fg_urgent = nil
+theme.taglist_fg_empty = color.fg
+theme.taglist_fg_focus = color.soft_yellow
+theme.taglist_fg_occupied = color.orange
+theme.taglist_fg_urgent = color.fg
 theme.taglist_fg_volatile = nil
 theme.taglist_font = nil
 theme.taglist_shape = nil
@@ -471,11 +466,11 @@ theme.taglist_shape_focus = nil
 theme.taglist_shape_urgent = nil
 theme.taglist_shape_volatile = nil
 theme.taglist_spacing = nil
--- theme.taglist_squares_resize = nil
--- theme.taglist_squares_sel = nil
--- theme.taglist_squares_sel_empty = nil
--- theme.taglist_squares_unsel = nil
--- theme.taglist_squares_unsel_empty = nil
+theme.taglist_squares_resize = nil
+theme.taglist_squares_sel = nil
+theme.taglist_squares_sel_empty = nil
+theme.taglist_squares_unsel = nil
+theme.taglist_squares_unsel_empty = nil
 
 theme.tasklist_above = nil
 theme.tasklist_align = nil
