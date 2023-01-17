@@ -73,6 +73,7 @@ local global_keys = {
   {{},         "XF86AudioPlay",         function() awful.spawn("playerctl play-pause") end,       "play/pause track",                      "media"    },
   {{},         "XF86AudioPrev",         function() awful.spawn("playerctl previous") end,         "previous track",                        "media"    },
   -- modkey only modifier
+  {{ modkey }, "f",                     function () awful.spawn(filemanager) end,                 "open file browser",                     "launcher" },
   {{ modkey }, "h",                     function () awful.tag.incmwfact(-0.05) end,               "decrease master width factor",          "layout"   },
   {{ modkey }, "j",                     function () awful.client.focus.byidx( 1) end,             "focus next by index",                   "client"   },
   {{ modkey }, "k",                     function () awful.client.focus.byidx(-1) end,             "focus previous by index",               "client"   },
@@ -108,11 +109,12 @@ local global_keys = {
 
 local client_keys = {
   -- modkey only modifier
-  {{ modkey },            "o",      function (c) c:move_to_screen() end,               "move to screen",            "client" },
-  {{ modkey },            "t",      function (c) c.ontop = not c.ontop end,            "toggle keep on top",        "client" },
-  {{ modkey },            "n",      client_helpers.minimize,                           "minimize",                  "client" },
-  {{ modkey },            "m",      client_helpers.toggle_maximized,                   "(un)maximize",              "client" },
   {{ modkey },            "f",      client_helpers.toggle_fullscreen,                  "toggle fullscreen",         "client" },
+  {{ modkey },            "m",      client_helpers.toggle_maximized,                   "(un)maximize",              "client" },
+  {{ modkey },            "n",      client_helpers.minimize,                           "minimize",                  "client" },
+  {{ modkey },            "o",      function (c) c:move_to_screen() end,               "move to screen",            "client" },
+  {{ modkey },            "q",      function (c) c:kill() end,                         "close",                     "client" },
+  {{ modkey },            "t",      function (c) c.ontop = not c.ontop end,            "toggle keep on top",        "client" },
   --modkey ctrl modifier
   {{ modkey, "Control" }, "m",      client_helpers.toggle_maximized_vert,              "(un)maximize vertically",   "client" },
   {{ modkey, "Control" }, "space",  awful.client.floating.toggle,                      "toggle floating",           "client" },

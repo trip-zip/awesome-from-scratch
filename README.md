@@ -102,4 +102,43 @@ Let's write a little lua function that will turn a table into an awful.keybindin
 * If a keybinding is a single line, I'll put it on a single line.  If it's a multi-line function, I'll extract the function to a `helper` table that refers to the hotkey group  (tag functions go in a tag_helper, media functions go in a media_helper).  Some people will think this is overkill.  Glanceability is my #1 priority with keybindings.  I can look at how the function is implemented if I need to, but I want to see them all on one line each.
 * In a future refactor, we'll probably extract those helpers to their own files to keep the keybinding declarations a little less visually cluttered.
 
-### 
+### Media Keys
+* I need all my normal volume/brightness keys working properly.  I use [pamixer](https://github.com/cdemoulins/pamixer), [playerctl](https://github.com/altdesktop/playerctl) and [brightnessctl](https://github.com/Hummer12007/brightnessctl).  So I can just map a key to an `awful.spawn` call and execute the cli commands directly.  If you prefer a different CLI tool, just use your tool directly instead of mine.
+```
+  {{},         "XF86AudioLowerVolume",  function() awful.spawn("pamixer -d 3") end,               "decrease volume",                       "media"    },
+  {{},         "XF86AudioRaiseVolume",  function() awful.spawn("pamixer -i 3") end,               "increase volume",                       "media"    },
+  {{},         "XF86MonBrightnessDown", function() awful.spawn("brightnessctl s +5%") end,        "decrease brightness",                   "media"    },
+  {{},         "XF86MonBrightnessUp",   function() awful.spawn("brighnessctl s 5%-") end,         "increase brightness",                   "media"    },
+  {{},         "XF86AudioMute",         function() awful.spawn("pamixer -t") end,                 "mute volume",                           "media"    },
+  {{},         "XF86AudioNext",         function() awful.spawn("playerctl next") end,             "next track",                            "media"    },
+  {{},         "XF86AudioPlay",         function() awful.spawn("playerctl play-pause") end,       "play/pause track",                      "media"    },
+  {{},         "XF86AudioPrev",         function() awful.spawn("playerctl previous") end,         "previous track",                        "media"    },
+```
+* I'm a pretty normal guy.  I do one weird thing.  I increase and decrease my volume by 3%...
+
+### Update default applications 
+* While we're in here updating keybinding functionality, I want to just update the default applications & these couple global variables to be the tools I like to work with.
+* Awesome has some global variables set to basic applications and keyboard keys.
+  Set them to your preferred applications and keyboard keys.
+  I use wezterm and nvim.
+  NOTE: The reason the editor_cmd works in the default settings is because the `-e` flag is supported by the `xterm` terminal.  
+  (from the xterm man page)
+```
+-e program [ arguments ... ]
+               This option specifies the program (and its command line
+               arguments) to be run in the xterm window.  It also sets the
+               window title and icon name to be the basename of the program
+               being executed if neither -T nor -n are given on the command
+               line.
+
+               NOTE: This must be the last option on the command line.
+```
+* Wezterm does NOT support this flag, so I need to set the `editor_cmd` to something that opens wezterm AND launches neovim. `wezterm start -- nvim`
+  If you use a different terminal or a GUI, just make sure you set your `editor_cmd` to a string that will open the rc.lua file the way you like.
+  Now when you click "edit config" in the launcher menu, your config will open in your preferred editor
+```
+terminal = "wezterm"
+editor = os.getenv("EDITOR") or "nvim"
+editor_cmd = "wezterm start -- " .. editor
+filemanager = "thunar" --While I'm in here, may as well make this a variable
+```

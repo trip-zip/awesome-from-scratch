@@ -43,9 +43,10 @@ beautiful.init(theme_path .. "/theme.lua")
 
 -- @DOC_DEFAULT_APPLICATIONS@
 -- This is used later as the default terminal and editor to run.
-terminal = "xterm"
-editor = os.getenv("EDITOR") or "nano"
-editor_cmd = terminal .. " -e " .. editor
+terminal = "wezterm"
+editor = os.getenv("EDITOR") or "nvim"
+editor_cmd = "wezterm start -- " .. editor
+filemanager = "thunar" --While I'm in here, may as well make this a variable
 
 -- Default modkey.
 -- Usually, Mod4 is the key with a logo between Control and Alt.
