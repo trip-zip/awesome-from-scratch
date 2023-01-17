@@ -54,8 +54,36 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
 
 #### Titlebar functionality
 * First, everything is kind of tiny on my huge monitor.  Increase your font size to automatically increase the height of the titlebars (and the wibar as well)
-* I admit, I like the default theme fine, but I NEVER use most of the buttons on the titlebar.  Let's just remove the ones I don't use.
-* I don't like the `maximize` (and consequently `minimize`), `sticky`, or `ontop` buttons.  I will add some keybindings to handle those if I need, but I can probably get by with just the `floating` and the `close` buttons.  Let's just set the titlebar_button images to `nil`.  Technically you could remove the delete the theme options completely OR just comment them out.  I will set them to nil so it's clear what's happening under the hood, not just relying on silent defaults.
-* I'll try to find some buttons that are a little more like what I'm looking for.
-* Simple colored squares are probably fine for now.
-* We can use the built in `gears.color.recolor_image` on the titlebar buttons, the layout images up on the wibar, and the submenu dropdown.
+  * I admit, I like the default theme fine, but I NEVER use most of the buttons on the titlebar.  Let's just remove the ones I don't use.
+  * I don't like the `maximize` (and consequently `minimize`), `sticky`, or `ontop` buttons.  I will add some keybindings to handle those if I need, but I can probably get by with just the `floating` and the `close` buttons.  Let's just set the titlebar_button images to `nil`.  Technically you could remove the delete the theme options completely OR just comment them out.  I will set them to nil so it's clear what's happening under the hood, not just relying on silent defaults.
+  * I'll try to find some buttons that are a little more like what I'm looking for.
+  * Simple colored squares are probably fine for now.
+  * We can use the built in `gears.color.recolor_image` on the titlebar buttons, the layout images up on the wibar, and the submenu dropdown.
+* I really don't like the client icons in the top left.  I know what client I'm working on based on position or context.
+  * Let's head to the rc.lua file again and jump to where titlebars are defined & just comment out the iconwidget line
+  ```
+    -- {{{ Titlebars
+    -- @DOC_TITLEBARS@
+    -- Add a titlebar if titlebars_enabled is set to true in the rules.
+    client.connect_signal("request::titlebars", function(c)
+      -- buttons for the titlebar
+      local buttons = {
+        awful.button({}, 1, function()
+          c:activate({ context = "titlebar", action = "mouse_move" })
+        end),
+        awful.button({}, 3, function()
+          c:activate({ context = "titlebar", action = "mouse_resize" })
+        end),
+      }
+
+      awful.titlebar(c).widget = {
+        { -- Left
+          -- awful.titlebar.widget.iconwidget(c), <---------------------------This line
+          buttons = buttons,
+          layout = wibox.layout.fixed.horizontal,
+        },
+        { -- Middle
+          { -- Title
+            halign = "center",
+  ```
+  * We'll also disable the icons in the `tasklist` up at the top by setting `theme.tasklist_disable_icon = true`.  Much easier.  We'll change how the titlebar works soon.

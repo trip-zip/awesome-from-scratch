@@ -116,7 +116,7 @@ theme.menu_width = dpi(100)
 -- beautiful.variable in your rc.lua
 --theme.bg_widget = "#cc0000"
 
--- Define the image to load
+--Titlebars
 theme.titlebar_close_button_normal = recolor(theme_path .. "/titlebar/square.svg", color.soft_red)
 theme.titlebar_close_button_focus = recolor(theme_path .. "/titlebar/square.svg", color.soft_red)
 
@@ -145,7 +145,7 @@ theme.titlebar_maximized_button_focus_active = nil
 
 theme.wallpaper = theme_path .. "/spaceman.jpg"
 
--- You can use your own layout icons like this:
+-- Layouts
 theme.layout_fairh = recolor(theme_path .. "/layouts/fairhw.png", color.fg)
 theme.layout_fairv = recolor(theme_path .. "/layouts/fairvw.png", color.fg)
 theme.layout_floating = recolor(theme_path .. "/layouts/floatingw.png", color.fg)
@@ -162,6 +162,9 @@ theme.layout_cornernw = recolor(theme_path .. "/layouts/cornernww.png", color.fg
 theme.layout_cornerne = recolor(theme_path .. "/layouts/cornernew.png", color.fg)
 theme.layout_cornersw = recolor(theme_path .. "/layouts/cornersww.png", color.fg)
 theme.layout_cornerse = recolor(theme_path .. "/layouts/cornersew.png", color.fg)
+
+--Tasklist
+theme.tasklist_disable_icon = true
 
 -- Generate Awesome icon:
 theme.awesome_icon = theme_assets.awesome_icon(theme.menu_height, theme.bg_focus, theme.fg_focus)
@@ -437,7 +440,7 @@ theme.snap_border_width = nil
 theme.snap_shape = nil
 theme.snapper_gap = nil
 
-theme.systray_icon_spacing = nil
+theme.systray_icon_spacing = dpi(2)
 theme.systray_max_rows = nil
 
 theme.taglist_bg_empty = nil
@@ -485,7 +488,6 @@ theme.tasklist_bg_image_urgent = nil
 theme.tasklist_bg_minimize = nil
 theme.tasklist_bg_normal = nil
 theme.tasklist_bg_urgent = nil
-theme.tasklist_disable_icon = nil
 theme.tasklist_disable_task_name = nil
 theme.tasklist_fg_focus = nil
 theme.tasklist_fg_minimize = nil
