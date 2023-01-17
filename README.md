@@ -10,150 +10,96 @@
 
 
 
-## Theme
+## Keybindings
 
-#### Theme
-* There are a few built in themes in the default config.  I'm going to stick with the default, though `zenburn` is a good choice too.
-* To start altering the theme, I'll copy the theme directory into this project, and I'll start making changes.  You can see the theme directories have lots of image files in them to be used in different widgets and bars.
-* Normally, your themes will be installed in `/usr/share/awesome/themes`, but verify that on your setup.
-`cp -r /usr/local/share/awesome/themes/default ~/.config/awesome/theme`
-* Now that we have the themes in our project, we can reference the new theme directory with a relative path.
-  Beautiful is the theme library, so calling beautiful.init() with the theme file will kick off our new theme.
-(rc.lua)
+### I'm going to come out of the gates speaking nonsense.
+* I hate the format of the awesomewm keybindings.
+* The bindings themselves are fine, it's just the readability of the code that I find hard to reason about. HOW AM I SUPPOSED TO SEARCH FOR awful.key({modkey      },         "u"...??!! Am I really going to bust out a regex to filter out the whitespace, extraneous brackets and commas??? To me, it makes sense to sort keybindings alphabetically so I know for sure I am not duplicating existing bindings. I want to remove large functions from the actual key declarations so I can see exactly what each binding does at a glance. If you write a little function that turns an array into a key declaration, you can prioritize readability
+##### This:
 ```
-local theme_path = string.format("%s/.config/awesome/theme/", os.getenv("HOME"))
-beautiful.init(theme_path .. "/theme.lua")
+    awful.key({ modkey,           }, "s",      hotkeys_popup.show_help,
+              {description="show help", group="awesome"}),
+    awful.key({ modkey,           }, "w", function () mymainmenu:show() end,
+              {description = "show main menu", group = "awesome"}),
+    awful.key({ modkey, "Control" }, "r", awesome.restart,
+              {description = "reload awesome", group = "awesome"}),
+    awful.key({ modkey }, "x",
+              function ()
+                  awful.prompt.run {
+                    prompt       = "Run Lua code: ",
+                    textbox      = awful.screen.focused().mypromptbox.widget,
+                    exe_callback = awful.util.eval,
+                    history_path = awful.util.get_cache_dir() .. "/history_eval"
+                  }
+              end,
+              {description = "lua execute prompt", group = "awesome"}),
+    awful.key({ modkey,           }, "Return", function () awful.spawn(terminal) end,
+              {description = "open a terminal", group = "launcher"}),
+    awful.key({ modkey },            "r",     function () awful.screen.focused().mypromptbox:run() end,
+              {description = "run prompt", group = "launcher"}),
+    awful.key({ modkey,           }, "u", awful.client.urgent.jumpto,
+              {description = "jump to urgent client", group = "client"}),
+    awful.key({ modkey,           }, "Left",   awful.tag.viewprev,
+              {description = "view previous", group = "tag"}),
+    awful.key({ modkey,           }, "Right",  awful.tag.viewnext,
+              {description = "view next", group = "tag"}),
+    awful.key({ modkey,           }, "Escape", awful.tag.history.restore,
+              {description = "go back", group = "tag"}),
+    awful.key({ modkey,           }, "Tab",
+        function ()
+            awful.client.focus.history.previous()
+            if client.focus then
+                client.focus:raise()
+            end
+        end,
+        {description = "go back", group = "client"}),
+    awful.key({ modkey, "Shift"   }, "h",     function () awful.tag.incnmaster( 1, nil, true) end,
+              {description = "increase the number of master clients", group = "layout"}),
+    awful.key({ modkey, "Shift"   }, "l",     function () awful.tag.incnmaster(-1, nil, true) end,
+    awful.key({ modkey,           }, "space", function () awful.layout.inc( 1)                end,
+              {description = "select next", group = "layout"}),
 ```
-
-* We'll also want to make a couple minor updates to that theme.lua file to make sure that the `themes_path` variable is referencing this project instead of that default themes_dir
-1. There's not a good reason now to reference the entire themes directory.  This theme only needs to reference itself.
-(theme/theme.lua)
+##### Would be way more readable if it looked like this:
 ```
-local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
-```
-2. Then, we'll want to search and replace the rest of those references to `themes_path` and make them `theme_path`
-3. Finally, there are a ton of hardcoded strings referencing the "default" theme.  No good.  Let's search and replace all of those to be empty strings instead.
-
-* Now when we make changes to the `theme/theme.lua` file, they'll take effect whenever we restart awesome.
-
-#### Let's get EVERY theme variable into our theme.lua file to have an easy place to reference them.
-* [The docs](https://awesomewm.org/apidoc/documentation/06-appearance.md.html) have a reference to the theme.lua file with a commented out list of all theme vars at the bottom.
-* Let's copy that list into our theme.lua file and make sure we don't have any conflicts with the default config.  This will give us a nice reference to all the theme vars we can change.
-
-##### Let's make a couple style changes to make sure it's working
-* I like a small gap around my clients.
-  `theme.useless_gap = dpi(5)`
-* The default wallpaper is cute, but too black for my taste.  You can move wallpapers to the theme directory, or reference your wallpapers directory on your system.  
-  `theme.wallpaper = theme_path .. /spaceman.jpg`
-* Font can kill a couple birds with 1 stone.  We can get a larger wibar AND titlebars just by increasing font size.  I like JetBrainsMono well enough
-  `theme.font = "JetBrainsMono Nerd Font, 12"`
-
-#### First, let's tackle some colors.
-* I sometimes like to switch between a couple colorschemes, so I'll make a simple "colors" table with basic gruvbox colors and basic nord colors.
-* I'll keep it simple for now, but we'll expand on that in the future with better semantic naming, and using them for more than just these few options.
-* Pick colors that make sense for you, or set them to nil if you don't want something like border colors on your clients
-
-#### Titlebar tweaks
-* First, everything is kind of tiny on my huge monitor.  Increase your font size to automatically increase the height of the titlebars (and the wibar as well)
-  * I admit, I like the default theme fine, but I NEVER use most of the buttons on the titlebar.  Let's just remove the ones I don't use.
-  * I don't like the `maximize` (and consequently `minimize`), `sticky`, or `ontop` buttons.  I will add some keybindings to handle those if I need, but I can probably get by with just the `floating` and the `close` buttons.  Let's just set the titlebar_button images to `nil`.  Technically you could remove the delete the theme options completely OR just comment them out.  I will set them to nil so it's clear what's happening under the hood, not just relying on silent defaults.
-  * I'll try to find some buttons that are a little more like what I'm looking for.
-  * Simple colored squares are probably fine for now.
-  * We can use the built in `gears.color.recolor_image` on the titlebar buttons, the layout images up on the wibar, and the submenu dropdown.
-* I really don't like the client icons in the top left.  I know what client I'm working on based on position or context.
-  * Let's head to the rc.lua file again and jump to where titlebars are defined & just comment out the iconwidget line
+  {{ modkey }, "r",                     function () awful.screen.focused().mypromptbox:run() end, "run prompt",                            "launcher" },
+  {{ modkey }, "s",                     hotkeys_popup.show_help,                                  "show help",                             "awesome"  },
+  {{ modkey }, "u",                     awful.client.urgent.jumpto,                               "jump to urgent client",                 "client"   },
+  {{ modkey }, "w",                     function () mymainmenu:show() end,                        "show main menu",                        "awesome"  },
+  {{ modkey }, "x",                     global_helpers.launch_lua_prompt,                         "lua execute prompt",                    "awesome"  },
+  {{ modkey }, "Escape",                awful.tag.history.restore,                                "go back",                               "tag"      },
+  {{ modkey }, "Left",                  awful.tag.viewprev,                                       "view previous",                         "tag"      },
+  {{ modkey }, "Return",                function () awful.spawn(terminal) end,                    "open a terminal",                       "launcher" },
+  {{ modkey }, "Right",                 awful.tag.viewnext,                                       "view next",                             "tag"      },
+  {{ modkey }, "Tab",                   global_helpers.client_go_back,                            "go back",                               "client"   },
+  {{ modkey }, "space",                 function () awful.layout.inc( 1)       end,               "select next",                           "layout"   },
+  -- modkey + ctrl modifier
+  {{ modkey, "Control" }, "h",          function () awful.tag.incncol( 1, nil, true) end,         "increase the number of columns",        "layout"   },
+  {{ modkey, "Control" }, "j",          function () awful.screen.focus_relative( 1) end,          "focus the next screen",                 "screen"   },
+  {{ modkey, "Control" }, "k",          function () awful.screen.focus_relative(-1) end,          "focus the previous screen",             "screen"   },
   ```
-    -- {{{ Titlebars
-    -- @DOC_TITLEBARS@
-    -- Add a titlebar if titlebars_enabled is set to true in the rules.
-    client.connect_signal("request::titlebars", function(c)
-      -- buttons for the titlebar
-      local buttons = {
-        awful.button({}, 1, function()
-          c:activate({ context = "titlebar", action = "mouse_move" })
-        end),
-        awful.button({}, 3, function()
-          c:activate({ context = "titlebar", action = "mouse_resize" })
-        end),
-      }
+* It's certainly a tradeoff since you need to write a wrapper function and if you really want to commit to single lining the key declarations themselves, you'll need to abstract out some of the multi-line functions (or functions that require arguments).  But in my opinion, it's HIGHLY worth the tradeoff for readability.
 
-      awful.titlebar(c).widget = {
-        { -- Left
-          -- awful.titlebar.widget.iconwidget(c), <---------------------------This line
-          buttons = buttons,
-          layout = wibox.layout.fixed.horizontal,
-        },
-        { -- Middle
-          { -- Title
-            halign = "center",
-  ```
-#### Wibar tweaks
-  * Let's start left to right.
-  * I'll leave the awesome icon launcher on the far left for now.
-  * Taglist can use a little work
-    * I appreciate the indication that a tag has clients in it, but I think I would rather just color the numbered text instead
-    * Let's remove the `taglist_squares` and add some colors for the taglist variables.  If the tag is empty, just show the fg color
-  * We'll also disable the icons in the `tasklist` up at the top by setting `theme.tasklist_disable_icon = true`.  Much easier.  We'll change how the titlebar works soon.
-  * I generally don't like having the systray always visible since it's not as easy to style the way I want.
-    * [Pavel Makhov](https://pavelmakhov.com/awesome-wm-widgets/) not only wrote a great resource for widgets, but also wrote a few tips & tricks that are super useful.  Let's follow how "Systray Tip" to make our systray toggle-able.  But defaults to `visible = false`
-    ```
-      s.systray = wibox.widget.systray()
-      s.systray.visible = false
+Let's write a little lua function that will turn a table into an awful.keybinding
+```
+  local function table_to_keybinding(bindings)
+    local key_bindings = {}
+    for _, g_key in ipairs(bindings) do
+      table.insert(key_bindings, awful.key(g_key[1], g_key[2], g_key[3], { description = g_key[4], group = g_key[5] }))
+    end
+    return key_bindings
+  end
+```
 
-      -- @DOC_WIBAR@
-      -- Create the wibox
-      s.mywibox = awful.wibar({
-        position = "top",
-        screen = s,
-        -- @DOC_SETUP_WIDGETS@
-        widget = {
-          layout = wibox.layout.align.horizontal,
-          { -- Left widgets
-            layout = wibox.layout.fixed.horizontal,
-            mylauncher,
-            s.mytaglist,
-            s.mypromptbox,
-          },
-          s.mytasklist, -- Middle widget
-          { -- Right widgets
-            layout = wibox.layout.fixed.horizontal,
-            mykeyboardlayout,
-            s.systray,  <----------------Replace the old systray with our new one
-            mytextclock,
-            s.mylayoutbox,
-          },
-        },
-      })
-    ```
-    * Then we can add the keybinding just in the global_keybingdings under the modkey+p (Show the menubar) binding
-    ```
-      awful.key({ modkey }, "=", function ()
-          awful.screen.focused().systray.visible = not awful.screen.focused().systray.visible
-      end, {description = "Toggle systray visibility", group = "custom"}),
-    ```
-  * Last, let's get rid of the `mykeyboard` layout widget.
-#### Finish up and minor cleanup
-* I'm going to use [stylua](https://github.com/JohnnyMorganz/StyLua) to auto-format my code.
-* Let's make it so we start with the `tile` layout instead of floating by reordering the layouts in the rc.lua
-* Lastly, when I open a new client, I want to preserve the `primary` client in its position.  So let's add a callback to the global client rule that will place the client in the secondary section.
-```
--- {{{ Rules
--- Rules to apply to new clients.
--- @DOC_RULES@
-  ruled.client.connect_signal("request::rules", function()
-    -- @DOC_GLOBAL_RULE@
-    -- All clients will match this rule.
-    ruled.client.append_rule({
-      id = "global",
-      rule = {},
-      properties = {
-        focus = awful.client.focus.filter,
-        raise = true,
-        screen = awful.screen.preferred,
-        placement = awful.placement.no_overlap + awful.placement.no_offscreen,
-      },
-      callback = function(c) <---------This is the difference maker here
-        c:to_secondary_section()
-      end,
-    })
-```
+* All this does is take a table of our keybinding tables and inserts them as `awful.key()` calls.
+* I think later we can make this even simpler by using the other keybinding declaration style, but for now, this makes a world of difference.
+
+### Let's start reformatting
+* First, move all those keybindings over to a new file named `keybindings.lua`
+* We're going to leave the GLOBAL mousebindings in the rc.lua file for now.  We'll come back to those later, but for now, leave them there they are. (That'll let us right click the wallpaper and get the mainmenu and some tag switching with a scroll wheel.)
+* Where the rest of the keybindings used to be, `require("keybindings")`
+* Now in the new keybindings.lua file you can copy the ones I just did, or I recommend you get familiar with writing macros in your editor (or pop on a show you like and get to transforming those bindings the long way)
+* I'm pretty meticulous about sorting them alphabetically and grouping them by the modifiers they'll use.  That way at a glance, I can recognize every binding I have set.
+* If a keybinding is a single line, I'll put it on a single line.  If it's a multi-line function, I'll extract the function to a `helper` table that refers to the hotkey group  (tag functions go in a tag_helper, media functions go in a media_helper).  Some people will think this is overkill.  Glanceability is my #1 priority with keybindings.  I can look at how the function is implemented if I need to, but I want to see them all on one line each.
+* In a future refactor, we'll probably extract those helpers to their own files to keep the keybinding declarations a little less visually cluttered.
+
+### 
