@@ -1,7 +1,11 @@
 ###### Table of Contents
-* Section 1 - Default Config
-* [Section 2 - Initial Tweaks](https://github.com/trip-zip/awesome-from-scratch/blob/01-initial-tweaks/README.md)
-* [Section 3 - Intro to Widgets](https://github.com/trip-zip/awesome-from-scratch/tree/02-simple-widgets/README.md)
+* Section 0 - Default Config
+* Section 1 - Theme & Keybindings
+* Section 2 - Wibar
+* Section 3 - Notifications
+* Section 4 - Titlebars
+* Section 5 - Logout Screen
+* ??
 
 
 # Awesome From Scratch
@@ -25,9 +29,6 @@ The plan is to start with a default config, and then add functionality and polis
   * No Rofi, polybar, conky, etc.  Let's showcase what awesome has to offer
 4. Make it modestly pretty. (I'm not that creative...)
 
-## I like this incremental approach to learning something from scratch.
-The "Copy someone else's config and tweaking it" has merit, but building a solid foundation, learning step by step tends to work better for me in the long run.  This is especially true when my preferred functionality differs fundamentally from the config I'm copying.
-Looking at a [Beautiful Rice](https://github.com/rxyhn/yoru) and trying to figure out how to get from the default rc.lua to something polished and highly functional can be incredibly daunting.
  
 ## GET STARTED
 I'll make branches for each logical grouping of changes so it's easy to see the steps I'm taking in the progression.
