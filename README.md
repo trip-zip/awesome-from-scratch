@@ -142,3 +142,13 @@ editor = os.getenv("EDITOR") or "nvim"
 editor_cmd = "wezterm start -- " .. editor
 filemanager = "thunar" --While I'm in here, may as well make this a variable
 ```
+
+### Cleanup
+* I know this doesn't fit here, but I HATE sloppy mouse focus.  I accidentally bump the mouse while I'm typing and there goes the text...
+* The final lines in the rc.lua file have to go.
+```
+-- Enable sloppy focus, so that focus follows mouse.
+client.connect_signal("mouse::enter", function(c)
+  c:activate({ context = "mouse_enter", raise = false })
+end)
+```
