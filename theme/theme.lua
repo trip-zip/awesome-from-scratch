@@ -6,6 +6,7 @@ local theme_assets = require("beautiful.theme_assets")
 local xresources = require("beautiful.xresources")
 local rnotification = require("ruled.notification")
 local dpi = xresources.apply_dpi
+local recolor = require("gears").color.recolor_image
 
 local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
 
@@ -106,7 +107,7 @@ theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(taglist_square_
 -- Variables set for theming the menu:
 -- menu_[bg|fg]_[normal|focus]
 -- menu_[border_color|border_width]
-theme.menu_submenu_icon = theme_path .. "/submenu.png"
+theme.menu_submenu_icon = recolor(theme_path .. "/submenu.png", color.orange)
 theme.menu_height = dpi(15)
 theme.menu_width = dpi(100)
 
@@ -116,8 +117,8 @@ theme.menu_width = dpi(100)
 --theme.bg_widget = "#cc0000"
 
 -- Define the image to load
-theme.titlebar_close_button_normal = theme_path .. "/titlebar/square.svg"
-theme.titlebar_close_button_focus = theme_path .. "/titlebar/square.svg"
+theme.titlebar_close_button_normal = recolor(theme_path .. "/titlebar/square.svg", color.soft_red)
+theme.titlebar_close_button_focus = recolor(theme_path .. "/titlebar/square.svg", color.soft_red)
 
 theme.titlebar_minimize_button_normal = nil
 theme.titlebar_minimize_button_focus = nil
@@ -132,10 +133,10 @@ theme.titlebar_sticky_button_focus_inactive = nil
 theme.titlebar_sticky_button_normal_active = nil
 theme.titlebar_sticky_button_focus_active = nil
 
-theme.titlebar_floating_button_normal_inactive = theme_path .. "/titlebar/square.svg"
-theme.titlebar_floating_button_focus_inactive = theme_path .. "/titlebar/square.svg"
-theme.titlebar_floating_button_normal_active = theme_path .. "/titlebar/square.svg"
-theme.titlebar_floating_button_focus_active = theme_path .. "/titlebar/square.svg"
+theme.titlebar_floating_button_normal_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
+theme.titlebar_floating_button_focus_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
+theme.titlebar_floating_button_normal_active = recolor(theme_path .. "/titlebar/square.svg", color.soft_orange)
+theme.titlebar_floating_button_focus_active = recolor(theme_path .. "/titlebar/square.svg", color.soft_orange)
 
 theme.titlebar_maximized_button_normal_inactive = nil
 theme.titlebar_maximized_button_focus_inactive = nil
@@ -145,22 +146,22 @@ theme.titlebar_maximized_button_focus_active = nil
 theme.wallpaper = theme_path .. "/spaceman.jpg"
 
 -- You can use your own layout icons like this:
-theme.layout_fairh = theme_path .. "/layouts/fairhw.png"
-theme.layout_fairv = theme_path .. "/layouts/fairvw.png"
-theme.layout_floating = theme_path .. "/layouts/floatingw.png"
-theme.layout_magnifier = theme_path .. "/layouts/magnifierw.png"
-theme.layout_max = theme_path .. "/layouts/maxw.png"
-theme.layout_fullscreen = theme_path .. "/layouts/fullscreenw.png"
-theme.layout_tilebottom = theme_path .. "/layouts/tilebottomw.png"
-theme.layout_tileleft = theme_path .. "/layouts/tileleftw.png"
-theme.layout_tile = theme_path .. "/layouts/tilew.png"
-theme.layout_tiletop = theme_path .. "/layouts/tiletopw.png"
-theme.layout_spiral = theme_path .. "/layouts/spiralw.png"
-theme.layout_dwindle = theme_path .. "/layouts/dwindlew.png"
-theme.layout_cornernw = theme_path .. "/layouts/cornernww.png"
-theme.layout_cornerne = theme_path .. "/layouts/cornernew.png"
-theme.layout_cornersw = theme_path .. "/layouts/cornersww.png"
-theme.layout_cornerse = theme_path .. "/layouts/cornersew.png"
+theme.layout_fairh = recolor(theme_path .. "/layouts/fairhw.png", color.fg)
+theme.layout_fairv = recolor(theme_path .. "/layouts/fairvw.png", color.fg)
+theme.layout_floating = recolor(theme_path .. "/layouts/floatingw.png", color.fg)
+theme.layout_magnifier = recolor(theme_path .. "/layouts/magnifierw.png", color.fg)
+theme.layout_max = recolor(theme_path .. "/layouts/maxw.png", color.fg)
+theme.layout_fullscreen = recolor(theme_path .. "/layouts/fullscreenw.png", color.fg)
+theme.layout_tilebottom = recolor(theme_path .. "/layouts/tilebottomw.png", color.fg)
+theme.layout_tileleft = recolor(theme_path .. "/layouts/tileleftw.png", color.fg)
+theme.layout_tile = recolor(theme_path .. "/layouts/tilew.png", color.fg)
+theme.layout_tiletop = recolor(theme_path .. "/layouts/tiletopw.png", color.fg)
+theme.layout_spiral = recolor(theme_path .. "/layouts/spiralw.png", color.fg)
+theme.layout_dwindle = recolor(theme_path .. "/layouts/dwindlew.png", color.fg)
+theme.layout_cornernw = recolor(theme_path .. "/layouts/cornernww.png", color.fg)
+theme.layout_cornerne = recolor(theme_path .. "/layouts/cornernew.png", color.fg)
+theme.layout_cornersw = recolor(theme_path .. "/layouts/cornersww.png", color.fg)
+theme.layout_cornerse = recolor(theme_path .. "/layouts/cornersew.png", color.fg)
 
 -- Generate Awesome icon:
 theme.awesome_icon = theme_assets.awesome_icon(theme.menu_height, theme.bg_focus, theme.fg_focus)

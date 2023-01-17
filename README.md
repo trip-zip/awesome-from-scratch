@@ -58,3 +58,4 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
 * I don't like the `maximize` (and consequently `minimize`), `sticky`, or `ontop` buttons.  I will add some keybindings to handle those if I need, but I can probably get by with just the `floating` and the `close` buttons.  Let's just set the titlebar_button images to `nil`.  Technically you could remove the delete the theme options completely OR just comment them out.  I will set them to nil so it's clear what's happening under the hood, not just relying on silent defaults.
 * I'll try to find some buttons that are a little more like what I'm looking for.
 * Simple colored squares are probably fine for now.
+* We can use the built in `gears.color.recolor_image` on the titlebar buttons, the layout images up on the wibar, and the submenu dropdown.
