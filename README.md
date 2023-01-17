@@ -35,6 +35,10 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
 
 * Now when we make changes to the `theme/theme.lua` file, they'll take effect whenever we restart awesome.
 
+#### Let's get EVERY theme variable into our theme.lua file to have an easy place to reference them.
+* [The docs](https://awesomewm.org/apidoc/documentation/06-appearance.md.html) have a reference to the theme.lua file with a commented out list of all theme vars at the bottom.
+* Let's copy that list into our theme.lua file and make sure we don't have any conflicts with the default config.  This will give us a nice reference to all the theme vars we can change.
+
 ##### Let's make a couple style changes to make sure it's working
 * I like a small gap around my clients.
   `theme.useless_gap = dpi(5)`
