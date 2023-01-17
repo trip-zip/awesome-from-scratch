@@ -265,6 +265,11 @@ screen.connect_signal("request::desktop_decoration", function(s)
         s.mylayoutbox,
       },
     },
+    buttons = {
+      awful.button({}, 2, function()
+        s.systray.visible = not s.systray.visible
+      end)
+    }
   })
 end)
 
