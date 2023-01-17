@@ -8,34 +8,40 @@
 * ??
 
 
-# Awesome From Scratch
 
-## What's the plan?
-It's been a while since I've looked at my awesomeWM config.  I want to improve some things, and I think there's value in starting completely from scratch and being deliberate about what functionality I add and what "fluff" I leave out.  I think it might be fun or interesting to do a series of videos "from scratch" explaining my choices, trade-offs, and all the while, documenting my colossal ignorance for future generations.
-I want to help demystify some of the magic of Awesome and hopefully add another resource to the list that can help make awesome more approachable.
-The plan is to start with a default config, and then add functionality and polish over time.  I'll try to keep the commits small and focused so that it's easy to follow along.
+## Theme
 
-## Why awesome?
-* It has a reputation of being "intimidating", but really it doesn't have to be.
-* The [API documentation](https://awesomewm.org/apidoc/) is fantastic, BUT, it's often geared towards developers which can contribute to the intimidation factor.
-* It's insanely configurable, fast, extensible. Even right out of the box it's highly useable.
-* If you're just looking to get work done, honestly, double check the keybindings close this tab, and get to work.  It works really nice right out of the box.
+#### Theme
+* There are a few built in themes in the default config.  I'm going to stick with the default, though `zenburn` is a good choice too.
+* To start altering the theme, I'll copy the theme directory into this project, and I'll start making changes.  You can see the theme directories have lots of image files in them to be used in different widgets and bars.
+* Normally, your themes will be installed in `/usr/share/awesome/themes`, but verify that on your setup.
+`cp -r /usr/local/share/awesome/themes/default ~/.config/awesome/theme`
+* Now that we have the themes in our project, we can reference the new theme directory with a relative path.
+  Beautiful is the theme library, so calling beautiful.init() with the theme file will kick off our new theme.
+(rc.lua)
+```
+local theme_path = string.format("%s/.config/awesome/theme/", os.getenv("HOME"))
+beautiful.init(theme_path .. "/theme.lua")
+```
 
-## Project goals
-1. Start from scratch, use the config and find real pain points, and make a wish list of things to add/improve.  Solve my issues as they come up.
-2. Focus on deep understanding.  Explore the docs, try to utilize at least something in each library and paradigm.
-3. Use ONLY awesome's built in tools
-  * As long as such tools exist.  (I'm going to use brightnessctl for screen brightness, for example)
-  * No Rofi, polybar, conky, etc.  Let's showcase what awesome has to offer
-4. Make it modestly pretty. (I'm not that creative...)
+* We'll also want to make a couple minor updates to that theme.lua file to make sure that the `themes_path` variable is referencing this project instead of that default themes_dir
+1. There's not a good reason now to reference the entire themes directory.  This theme only needs to reference itself.
+(theme/theme.lua)
+```
+local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
+```
+2. Then, we'll want to search and replace the rest of those references to `themes_path` and make them `theme_path`
+3. Finally, there are a ton of hardcoded strings referencing the "default" theme.  No good.  Let's search and replace all of those to be empty strings instead.
 
- 
-## GET STARTED
-I'll make branches for each logical grouping of changes so it's easy to see the steps I'm taking in the progression.
-I probably won't always catalogue every single line I change in the readmes, but hopefully the code will be easy to parse and see what I changed.
+* Now when we make changes to the `theme/theme.lua` file, they'll take effect whenever we restart awesome.
 
-### Follow along in [Section 2 - Initial Tweaks](https://github.com/trip-zip/awesome-from-scratch/blob/01-initial-tweaks/README.md)
-
+##### Let's make a couple style changes to make sure it's working
+* I like a small gap around my clients.
+  `theme.useless_gap = dpi(5)`
+* The default wallpaper is cute, but too black for my taste.  You can move wallpapers to the theme directory, or reference your wallpapers directory on your system.  
+  `theme.wallpaper = theme_path .. /spaceman.jpg`
+* Font can kill a couple birds with 1 stone.  We can get a larger wibar AND titlebars just by increasing font size.  I like JetBrainsMono well enough
+  `theme.font = "JetBrainsMono Nerd Font, 12"`
 
 ## Credits & Thanks
 * [System Crafters's Emacs From Scratch](https://www.youtube.com/playlist?list=PLEoMzSkcN8oPH1au7H6B7bBJ4ZO7BXjSZ)
