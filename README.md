@@ -122,15 +122,15 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
             mytextclock,
             s.mylayoutbox,
           },
+          buttons = {
+            awful.button({}, 2, function()
+            s.systray.visible = not s.systray.visible
+          end)
+         }
         },
       })
     ```
-    * Then we can add the keybinding just in the global_keybingdings under the modkey+p (Show the menubar) binding
-    ```
-      awful.key({ modkey }, "=", function ()
-          awful.screen.focused().systray.visible = not awful.screen.focused().systray.visible
-      end, {description = "Toggle systray visibility", group = "custom"}),
-    ```
+    * Instead of using the keybinding he likes, I want to add a button to the entire wibar.  If I click the scrollwheel (mouse button 2), I want the systray to toggle visibility.
   * Last, let's get rid of the `mykeyboard` layout widget.
 #### Finish up and minor cleanup
 * I'm going to use [stylua](https://github.com/JohnnyMorganz/StyLua) to auto-format my code.
