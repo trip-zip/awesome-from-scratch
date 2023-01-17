@@ -47,7 +47,14 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
 * Font can kill a couple birds with 1 stone.  We can get a larger wibar AND titlebars just by increasing font size.  I like JetBrainsMono well enough
   `theme.font = "JetBrainsMono Nerd Font, 12"`
 
-## Credits & Thanks
-* [System Crafters's Emacs From Scratch](https://www.youtube.com/playlist?list=PLEoMzSkcN8oPH1au7H6B7bBJ4ZO7BXjSZ)
-* [Neovim From Scratch](https://github.com/LunarVim/Neovim-from-scratch)
-* & most importantly - [KryptoDigital's Yoshi's Lounge](https://on.soundcloud.com/TjDjm)
+#### First, let's tackle some colors.
+* I sometimes like to switch between a couple colorschemes, so I'll make a simple "colors" table with basic gruvbox colors and basic nord colors.
+* I'll keep it simple for now, but we'll expand on that in the future with better semantic naming, and using them for more than just these few options.
+* Pick colors that make sense for you, or set them to nil if you don't want something like border colors on your clients
+
+#### Titlebar functionality
+* First, everything is kind of tiny on my huge monitor.  Increase your font size to automatically increase the height of the titlebars (and the wibar as well)
+* I admit, I like the default theme fine, but I NEVER use most of the buttons on the titlebar.  Let's just remove the ones I don't use.
+* I don't like the `maximize` (and consequently `minimize`), `sticky`, or `ontop` buttons.  I will add some keybindings to handle those if I need, but I can probably get by with just the `floating` and the `close` buttons.  Let's just set the titlebar_button images to `nil`.  Technically you could remove the delete the theme options completely OR just comment them out.  I will set them to nil so it's clear what's happening under the hood, not just relying on silent defaults.
+* I'll try to find some buttons that are a little more like what I'm looking for.
+* Simple colored squares are probably fine for now.

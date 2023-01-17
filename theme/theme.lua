@@ -11,24 +11,74 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
 
 local theme = {}
 
-theme.font          = "sans 8"
+local colors = {
+  gruvbox = {
+    bg = "#282828", -- bg(0) in palette
+    fg = "#ebdbb2", -- fg(15) in palette
+    grey1 = "#928374", -- gray in palette
+    grey2 = "#3c3836", -- bg1 in palette
+    red = "#cc241d", -- red(0) in palette
+    soft_red = "#fb4934", -- red(9) in palette
+    green = "#98971a", -- green(2) in palette
+    soft_green = "#b8bb26", -- green(10) in palette
+    yellow = "#d79921", -- yellow(3) in palette
+    soft_yellow = "#fabd2f", -- yellow(11) in palette
+    blue = "#458588", -- blue(4) in palette
+    soft_blue = "#83a598", -- blue(12) in palette
+    soft_blue2 = "#8ec07c", -- aqua(14) in palette
+    purple = "#b16286", -- purple(5) in palette
+    softpurple = "#d3869b", -- purplepurple(13) in palette
+    aqua = "#689d6a", -- aqua(6) in palette
+    white = "#ebdbb2", -- fg(15) in palette
+    white2 = "#fbf1c7", -- fg0 in palette
+    orange = "#d65d0e", -- orange in palette
+    soft_orange = "#fe8019", -- orange in palette
+  },
+  nord = {
+    bg = "#2E3440", -- Polarnight1
+    fg = "#D8DEE9", -- Snowstorm1
+    grey1 = "#3B4252", -- polarnight2
+    grey2 = "#434C5E", -- polarnight3
+    red = "#BF616A", -- aurora1 in palette
+    soft_red = "#BF616A", --  in palette
+    green = "#A3BE8C", -- aurora4 in palette
+    soft_green = "#A3BE8C", -- aurora4 in palette
+    yellow = "#EBCB8B", --  in palette
+    soft_yellow = "#EBCB8B", --  in palette
+    blue = "#8FBCBB", -- frost1 in palette
+    soft_blue = "#88C0D0", -- frost2 in palette
+    soft_blue2 = "#81A1C1", -- frost3 in palette
+    purple = "#B48EAD", --  in palette
+    softpurple = "#5E81AC", --  in palette
+    pink = "#4C566A", -- polarnight4 in palette
+    white = "#E5E9F0", -- snowstorm2 in palette
+    white2 = "#ECEFF4", -- snowstorm3 in palette
+    orange = "#D08770", -- aurora2 in palette
+    soft_orange = "#D08770", -- aurora2 in palette
+  },
+}
 
-theme.bg_normal     = "#222222"
-theme.bg_focus      = "#535d6c"
-theme.bg_urgent     = "#ff0000"
-theme.bg_minimize   = "#444444"
-theme.bg_systray    = theme.bg_normal
+local color_scheme = "gruvbox"
+local color = colors[color_scheme]
 
-theme.fg_normal     = "#aaaaaa"
-theme.fg_focus      = "#ffffff"
-theme.fg_urgent     = "#ffffff"
-theme.fg_minimize   = "#ffffff"
+theme.font = "JetBrainsMono Nerd Font, 10"
 
-theme.useless_gap         = dpi(5)
-theme.border_width        = dpi(1)
-theme.border_color_normal = "#000000"
-theme.border_color_active = "#535d6c"
-theme.border_color_marked = "#91231c"
+theme.bg_normal = color.bg
+theme.bg_focus = color.grey2
+theme.bg_urgent = color.soft_red
+theme.bg_minimize = color.grey1
+theme.bg_systray = color.bg
+
+theme.fg_normal = color.fg
+theme.fg_focus = color.white
+theme.fg_urgent = color.white
+theme.fg_minimize = color.white
+
+theme.useless_gap = dpi(5)
+theme.border_width = dpi(1)
+theme.border_color_normal = color.bg
+theme.border_color_active = color.soft_green
+theme.border_color_marked = color.red
 
 -- There are other variable sets
 -- overriding the default one when
@@ -44,12 +94,8 @@ theme.border_color_marked = "#91231c"
 
 -- Generate taglist squares:
 local taglist_square_size = dpi(4)
-theme.taglist_squares_sel = theme_assets.taglist_squares_sel(
-    taglist_square_size, theme.fg_normal
-)
-theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(
-    taglist_square_size, theme.fg_normal
-)
+theme.taglist_squares_sel = theme_assets.taglist_squares_sel(taglist_square_size, theme.fg_normal)
+theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(taglist_square_size, theme.fg_normal)
 
 -- Variables set for theming notifications:
 -- notification_font
@@ -60,9 +106,9 @@ theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(
 -- Variables set for theming the menu:
 -- menu_[bg|fg]_[normal|focus]
 -- menu_[border_color|border_width]
-theme.menu_submenu_icon = theme_path.."/submenu.png"
+theme.menu_submenu_icon = theme_path .. "/submenu.png"
 theme.menu_height = dpi(15)
-theme.menu_width  = dpi(100)
+theme.menu_width = dpi(100)
 
 -- You can add as many variables as
 -- you wish and access them by using
@@ -70,70 +116,66 @@ theme.menu_width  = dpi(100)
 --theme.bg_widget = "#cc0000"
 
 -- Define the image to load
-theme.titlebar_close_button_normal = theme_path.."/titlebar/close_normal.png"
-theme.titlebar_close_button_focus  = theme_path.."/titlebar/close_focus.png"
+theme.titlebar_close_button_normal = theme_path .. "/titlebar/square.svg"
+theme.titlebar_close_button_focus = theme_path .. "/titlebar/square.svg"
 
-theme.titlebar_minimize_button_normal = theme_path.."/titlebar/minimize_normal.png"
-theme.titlebar_minimize_button_focus  = theme_path.."/titlebar/minimize_focus.png"
+theme.titlebar_minimize_button_normal = nil
+theme.titlebar_minimize_button_focus = nil
 
-theme.titlebar_ontop_button_normal_inactive = theme_path.."/titlebar/ontop_normal_inactive.png"
-theme.titlebar_ontop_button_focus_inactive  = theme_path.."/titlebar/ontop_focus_inactive.png"
-theme.titlebar_ontop_button_normal_active = theme_path.."/titlebar/ontop_normal_active.png"
-theme.titlebar_ontop_button_focus_active  = theme_path.."/titlebar/ontop_focus_active.png"
+theme.titlebar_ontop_button_normal_inactive = nil
+theme.titlebar_ontop_button_focus_inactive = nil
+theme.titlebar_ontop_button_normal_active = nil
+theme.titlebar_ontop_button_focus_active = nil
 
-theme.titlebar_sticky_button_normal_inactive = theme_path.."/titlebar/sticky_normal_inactive.png"
-theme.titlebar_sticky_button_focus_inactive  = theme_path.."/titlebar/sticky_focus_inactive.png"
-theme.titlebar_sticky_button_normal_active = theme_path.."/titlebar/sticky_normal_active.png"
-theme.titlebar_sticky_button_focus_active  = theme_path.."/titlebar/sticky_focus_active.png"
+theme.titlebar_sticky_button_normal_inactive = nil
+theme.titlebar_sticky_button_focus_inactive = nil
+theme.titlebar_sticky_button_normal_active = nil
+theme.titlebar_sticky_button_focus_active = nil
 
-theme.titlebar_floating_button_normal_inactive = theme_path.."/titlebar/floating_normal_inactive.png"
-theme.titlebar_floating_button_focus_inactive  = theme_path.."/titlebar/floating_focus_inactive.png"
-theme.titlebar_floating_button_normal_active = theme_path.."/titlebar/floating_normal_active.png"
-theme.titlebar_floating_button_focus_active  = theme_path.."/titlebar/floating_focus_active.png"
+theme.titlebar_floating_button_normal_inactive = theme_path .. "/titlebar/square.svg"
+theme.titlebar_floating_button_focus_inactive = theme_path .. "/titlebar/square.svg"
+theme.titlebar_floating_button_normal_active = theme_path .. "/titlebar/square.svg"
+theme.titlebar_floating_button_focus_active = theme_path .. "/titlebar/square.svg"
 
-theme.titlebar_maximized_button_normal_inactive = theme_path.."/titlebar/maximized_normal_inactive.png"
-theme.titlebar_maximized_button_focus_inactive  = theme_path.."/titlebar/maximized_focus_inactive.png"
-theme.titlebar_maximized_button_normal_active = theme_path.."/titlebar/maximized_normal_active.png"
-theme.titlebar_maximized_button_focus_active  = theme_path.."/titlebar/maximized_focus_active.png"
+theme.titlebar_maximized_button_normal_inactive = nil
+theme.titlebar_maximized_button_focus_inactive = nil
+theme.titlebar_maximized_button_normal_active = nil
+theme.titlebar_maximized_button_focus_active = nil
 
-theme.wallpaper = theme_path.."/spaceman.jpg"
-
+theme.wallpaper = theme_path .. "/spaceman.jpg"
 
 -- You can use your own layout icons like this:
-theme.layout_fairh = theme_path.."/layouts/fairhw.png"
-theme.layout_fairv = theme_path.."/layouts/fairvw.png"
-theme.layout_floating  = theme_path.."/layouts/floatingw.png"
-theme.layout_magnifier = theme_path.."/layouts/magnifierw.png"
-theme.layout_max = theme_path.."/layouts/maxw.png"
-theme.layout_fullscreen = theme_path.."/layouts/fullscreenw.png"
-theme.layout_tilebottom = theme_path.."/layouts/tilebottomw.png"
-theme.layout_tileleft   = theme_path.."/layouts/tileleftw.png"
-theme.layout_tile = theme_path.."/layouts/tilew.png"
-theme.layout_tiletop = theme_path.."/layouts/tiletopw.png"
-theme.layout_spiral  = theme_path.."/layouts/spiralw.png"
-theme.layout_dwindle = theme_path.."/layouts/dwindlew.png"
-theme.layout_cornernw = theme_path.."/layouts/cornernww.png"
-theme.layout_cornerne = theme_path.."/layouts/cornernew.png"
-theme.layout_cornersw = theme_path.."/layouts/cornersww.png"
-theme.layout_cornerse = theme_path.."/layouts/cornersew.png"
+theme.layout_fairh = theme_path .. "/layouts/fairhw.png"
+theme.layout_fairv = theme_path .. "/layouts/fairvw.png"
+theme.layout_floating = theme_path .. "/layouts/floatingw.png"
+theme.layout_magnifier = theme_path .. "/layouts/magnifierw.png"
+theme.layout_max = theme_path .. "/layouts/maxw.png"
+theme.layout_fullscreen = theme_path .. "/layouts/fullscreenw.png"
+theme.layout_tilebottom = theme_path .. "/layouts/tilebottomw.png"
+theme.layout_tileleft = theme_path .. "/layouts/tileleftw.png"
+theme.layout_tile = theme_path .. "/layouts/tilew.png"
+theme.layout_tiletop = theme_path .. "/layouts/tiletopw.png"
+theme.layout_spiral = theme_path .. "/layouts/spiralw.png"
+theme.layout_dwindle = theme_path .. "/layouts/dwindlew.png"
+theme.layout_cornernw = theme_path .. "/layouts/cornernww.png"
+theme.layout_cornerne = theme_path .. "/layouts/cornernew.png"
+theme.layout_cornersw = theme_path .. "/layouts/cornersww.png"
+theme.layout_cornerse = theme_path .. "/layouts/cornersew.png"
 
 -- Generate Awesome icon:
-theme.awesome_icon = theme_assets.awesome_icon(
-    theme.menu_height, theme.bg_focus, theme.fg_focus
-)
+theme.awesome_icon = theme_assets.awesome_icon(theme.menu_height, theme.bg_focus, theme.fg_focus)
 
 -- Define the icon theme for application icons. If not set then the icons
 -- from /usr/share/icons and /usr/share/icons/hicolor will be used.
 theme.icon_theme = nil
 
 -- Set different colors for urgent notifications.
-rnotification.connect_signal('request::rules', function()
-    rnotification.append_rule {
-        rule       = { urgency = 'critical' },
-        properties = { bg = '#ff0000', fg = '#ffffff' }
-    }
+rnotification.connect_signal("request::rules", function()
+  rnotification.append_rule({
+    rule = { urgency = "critical" },
+    properties = { bg = "#ff0000", fg = "#ffffff" },
+  })
 end)
-
 
 --[[
 INFO: EVERYTHING BELOW THIS IS USING THE DEFAULT AWESOME THEME VALUES (https://awesomewm.org/apidoc/documentation/06-appearance.md.html)
