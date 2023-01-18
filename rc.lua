@@ -41,6 +41,8 @@ end)
 local theme_path = string.format("%s/.config/awesome/theme/", os.getenv("HOME"))
 beautiful.init(theme_path .. "/theme.lua")
 
+local wibar = require("wibar")
+
 -- @DOC_DEFAULT_APPLICATIONS@
 -- This is used later as the default terminal and editor to run.
 terminal = "wezterm"
@@ -216,38 +218,7 @@ screen.connect_signal("request::desktop_decoration", function(s)
       end),
     },
   })
-
-  s.systray = wibox.widget.systray()
-  s.systray.visible = false
-
-  -- @DOC_WIBAR@
-  -- Create the wibox
-  s.mywibox = awful.wibar({
-    position = "top",
-    screen = s,
-    -- @DOC_SETUP_WIDGETS@
-    widget = {
-      layout = wibox.layout.align.horizontal,
-      { -- Left widgets
-        layout = wibox.layout.fixed.horizontal,
-        mylauncher,
-        s.mytaglist,
-        s.mypromptbox,
-      },
-      s.mytasklist, -- Middle widget
-      { -- Right widgets
-        layout = wibox.layout.fixed.horizontal,
-        s.systray,
-        mytextclock,
-        s.mylayoutbox,
-      },
-    },
-    buttons = {
-      awful.button({}, 2, function()
-        s.systray.visible = not s.systray.visible
-      end)
-    }
-  })
+  s.mywibox = wibar(s)
 end)
 
 -- {{{ Mouse bindings
