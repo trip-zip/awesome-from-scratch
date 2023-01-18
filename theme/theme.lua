@@ -128,15 +128,15 @@ theme.titlebar_sticky_button_focus_inactive = nil
 theme.titlebar_sticky_button_normal_active = nil
 theme.titlebar_sticky_button_focus_active = nil
 
-theme.titlebar_floating_button_normal_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
-theme.titlebar_floating_button_focus_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
+theme.titlebar_floating_button_normal_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_yellow)
+theme.titlebar_floating_button_focus_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_yellow)
 theme.titlebar_floating_button_normal_active = recolor(theme_path .. "/titlebar/square.svg", color.soft_orange)
 theme.titlebar_floating_button_focus_active = recolor(theme_path .. "/titlebar/square.svg", color.soft_orange)
 
-theme.titlebar_maximized_button_normal_inactive = nil
-theme.titlebar_maximized_button_focus_inactive = nil
-theme.titlebar_maximized_button_normal_active = nil
-theme.titlebar_maximized_button_focus_active = nil
+theme.titlebar_maximized_button_normal_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
+theme.titlebar_maximized_button_focus_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
+theme.titlebar_maximized_button_normal_active = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
+theme.titlebar_maximized_button_focus_active = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
 
 theme.wallpaper = theme_path .. "/spaceman.jpg"
 

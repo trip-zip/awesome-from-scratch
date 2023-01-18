@@ -157,3 +157,6 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
       end,
     })
 ```
+
+* While I'm at it, I think I like the idea of having 3 buttons on the left side of the client like the macos style.  But I'll do "Close", "Floating", and "Maximize"
+* I'll also use a more squared off svg as the "square" and name the other one "rounded_square" in case I want to toggle between a more sharp theme and a more rounded flow-y theme down the road.
