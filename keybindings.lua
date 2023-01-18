@@ -66,8 +66,8 @@ local global_keys = {
   -- no modifiers
   {{},         "XF86AudioLowerVolume",  function() awful.spawn("pamixer -d 3") end,               "decrease volume",                       "media"    },
   {{},         "XF86AudioRaiseVolume",  function() awful.spawn("pamixer -i 3") end,               "increase volume",                       "media"    },
-  {{},         "XF86MonBrightnessDown", function() awful.spawn("brightnessctl s +5%") end,        "decrease brightness",                   "media"    },
-  {{},         "XF86MonBrightnessUp",   function() awful.spawn("brighnessctl s 5%-") end,         "increase brightness",                   "media"    },
+  {{},         "XF86MonBrightnessDown", function() awful.spawn("brightnessctl s 5%-") end,        "decrease brightness",                   "media"    },
+  {{},         "XF86MonBrightnessUp",   function() awful.spawn("brightnessctl s +5%") end,        "increase brightness",                   "media"    },
   {{},         "XF86AudioMute",         function() awful.spawn("pamixer -t") end,                 "mute volume",                           "media"    },
   {{},         "XF86AudioNext",         function() awful.spawn("playerctl next") end,             "next track",                            "media"    },
   {{},         "XF86AudioPlay",         function() awful.spawn("playerctl play-pause") end,       "play/pause track",                      "media"    },
