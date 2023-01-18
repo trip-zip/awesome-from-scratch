@@ -1,7 +1,2 @@
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
-<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="64px" height="64px" viewBox="0 0 4700 4520" preserveAspectRatio="xMidYMid meet">
-<g id="layer1" fill="#000000" stroke="none">
- <path d="M275 4268 c-3 -7 -4 -897 -3 -1978 l3 -1965 2080 0 2080 0 0 1975 0 1975 -2078 3 c-1657 2 -2079 0 -2082 -10z"/>
- </g>
-
-</svg>
+<?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg fill="#000000" width="64" height="64" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M 6 6 L 6 26 L 26 26 L 26 6 L 6 6 z"/></svg>
