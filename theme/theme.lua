@@ -1,7 +1,7 @@
 ---------------------------
 -- Default awesome theme --
 ---------------------------
-
+local gears = require("gears")
 local theme_assets = require("beautiful.theme_assets")
 local xresources = require("beautiful.xresources")
 local rnotification = require("ruled.notification")
@@ -75,7 +75,7 @@ theme.fg_focus = color.white
 theme.fg_urgent = color.white
 theme.fg_minimize = color.white
 
-theme.useless_gap = dpi(5)
+theme.useless_gap = dpi(8)
 theme.border_width = dpi(1)
 theme.border_color_normal = color.bg
 theme.border_color_active = color.soft_green
@@ -605,18 +605,22 @@ theme.wallpaper_bg = nil
 theme.wallpaper_fg = nil
 
 theme.wibar_align = nil
-theme.wibar_bg = nil
+theme.wibar_bg = color.bg
 theme.wibar_bgimage = nil
-theme.wibar_border_color = nil
-theme.wibar_border_width = nil
+theme.wibar_border_color = color.fg
+theme.wibar_border_width = dpi(1)
 theme.wibar_cursor = nil
-theme.wibar_favor_vertical = nil
-theme.wibar_fg = nil
-theme.wibar_height = nil
-theme.wibar_margins = nil
-theme.wibar_ontop = nil
+theme.wibar_favor_vertical = false
+theme.wibar_fg = color.fg
+theme.wibar_height = theme.useless_gap * 5
+theme.wibar_margins = {
+    top = theme.useless_gap * 2,
+    left = theme.useless_gap * 2,
+    right = theme.useless_gap * 2,
+}
+theme.wibar_ontop = false
 theme.wibar_opacity = nil
-theme.wibar_shape = nil
+theme.wibar_shape = gears.shape.rectangle
 theme.wibar_stretch = nil
 theme.wibar_type = nil
 theme.wibar_width = nil

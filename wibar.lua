@@ -1,17 +1,56 @@
+local beautiful = require("beautiful")
+local xresources = require("beautiful.xresources")
+local dpi = xresources.apply_dpi
 local wibox = require("wibox")
+local gears = require("gears")
+local recolor = gears.color.recolor_image
+local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
+
+local bar_image_widget = wibox.widget{
+  image = recolor(theme_path .. "/table-cells-large-solid.svg", beautiful.fg_normal),
+  widget = wibox.widget.imagebox,
+}
+
+local square_widget = function(w, color)
+  return wibox.widget({
+  {
+    w,
+    margins = beautiful.wibar_height / 8,
+    widget = wibox.container.margin,
+  },
+  bg = color,
+  fg = beautiful.fg_normal,
+  border_width = dpi(1),
+  border_color = beautiful.border_color_marked,
+  shape = gears.shape.rectangle,
+  widget = wibox.container.background,
+})
+end
 
 local awful = require("awful")
-local setup_wibar = function(s)
+
+return function(s)
   local wibar = awful.wibar({
+    expand = "none",
     position = "top",
     screen = s,
     widget = {
-    }
+      {
+        square_widget(bar_image_widget, beautiful.border_color_marked),
+        square_widget(bar_image_widget, beautiful.border_color_active),
+        square_widget(bar_image_widget, beautiful.bg_urgent),
+        layout = wibox.layout.align.horizontal,
+      },
+      square_widget(bar_image_widget, beautiful.soft_green),
+      {
+        square_widget(bar_image_widget, beautiful.soft_green),
+        layout = wibox.layout.align.horizontal,
+      },
+      layout = wibox.layout.align.horizontal,
+    },
   })
   return wibar
 end
-
-return setup_wibar
 
   -- -- Each screen has its own tag table.
   -- awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
