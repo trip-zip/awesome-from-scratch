@@ -9,6 +9,8 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
 local bar_image_widget = wibox.widget{
   image = recolor(theme_path .. "/table-cells-large-solid.svg", beautiful.fg_normal),
   widget = wibox.widget.imagebox,
+  halign = "center",
+  valign = "center",
 }
 
 local square_widget = function(w, color)
