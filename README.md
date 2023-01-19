@@ -73,3 +73,102 @@ wibox.container.background
 should be enough for now.
 * We can shape and set colors.
 * Maybe even pass in the widget and the background color as a function, then it'll return the widget styled and ready to place in the Wibar
+* But basically, this is a quick mockup of what I want it to do.  Just a real simple wibar that contains some squares with icons
+```
+  local wibar = awful.wibar({
+    expand = "none",
+    position = "top",
+    screen = s,
+    widget = {
+      {
+        {
+          {
+            {
+              {
+                image = recolor(theme_path .. "/table-cells-large-solid.svg", beautiful.fg_normal),
+                widget = wibox.widget.imagebox,
+                halign = "center",
+                valign = "center",
+              },
+              bg = ,
+              widget = wibox.container.background,
+            },
+            margins = beautiful.wibar_height / 4,
+            widget = wibox.container.margin,
+          },
+          bg = beautiful.bg_normal,
+          fg = beautiful.fg_normal,
+          shape = gears.shape.rectangle,
+          widget = wibox.container.background,
+        },
+        layout = wibox.layout.align.horizontal,
+      },
+      {
+        {
+          {
+            {
+              image = recolor(theme_path .. "/table-cells-large-solid.svg", beautiful.fg_normal),
+              widget = wibox.widget.imagebox,
+              halign = "center",
+              valign = "center",
+            },
+            bg = ,
+            widget = wibox.container.background,
+          },
+          margins = beautiful.wibar_height / 4,
+          widget = wibox.container.margin,
+        },
+        bg = beautiful.bg_normal,
+        fg = beautiful.fg_normal,
+        shape = gears.shape.rectangle,
+        widget = wibox.container.background,
+      },
+      {
+        {
+          {
+            {
+              {
+                image = recolor(theme_path .. "/table-cells-large-solid.svg", beautiful.fg_normal),
+                widget = wibox.widget.imagebox,
+                halign = "center",
+                valign = "center",
+              },
+              bg = ,
+              widget = wibox.container.background,
+            },
+            margins = beautiful.wibar_height / 4,
+            widget = wibox.container.margin,
+          },
+          bg = beautiful.bg_normal,
+          fg = beautiful.fg_normal,
+          shape = gears.shape.rectangle,
+          widget = wibox.container.background,
+        },
+        layout = wibox.layout.align.horizontal,
+      },
+      layout = wibox.layout.align.horizontal,
+    },
+  })
+```
+* We can more of them to whichever side looks good and abstract the margin and imagebox widgets out so we can just reuse it everywhere we need.
+
+### Quick Refactor
+* This is kind of the core widget right here.  This layout is what I want my wibar widgets to really be.  A bunch of simple icons fit neatly into a margin so it's spaced evenly, then wrapped in a background so they can have their own colors.
+```
+{
+  {
+    {
+      image = recolor(theme_path .. "/table-cells-large-solid.svg", beautiful.fg_normal),
+      widget = wibox.widget.imagebox,
+      halign = "center",
+      valign = "center",
+    },
+    margins = beautiful.wibar_height / 4,
+    widget = wibox.container.margin,
+  },
+  bg = beautiful.bg_normal,
+  fg = beautiful.fg_normal,
+  shape = gears.shape.rectangle,
+  widget = wibox.container.background,
+},
+```

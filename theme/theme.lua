@@ -63,6 +63,7 @@ local color_scheme = "gruvbox"
 local color = colors[color_scheme]
 
 theme.font = "JetBrainsMono Nerd Font, 10"
+theme.primary_color = color.orange
 
 theme.bg_normal = color.bg
 theme.bg_focus = color.grey2
@@ -614,9 +615,9 @@ theme.wibar_favor_vertical = false
 theme.wibar_fg = color.fg
 theme.wibar_height = theme.useless_gap * 5
 theme.wibar_margins = {
-    top = theme.useless_gap * 2,
-    left = theme.useless_gap * 2,
-    right = theme.useless_gap * 2,
+  top = theme.useless_gap * 2,
+  left = theme.useless_gap * 2,
+  right = theme.useless_gap * 2,
 }
 theme.wibar_ontop = false
 theme.wibar_opacity = nil
