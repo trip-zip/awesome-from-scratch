@@ -17,13 +17,11 @@ local square_widget = function(w, color)
   return wibox.widget({
   {
     w,
-    margins = beautiful.wibar_height / 8,
+    margins = beautiful.wibar_height / 4,
     widget = wibox.container.margin,
   },
   bg = color,
   fg = beautiful.fg_normal,
-  border_width = dpi(1),
-  border_color = beautiful.border_color_marked,
   shape = gears.shape.rectangle,
   widget = wibox.container.background,
 })
