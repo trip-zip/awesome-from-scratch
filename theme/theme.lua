@@ -64,6 +64,9 @@ local color = colors[color_scheme]
 
 theme.font = "JetBrainsMono Nerd Font, 10"
 theme.primary_color = color.orange
+theme.active = color.green
+theme.accent = color.yellow
+theme.highlight = color.blue
 
 theme.bg_normal = color.bg
 theme.bg_focus = color.grey2

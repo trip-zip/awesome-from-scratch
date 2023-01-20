@@ -2,20 +2,25 @@ local beautiful = require("beautiful")
 local wibox = require("wibox")
 local gears = require("gears")
 local recolor = gears.color.recolor_image
-local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
+local icon_dir = string.format("%s/.config/awesome/icons", os.getenv("HOME"))
 
 local image_widget = function(image)
   return wibox.widget({
-    image = recolor(theme_path .. image, beautiful.fg_normal),
+    image = recolor(icon_dir .. image, beautiful.bg_normal),
     widget = wibox.widget.imagebox,
     halign = "center",
     valign = "center",
   })
 end
 
+local vertical_separator = wibox.widget{
+  bg = beautiful.bg_normal,
+  forced_width = beautiful.wibar_height * 0.2,
+  widget = wibox.container.background
+}
+
 local square_icon = function(w, color)
   return wibox.widget({
-    -- {
       {
         w,
         margins = beautiful.wibar_height / 4,
@@ -27,17 +32,24 @@ local square_icon = function(w, color)
       fg = beautiful.fg_normal,
       shape = gears.shape.rectangle,
       widget = wibox.container.background,
-    -- },
-    -- margins = {
-    --   left = beautiful.wibar_height / 8,
-    --   right = beautiful.wibar_height / 8,
-    -- },
-    -- widget = wibox.container.margin,
   })
 end
 
-local launcher = image_widget("/table-cells-large-solid.svg")
+local launcher = image_widget("/grid.svg")
 local launcher_widget = square_icon(launcher, beautiful.primary_color)
+
+local volume = image_widget("/volume-x.svg")
+local volume_widget = square_icon(volume, beautiful.active)
+
+local wifi = image_widget("/wifi.svg")
+local wifi_widget = square_icon(wifi, beautiful.accent)
+
+local battery = image_widget("/battery.svg")
+local battery_widget = square_icon(battery, beautiful.highlight)
+
+local power = image_widget("/power.svg")
+local power_widget = square_icon(power, beautiful.primary_color)
+
 local empty = square_icon(launcher, beautiful.bg_normal)
 
 local awful = require("awful")
@@ -50,19 +62,18 @@ return function(s)
     widget = {
       {
         launcher_widget,
+        vertical_separator,
         layout = wibox.layout.fixed.horizontal,
       },
       empty,
       {
-        empty,
-        empty,
-        empty,
-        {
-          bg = beautiful.bg_normal,
-          forced_width = 2,
-          widget = wibox.container.background
-        },
-        empty,
+        volume_widget,
+        vertical_separator,
+        wifi_widget,
+        vertical_separator,
+        battery_widget,
+        vertical_separator,
+        power_widget,
         layout = wibox.layout.fixed.horizontal,
       },
       layout = wibox.layout.align.horizontal,
