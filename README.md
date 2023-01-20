@@ -155,6 +155,7 @@ should be enough for now.
 * We can add more of them to whichever side looks good and abstract the margin and imagebox widgets out so we can just reuse it everywhere we need.
 
 ### Quick Refactor
+#### Widget
 * This is kind of the core widget right here.  This layout is what I want my wibar widgets to really be.  A bunch of simple icons fit neatly into a margin so it's spaced evenly, then wrapped in a background so they can have their own colors.
 ```
 {
@@ -209,3 +210,7 @@ local launcher = image_widget("/grid.svg", beautiful.bg_normal)
 local launcher_widget = square_icon(launcher, beautiful.primary_color)
 ```
 * Then you add the launcher_widget to the wibar.  Any functionality we want to affix to the launcher widget will be easily applied.
+
+#### Widgets directory
+* Let's create a little widgets directory and put all our newly created widgets there.  We *could* put them in a "wibar" type widget, but I think they're simple enough that I might want to use some of these in another place.
+* Each of the specific widgets like launcher and volume can get their own widget file, but things like the square_icon and the image_widget wrapper can just be in a wrappers.lua file to be reused by these widgets and more later on.
