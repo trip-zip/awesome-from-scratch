@@ -174,3 +174,38 @@ should be enough for now.
   widget = wibox.container.background,
 },
 ```
+
+* I will create each widget as the imagebox, then set its value based on a simple shell script. EZ PZ
+* First, let's make a little function that returns a background widget.  This one will be the launcher, tag icons, and power menu button, and probably volume/wifi/etc.
+```
+local square_icon = function(w, color)
+  return wibox.widget({
+      {
+        w,
+        margins = beautiful.wibar_height / 4,
+        widget = wibox.container.margin,
+      },
+      bg = color,
+      fg = beautiful.fg_normal,
+      shape = gears.shape.rectangle,
+      widget = wibox.container.background,
+  })
+end
+```
+* It accepts a widget of any kind, but I'm leaning towards the imagebox widgets for this first layout.
+```
+local image_widget = function(image, color)
+  return wibox.widget({
+    image = recolor(icon_dir .. image, color),
+    widget = wibox.widget.imagebox,
+    halign = "center",
+    valign = "center",
+  })
+end
+```
+* Now we can create a new file for each widget type to keep the implementation separate for each one.  But in its more simple form, creating a clean looking wibar widget just looks like this:
+```
+local launcher = image_widget("/grid.svg", beautiful.bg_normal)
+local launcher_widget = square_icon(launcher, beautiful.primary_color)
+```
+* Then you add the launcher_widget to the wibar.  Any functionality we want to affix to the launcher widget will be easily applied.
