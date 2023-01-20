@@ -15,12 +15,12 @@ end
 
 local global_helpers = {
   launch_lua_prompt = function()
-    awful.prompt.run {
-      prompt       = "Run Lua code: ",
-      textbox      = awful.screen.focused().mypromptbox.widget,
+    awful.prompt.run({
+      prompt = "Run Lua code: ",
+      textbox = awful.screen.focused().mypromptbox.widget,
       exe_callback = awful.util.eval,
-      history_path = awful.util.get_cache_dir() .. "/history_eval"
-    }
+      history_path = awful.util.get_cache_dir() .. "/history_eval",
+    })
   end,
   client_go_back = function()
     awful.client.focus.history.previous()
@@ -32,9 +32,9 @@ local global_helpers = {
     local c = awful.client.restore()
     -- Focus restored client
     if c then
-      c:activate { raise = true, context = "key.unminimize" }
+      c:activate({ raise = true, context = "key.unminimize" })
     end
-  end
+  end,
 }
 
 local client_helpers = {
@@ -61,14 +61,30 @@ local client_helpers = {
   end,
 }
 
+local media_helpers = {
+  raise_volume = function()
+    awful.spawn("pamixer -i 3")
+    awesome.emit_signal("volume::update")
+  end,
+  lower_volume = function()
+    awful.spawn("pamixer -d 3")
+    awesome.emit_signal("volume::update")
+  end,
+  toggle_mute = function()
+    awful.spawn("pamixer -t")
+    awesome.emit_signal("volume::update")
+  end,
+}
+
 --{modifier(s) table, key string,          function function,                     description string,    group string}
+-- stylua: ignore start
 local global_keys = {
   -- no modifiers
-  {{},         "XF86AudioLowerVolume",  function() awful.spawn("pamixer -d 3") end,               "decrease volume",                       "media"    },
-  {{},         "XF86AudioRaiseVolume",  function() awful.spawn("pamixer -i 3") end,               "increase volume",                       "media"    },
+  {{},         "XF86AudioLowerVolume",  media_helpers.lower_volume,                               "decrease volume",                       "media"    },
+  {{},         "XF86AudioRaiseVolume",  media_helpers.raise_volume,                               "increase volume",                       "media"    },
   {{},         "XF86MonBrightnessDown", function() awful.spawn("brightnessctl s 5%-") end,        "decrease brightness",                   "media"    },
   {{},         "XF86MonBrightnessUp",   function() awful.spawn("brightnessctl s +5%") end,        "increase brightness",                   "media"    },
-  {{},         "XF86AudioMute",         function() awful.spawn("pamixer -t") end,                 "mute volume",                           "media"    },
+  {{},         "XF86AudioMute",         media_helpers.toggle_mute,                                "mute volume",                           "media"    },
   {{},         "XF86AudioNext",         function() awful.spawn("playerctl next") end,             "next track",                            "media"    },
   {{},         "XF86AudioPlay",         function() awful.spawn("playerctl play-pause") end,       "play/pause track",                      "media"    },
   {{},         "XF86AudioPrev",         function() awful.spawn("playerctl previous") end,         "previous track",                        "media"    },
@@ -123,10 +139,10 @@ local client_keys = {
   {{ modkey, "Shift"   }, "c",      function (c) c:kill() end,                         "close",                     "client" },
   {{ modkey, "Shift"   }, "m",      client_helpers.toggle_maximized_horiz,             "(un)maximize horizontally", "client" },
 }
-
+-- stylua: ignore end
 
 client.connect_signal("request::default_keybindings", function()
-    awful.keyboard.append_client_keybindings(table_to_keybinding(client_keys))
+  awful.keyboard.append_client_keybindings(table_to_keybinding(client_keys))
 end)
 awful.keyboard.append_global_keybindings(table_to_keybinding(global_keys))
 
@@ -134,85 +150,85 @@ awful.keyboard.append_global_keybindings(table_to_keybinding(global_keys))
 -- They use the declarative pattern instead of the ones above that use the more basic pattern.
 -- Maybe one day...
 awful.keyboard.append_global_keybindings({
-    awful.key {
-        modifiers   = { modkey },
-        keygroup    = "numrow",
-        description = "only view tag",
-        group       = "tag",
-        on_press    = function (index)
-            local screen = awful.screen.focused()
-            local tag = screen.tags[index]
-            if tag then
-                tag:view_only()
-            end
-        end,
-    },
-    awful.key {
-        modifiers   = { modkey, "Control" },
-        keygroup    = "numrow",
-        description = "toggle tag",
-        group       = "tag",
-        on_press    = function (index)
-            local screen = awful.screen.focused()
-            local tag = screen.tags[index]
-            if tag then
-                awful.tag.viewtoggle(tag)
-            end
-        end,
-    },
-    awful.key {
-        modifiers = { modkey, "Shift" },
-        keygroup    = "numrow",
-        description = "move focused client to tag",
-        group       = "tag",
-        on_press    = function (index)
-            if client.focus then
-                local tag = client.focus.screen.tags[index]
-                if tag then
-                    client.focus:move_to_tag(tag)
-                end
-            end
-        end,
-    },
-    awful.key {
-        modifiers   = { modkey, "Control", "Shift" },
-        keygroup    = "numrow",
-        description = "toggle focused client on tag",
-        group       = "tag",
-        on_press    = function (index)
-            if client.focus then
-                local tag = client.focus.screen.tags[index]
-                if tag then
-                    client.focus:toggle_tag(tag)
-                end
-            end
-        end,
-    },
-    awful.key {
-        modifiers   = { modkey },
-        keygroup    = "numpad",
-        description = "select layout directly",
-        group       = "layout",
-        on_press    = function (index)
-            local t = awful.screen.focused().selected_tag
-            if t then
-                t.layout = t.layouts[index] or t.layout
-            end
-        end,
-    }
+  awful.key({
+    modifiers = { modkey },
+    keygroup = "numrow",
+    description = "only view tag",
+    group = "tag",
+    on_press = function(index)
+      local screen = awful.screen.focused()
+      local tag = screen.tags[index]
+      if tag then
+        tag:view_only()
+      end
+    end,
+  }),
+  awful.key({
+    modifiers = { modkey, "Control" },
+    keygroup = "numrow",
+    description = "toggle tag",
+    group = "tag",
+    on_press = function(index)
+      local screen = awful.screen.focused()
+      local tag = screen.tags[index]
+      if tag then
+        awful.tag.viewtoggle(tag)
+      end
+    end,
+  }),
+  awful.key({
+    modifiers = { modkey, "Shift" },
+    keygroup = "numrow",
+    description = "move focused client to tag",
+    group = "tag",
+    on_press = function(index)
+      if client.focus then
+        local tag = client.focus.screen.tags[index]
+        if tag then
+          client.focus:move_to_tag(tag)
+        end
+      end
+    end,
+  }),
+  awful.key({
+    modifiers = { modkey, "Control", "Shift" },
+    keygroup = "numrow",
+    description = "toggle focused client on tag",
+    group = "tag",
+    on_press = function(index)
+      if client.focus then
+        local tag = client.focus.screen.tags[index]
+        if tag then
+          client.focus:toggle_tag(tag)
+        end
+      end
+    end,
+  }),
+  awful.key({
+    modifiers = { modkey },
+    keygroup = "numpad",
+    description = "select layout directly",
+    group = "layout",
+    on_press = function(index)
+      local t = awful.screen.focused().selected_tag
+      if t then
+        t.layout = t.layouts[index] or t.layout
+      end
+    end,
+  }),
 })
 
 -- @DOC_CLIENT_BUTTONS@
 client.connect_signal("request::default_mousebindings", function()
-    awful.mouse.append_client_mousebindings({
-        awful.button({ }, 1, function (c)
-            c:activate { context = "mouse_click" }
-        end),
-        awful.button({ modkey }, 1, function (c)
-            c:activate { context = "mouse_click", action = "mouse_move"  }
-        end),
-        awful.button({ modkey }, 3, function (c)
-            c:activate { context = "mouse_click", action = "mouse_resize"}
-        end),
-    })
+  awful.mouse.append_client_mousebindings({
+    awful.button({}, 1, function(c)
+      c:activate({ context = "mouse_click" })
+    end),
+    awful.button({ modkey }, 1, function(c)
+      c:activate({ context = "mouse_click", action = "mouse_move" })
+    end),
+    awful.button({ modkey }, 3, function(c)
+      c:activate({ context = "mouse_click", action = "mouse_resize" })
+    end),
+  })
 end)

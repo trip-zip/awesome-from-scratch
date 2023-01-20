@@ -7,5 +7,3 @@ local wifi_widget = wrappers.square_icon(wifi, beautiful.accent)
 -- local wifi_widget = wrappers.square_icon(wifi, beautiful.bg_normal)
 
 return wifi_widget
-
-
