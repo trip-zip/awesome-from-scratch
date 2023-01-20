@@ -64,12 +64,14 @@ theme.wibar_margins = {
 
 * I'll to move all the wibar stuff out to its own file to stop cluttering the main rc.lua
 * Let's remove all the widgets from the wibar so we can add each piece as we want it.
+* Pro Tip: If you're working with new widgets and layouts, it can sometimes be very useful to add borders so you can see how the layout will go.
+
 
 ### I want a widget container that I can add icons/text into so each widget in the bar looks identical
 * I think a simple setup like:
-wibox.container.background
--> wibox.container.margin
-  -> wibox.widget.imagebox
+wibox.container.background -- For coloring a background shape easily
+-> wibox.container.margin  -- For fitting the image/text 
+  -> wibox.widget.imagebox -- The final image
 should be enough for now.
 * We can shape and set colors.
 * Maybe even pass in the widget and the background color as a function, then it'll return the widget styled and ready to place in the Wibar
@@ -85,12 +87,12 @@ should be enough for now.
           {
             {
               {
-                image = recolor(theme_path .. "/table-cells-large-solid.svg", beautiful.fg_normal),
+                image = recolor(theme_path .. "/launcher.svg", beautiful.bg_normal),
                 widget = wibox.widget.imagebox,
                 halign = "center",
                 valign = "center",
               },
-              bg = ,
+              bg = beautiful.bg_normal,
               widget = wibox.container.background,
             },
             margins = beautiful.wibar_height / 4,
@@ -107,7 +109,7 @@ should be enough for now.
         {
           {
             {
-              image = recolor(theme_path .. "/table-cells-large-solid.svg", beautiful.fg_normal),
+              image = recolor(theme_path .. "/volume.svg", beautiful.bg_normal),
               widget = wibox.widget.imagebox,
               halign = "center",
               valign = "center",
@@ -128,7 +130,7 @@ should be enough for now.
           {
             {
               {
-                image = recolor(theme_path .. "/table-cells-large-solid.svg", beautiful.fg_normal),
+                image = recolor(theme_path .. "/power.svg", beautiful.bg_normal),
                 widget = wibox.widget.imagebox,
                 halign = "center",
                 valign = "center",
@@ -150,7 +152,7 @@ should be enough for now.
     },
   })
 ```
-* We can more of them to whichever side looks good and abstract the margin and imagebox widgets out so we can just reuse it everywhere we need.
+* We can add more of them to whichever side looks good and abstract the margin and imagebox widgets out so we can just reuse it everywhere we need.
 
 ### Quick Refactor
 * This is kind of the core widget right here.  This layout is what I want my wibar widgets to really be.  A bunch of simple icons fit neatly into a margin so it's spaced evenly, then wrapped in a background so they can have their own colors.
@@ -158,7 +160,7 @@ should be enough for now.
 {
   {
     {
-      image = recolor(theme_path .. "/table-cells-large-solid.svg", beautiful.fg_normal),
+      image = recolor(theme_path .. "/volume.svg", beautiful.fg_normal),
       widget = wibox.widget.imagebox,
       halign = "center",
       valign = "center",

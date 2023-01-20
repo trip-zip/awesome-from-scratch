@@ -1,12 +1,13 @@
+local awful = require("awful")
 local beautiful = require("beautiful")
 local wibox = require("wibox")
 local gears = require("gears")
 local recolor = gears.color.recolor_image
 local icon_dir = string.format("%s/.config/awesome/icons", os.getenv("HOME"))
 
-local image_widget = function(image)
+local image_widget = function(image, color)
   return wibox.widget({
-    image = recolor(icon_dir .. image, beautiful.bg_normal),
+    image = recolor(icon_dir .. image, color),
     widget = wibox.widget.imagebox,
     halign = "center",
     valign = "center",
@@ -27,32 +28,34 @@ local square_icon = function(w, color)
         widget = wibox.container.margin,
       },
       bg = color,
-      border_width = 1,
-      border_color = beautiful.border_focus,
+      -- border_width = 1,
+      -- border_color = beautiful.border_focus,
       fg = beautiful.fg_normal,
       shape = gears.shape.rectangle,
       widget = wibox.container.background,
   })
 end
 
-local launcher = image_widget("/grid.svg")
+local launcher = image_widget("/grid.svg", beautiful.bg_normal)
 local launcher_widget = square_icon(launcher, beautiful.primary_color)
 
-local volume = image_widget("/volume-x.svg")
-local volume_widget = square_icon(volume, beautiful.active)
+local volume = image_widget("/volume-x.svg", beautiful.fg_normal)
+local volume_widget = square_icon(volume, beautiful.bg_normal)
+-- local volume_widget = square_icon(volume, beautiful.active)
 
-local wifi = image_widget("/wifi.svg")
-local wifi_widget = square_icon(wifi, beautiful.accent)
+local wifi = image_widget("/wifi.svg", beautiful.fg_normal)
+local wifi_widget = square_icon(wifi, beautiful.bg_normal)
+-- local wifi_widget = square_icon(wifi, beautiful.accent)
 
-local battery = image_widget("/battery.svg")
-local battery_widget = square_icon(battery, beautiful.highlight)
+local battery = image_widget("/battery.svg", beautiful.fg_normal)
+local battery_widget = square_icon(battery, beautiful.bg_normal)
+-- local battery_widget = square_icon(battery, beautiful.highlight)
 
-local power = image_widget("/power.svg")
+local power = image_widget("/power.svg", beautiful.bg_normal)
 local power_widget = square_icon(power, beautiful.primary_color)
+-- local power_widget = square_icon(power, beautiful.primary_color)
 
 local empty = square_icon(launcher, beautiful.bg_normal)
-
-local awful = require("awful")
 
 return function(s)
   local wibar = awful.wibar({
