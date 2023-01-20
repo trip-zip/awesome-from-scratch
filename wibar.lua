@@ -15,7 +15,7 @@ end
 
 local square_icon = function(w, color)
   return wibox.widget({
-    {
+    -- {
       {
         w,
         margins = beautiful.wibar_height / 4,
@@ -27,17 +27,18 @@ local square_icon = function(w, color)
       fg = beautiful.fg_normal,
       shape = gears.shape.rectangle,
       widget = wibox.container.background,
-    },
-    margins = {
-      left = beautiful.wibar_height / 8,
-      right = beautiful.wibar_height / 8,
-    },
-    widget = wibox.container.margin,
+    -- },
+    -- margins = {
+    --   left = beautiful.wibar_height / 8,
+    --   right = beautiful.wibar_height / 8,
+    -- },
+    -- widget = wibox.container.margin,
   })
 end
 
 local launcher = image_widget("/table-cells-large-solid.svg")
 local launcher_widget = square_icon(launcher, beautiful.primary_color)
+local empty = square_icon(launcher, beautiful.bg_normal)
 
 local awful = require("awful")
 
@@ -49,14 +50,20 @@ return function(s)
     widget = {
       {
         launcher_widget,
-        launcher_widget,
-        -- launcher_widget,
-        layout = wibox.layout.align.horizontal,
+        layout = wibox.layout.fixed.horizontal,
       },
-      launcher_widget,
+      empty,
       {
-        launcher_widget,
-        layout = wibox.layout.align.horizontal,
+        empty,
+        empty,
+        empty,
+        {
+          bg = beautiful.bg_normal,
+          forced_width = 2,
+          widget = wibox.container.background
+        },
+        empty,
+        layout = wibox.layout.fixed.horizontal,
       },
       layout = wibox.layout.align.horizontal,
     },
