@@ -6,7 +6,6 @@ pcall(require, "luarocks.loader")
 -- @DOC_REQUIRE_SECTION@
 -- Standard awesome library
 local awful = require("awful")
-local utils = require("utils")
 require("awful.autofocus")
 -- Widget and layout library
 local wibox = require("wibox")
@@ -17,9 +16,6 @@ local naughty = require("naughty")
 -- Declarative object management
 local ruled = require("ruled")
 local menubar = require("menubar")
-local hotkeys_popup = require("awful.hotkeys_popup")
--- Enable hotkeys help widget for VIM and other apps
--- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
 
 -- {{{ Error handling
@@ -41,8 +37,6 @@ end)
 local theme_path = string.format("%s/.config/awesome/theme/", os.getenv("HOME"))
 beautiful.init(theme_path .. "/theme.lua")
 
-local wibar = require("wibar")
-
 -- @DOC_DEFAULT_APPLICATIONS@
 -- This is used later as the default terminal and editor to run.
 terminal = "wezterm"
@@ -62,33 +56,8 @@ modkey = "Mod4"
 -- @DOC_MENU@
 -- Create a launcher widget and a main menu
 
-myawesomemenu = {
-  {
-    "hotkeys",
-    function()
-      hotkeys_popup.show_help(nil, awful.screen.focused())
-    end,
-  },
-  { "manual", terminal .. " -e man awesome" },
-  { "edit config", editor_cmd .. " " .. awesome.conffile },
-  { "Configs", utils.list_configs() },
-  { "restart", awesome.restart },
-  {
-    "quit",
-    function()
-      awesome.quit()
-    end,
-  },
-}
-
-mymainmenu = awful.menu({
-  items = {
-    { "awesome", myawesomemenu, beautiful.awesome_icon },
-    { "open terminal", terminal },
-  },
-})
-
-mylauncher = awful.widget.launcher({ image = beautiful.awesome_icon, menu = mymainmenu })
+local wibar = require("wibar")
+local mymainmenu = require("widgets.mainmenu")
 
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it

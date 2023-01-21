@@ -239,6 +239,9 @@ gears.timer({
 
 #### Battery, exacly the same.  We can make the tooltip prettier one day, but it's good enough for me.
 
+#### Launcher might be the easiest.
+* Just add a button that toggles the menu widget.
+
 #### Taglist
 * Stuff to work through
 1. You can't really get just an icon based taglist to work how I want.  There aren't even beautiful theme values for taglist icons in the first place.

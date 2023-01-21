@@ -1,6 +1,7 @@
 return {
   battery = require("widgets.battery"),
   launcher = require("widgets.launcher"),
+  mainmenu = require("widgets.mainmenu"),
   power = require("widgets.power"),
   taglist = require("widgets.taglist"),
   volume = require("widgets.volume"),
