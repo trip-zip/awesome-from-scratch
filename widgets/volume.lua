@@ -29,7 +29,7 @@ local function update_volume()
       if string.find(mute, "true") then
         volume.image = recolor(icon_dir .. "/volume-x.svg", beautiful.bg_normal)
       else
-      local volume_level = tonumber(vol)
+        local volume_level = tonumber(vol)
         if volume_level == 0 then
           volume.image = recolor(icon_dir .. "/volume-x.svg", beautiful.bg_normal)
         elseif volume_level <= 25 then

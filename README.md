@@ -281,3 +281,74 @@ end)
     4. Use signals (or a watch widget if applicable) to KEEP it up to date.
     5. Style it (Optional)
 * So, I'll just find the cli commands that will get me wifi data, battery life, and brightness.  Add that logic to each of those widgets, and we're done with the simple widget logic.
+
+#### Wifi
+* It's going to be the same story.  Instead of volume and mute, it's SSID and connected.  Instead of emitting signals on button clicks, I'll set a little timer to check every minute or so.
+```
+local function update()
+  awful.spawn.easy_async_with_shell("iwgetid -r", function(stdout)
+    wifi_widget.tooltip.text = stdout
+    if string.find(stdout, "Not connected") then
+      wifi.image = beautiful.icon_dir .. "/wifi-off.svg"
+    else
+      wifi.image = beautiful.icon_dir .. "/wifi.svg"
+    end
+  end)
+end
+
+gears.timer({
+  timeout = 10,
+  autostart = true,
+  call_now = true,
+  callback = update,
+})
+```
+
+#### Battery, exacly the same.  We can make the tooltip prettier one day, but it's good enough for me.
+
+#### Launcher might be the easiest.
+* Just add a button that toggles the menu widget.
+
+#### Taglist
+* Stuff to work through
+1. You can't really get just an icon based taglist to work how I want.  There aren't even beautiful theme values for taglist icons in the first place.
+2. You can't just slap widgets as the icons or identifiers.  It's string or bust.
+  I wish this would work...
+```
+  awful.tag.add("", {
+    icon = icon_dir .. "/terminal.svg",
+    layout = awful.layout.layouts[1],
+    screen = s,
+    selected = true,
+  })
+  awful.tag.add("", {
+    icon = icon_dir .. "/chrome.svg",
+    layout = awful.layout.layouts[1],
+    screen = s,
+    selected = false,
+  })
+  awful.tag.add("", {
+    icon = icon_dir .. "/slack.svg",
+    layout = awful.layout.layouts[1],
+    screen = s,
+    selected = false,
+  })
+  awful.tag.add("", {
+    icon = icon_dir .. "/server.svg",
+    layout = awful.layout.layouts[1],
+    screen = s,
+    selected = false,
+  })
+  awful.tag.add("", {
+    icon = icon_dir .. "/play.svg",
+    layout = awful.layout.layouts[1],
+    screen = s,
+    selected = false,
+  })
+
+```
+3. widget_template honestly seems more frustrating to work against to me than implementing it myself where I have control.
+  - All we need is a horizontal layout
+  - Track which widgets are focused/occupied/empty/urgent
+  - Emit/connect a couple signals
+  - Profit

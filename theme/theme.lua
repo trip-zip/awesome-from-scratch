@@ -12,6 +12,9 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
 
 local theme = {}
 
+-- Just set this on theme so I'm not requring it everywhere...
+theme.icon_dir = string.format("%s/.config/awesome/icons", os.getenv("HOME"))
+
 local colors = {
   gruvbox = {
     bg = "#282828", -- bg(0) in palette
