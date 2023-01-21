@@ -206,11 +206,78 @@ end
 ```
 * Now we can create a new file for each widget type to keep the implementation separate for each one.  But in its more simple form, creating a clean looking wibar widget just looks like this:
 ```
-local launcher = image_widget("/grid.svg", beautiful.bg_normal)
-local launcher_widget = square_icon(launcher, beautiful.primary_color)
+local volume = image_widget("/grid.svg", beautiful.bg_normal)
+local volume_widget = square_icon(launcher, beautiful.highlight)
 ```
-* Then you add the launcher_widget to the wibar.  Any functionality we want to affix to the launcher widget will be easily applied.
+* Then you add the volume_widget to the wibar.  Any functionality we want to affix to the launcher widget will be easily applied.
 
-#### Widgets directory
-* Let's create a little widgets directory and put all our newly created widgets there.  We *could* put them in a "wibar" type widget, but I think they're simple enough that I might want to use some of these in another place.
-* Each of the specific widgets like launcher and volume can get their own widget file, but things like the square_icon and the image_widget wrapper can just be in a wrappers.lua file to be reused by these widgets and more later on.
+#### Let's finish up the widget
+* We need to get the real volume value, of course.  I just want a simple icon that shows roughly the intensity of volume.
+* The icons I have just have a mute, low volume, medium volume, and high volume variants.  So, we'll get close enough.
+* For all these widgets, I just want to use a normal boring cli tool that gets output.  If you don't use pamixer, substitute the command that you DO like to get a simple volume percentage.
+* awful.spawn.easy_async_with_shell is the function I pretty much always go to unless I specifically need a different spawn command.
+```
+  awful.spawn.easy_async_with_shell("pamixer --get-volume", function(vol)
+    -- INFO: This stdout contains a \n character that messes up how the tooltip looks.
+    volume_widget.tooltip.text = string.gsub(vol, "\n", "") .. "%"
+    --INFO: The way pamixer works, if you increase volume, it does not break `mute`.  So I want to update the tooltip, but not the icon, that's why I have it nested instead of a separate function.
+    awful.spawn.easy_async_with_shell("pamixer --get-mute", function(mute)
+      if string.find(mute, "true") then
+        volume.image = recolor(icon_dir .. "/volume-x.svg", beautiful.bg_normal)
+      else
+      local volume_level = tonumber(vol)
+        if volume_level == 0 then
+          volume.image = recolor(icon_dir .. "/volume-x.svg", beautiful.bg_normal)
+        elseif volume_level <= 25 then
+          volume.image = recolor(icon_dir .. "/volume.svg", beautiful.bg_normal)
+        elseif volume_level <= 75 then
+          volume.image = recolor(icon_dir .. "/volume-1.svg", beautiful.bg_normal)
+        else
+          volume.image = recolor(icon_dir .. "/volume-2.svg", beautiful.bg_normal)
+        end
+      end
+    end)
+  end)
+```
+* Basically, we need to make sure that
+a) We have the volume and
+b) We know if it's muted or not.
+* When we get the value, it's as simple as just setting the image to whichever breakdown we want.
+* Also, I want a little hover tooltip.  Thankfully, awesome has an awful.toolip widget that it super easy to attach.  We just add 1 little step to our call getting the volumes to format the string and set the tooltip.
+* Now, when we press the keybindings for volume up and down, we want the icon to show reflect the real volume.
+* We can do that with `awesome.emit_signal` and `awesome.connect_signal`.
+* Update the keybindings to now only set the volume, but also emit a signal that volume was updated.
+```
+local media_helpers = {
+  raise_volume = function()
+    awful.spawn("pamixer -i 3")
+    awesome.emit_signal("volume::update")
+  end,
+  lower_volume = function()
+    awful.spawn("pamixer -d 3")
+    awesome.emit_signal("volume::update")
+  end,
+  toggle_mute = function()
+    awful.spawn("pamixer -t")
+    awesome.emit_signal("volume::update")
+  end,
+}
+```
+* You could separate the mute one to its own signal and handle the mute logic separately, I might even do that in the future.  But pamixer doesn't turn mute to false when you increase/decrease volume, so I'm just planning on always checking both (at least for now).
+* Now, we just need to `awesome.connect_signal` and update our volume icon widget.
+* I'll wrap the easy_async_with_shell() call in a little function named `update_volume` and we're done.
+
+```
+awesome.connect_signal("volume::update", function()
+  update_volume()
+end)
+```
+* Now as you press the volume up/down keys, the tooltip stays accurate, and when you cross a threshold, the icon changes.
+#### Repeat for the rest of the widgets.
+* It's always the same steps for me.
+    1. Create a simple widget.
+    2. Place it where you want it.
+    3. Set the real value on the first load.
+    4. Use signals (or a watch widget if applicable) to KEEP it up to date.
+    5. Style it (Optional)
+* So, I'll just find the cli commands that will get me wifi data, battery life, and brightness.  Add that logic to each of those widgets, and we're done with the simple widget logic.
