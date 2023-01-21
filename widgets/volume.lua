@@ -1,5 +1,4 @@
 local awful = require("awful")
-local naughty = require("naughty")
 local recolor = require("gears").color.recolor_image
 local beautiful = require("beautiful")
 local wrappers = require("widgets.wrappers")
