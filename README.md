@@ -35,7 +35,7 @@ The plan is to start with a default config, and then add functionality and polis
 I'll make branches for each logical grouping of changes so it's easy to see the steps I'm taking in the progression.
 I probably won't always catalogue every single line I change in the readmes, but hopefully the code will be easy to parse and see what I changed.
 
-### Follow along in [Section 2 - Initial Tweaks](https://github.com/trip-zip/awesome-from-scratch/blob/01-initial-tweaks/README.md)
+### Follow along in * [Section 1 - Theme](https://github.com/trip-zip/awesome-from-scratch/tree/01-theme)
 
 
 ## Credits & Thanks
