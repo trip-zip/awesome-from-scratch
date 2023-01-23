@@ -1,8 +1,8 @@
 ###### Table of Contents
-* Section 0 - Default Config
-* Section 1 - Theme Variables
-* Section 2 - Keybindings
-* Section 3 - Wibar
+* [Section 0 - Default Config](https://github.com/trip-zip/awesome-from-scratch/tree/00-default)
+* [Section 1 - Theme](https://github.com/trip-zip/awesome-from-scratch/tree/01-theme)
+* [Section 2 - Keybindings](https://github.com/trip-zip/awesome-from-scratch/tree/02-keybindings)
+* [Section 3 - Wibar](https://github.com/trip-zip/awesome-from-scratch/tree/03-wibar)
 * Section 4 - Notifications
 * Section 5 - Titlebars
 * Section 6 - Logout Screen
