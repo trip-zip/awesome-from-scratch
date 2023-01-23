@@ -160,3 +160,5 @@ local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
 
 * While I'm at it, I think I like the idea of having 3 buttons on the left side of the client like the macos style.  But I'll do "Close", "Floating", and "Maximize"
 * I'll also use a more squared off svg as the "square" and name the other one "rounded_square" in case I want to toggle between a more sharp theme and a more rounded flow-y theme down the road.
+
+### Follow along in [Section 2 - Keybindings](https://github.com/trip-zip/awesome-from-scratch/tree/02-keybindings)
