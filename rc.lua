@@ -5,6 +5,7 @@ pcall(require, "luarocks.loader")
 
 -- @DOC_REQUIRE_SECTION@
 -- Standard awesome library
+local utils = require("utils") --Ignore this...this is just a little helper I use to have a couple things between configs I'm testing out.
 local gears = require("gears")
 local awful = require("awful")
 require("awful.autofocus")
@@ -57,34 +58,12 @@ modkey = "Mod4"
 -- {{{ Menu
 -- @DOC_MENU@
 -- Create a launcher widget and a main menu
-local function switch_configs(config)
-  awful.spawn.with_shell("rm ~/.config/awesome && ln -s ~/unix_stuff/awesome_configs/" .. config .. " ~/.config/awesome")
-  awesome.restart()
-end
-
-local function list_configs()
-  local configs = {}
-  awful.spawn.easy_async("ls /home/jimmy/unix_stuff/awesome_configs", function(stdout)
-    local config_items = stdout:gmatch("[^\r\n]+")
-      for s in config_items do
-        gears.table.merge(configs, {
-          {
-            s,
-            function()
-              switch_configs(s)
-            end,
-          },
-        })
-      end
-  end)
-  return configs
-end
 
 myawesomemenu = {
    { "hotkeys", function() hotkeys_popup.show_help(nil, awful.screen.focused()) end },
    { "manual", terminal .. " -e man awesome" },
    { "edit config", editor_cmd .. " " .. awesome.conffile },
-   { "Configs", list_configs() },
+   { "Configs", utils.list_configs() },
    { "restart", awesome.restart },
    { "quit", function() awesome.quit() end },
 }
