@@ -14,7 +14,7 @@
 ## What's the plan?
 It's been a while since I've looked at my awesomeWM config.  I want to improve some things, and I think there's value in starting completely from scratch and being deliberate about what functionality I add and what "fluff" I leave out.  I think it might be fun or interesting to do a series of videos "from scratch" explaining my choices, trade-offs, and all the while, documenting my colossal ignorance for future generations.
 I want to help demystify some of the magic of Awesome and hopefully add another resource to the list that can help make awesome more approachable.
-The plan is to start with a default config, and then add functionality and polish over time.  I'll try to keep the commits small and focused so that it's easy to follow along.
+The plan is to start with a default config, and then add functionality and polish over time.
 
 ## Why awesome?
 * It has a reputation of being "intimidating", but really it doesn't have to be.
