@@ -347,8 +347,69 @@ gears.timer({
   })
 
 ```
-3. widget_template honestly seems more frustrating to work against to me than implementing it myself where I have control.
-  - All we need is a horizontal layout
-  - Track which widgets are focused/occupied/empty/urgent
-  - Emit/connect a couple signals
-  - Profit
+  but it won't...
+
+3. So it's a widget_template, which is a whole thing.  At the bottom of the widget system part of the docs has a small explanation of what a widget_template is.  https://awesomewm.org/apidoc/documentation/03-declarative-layout.md.html
+```
+However, there is a case where this isn't enough and another abstract widget has to be used. This concept is called the widget_template and is an optional property of many widgets such as the awful.widget.taglist, awful.widget.tasklist and naughty.layout.box. These templates are a table using the exact same syntax as the declarative widgets, but without the wibox.widget prefix in front of the curly braces. These templates represent future widgets that will be created by their parent widget. This is necessary for three reasons:
+
+The widget must create many instances of the template at different points in time.
+The widget data is only partially available and other fields must be set at a later time (by the parent widget).
+The code is highly redundant and some of the logic is delegated to the parent widget to simplify everything.
+```
+
+  * Short story.  
+  * A `widget_template` is basically a widget constructor
+  ```
+    widget_template = {
+      {
+        id = "indicator",
+        wibox.widget.base.make_widget(),
+        forced_height = 2,
+        bg = beautiful.bg_normal,
+        widget = wibox.container.background,
+      },
+      nil,
+      {
+        {
+          id = "icon_role",
+          widget = wibox.widget.imagebox,
+        },
+        margins = beautiful.wibar_height * 0.25,
+        widget = wibox.container.margin,
+      },
+      layout = wibox.layout.fixed.vertical,
+      create_callback = update_tag,
+      update_callback = update_tag,
+    },
+  ```
+  * One piece of hackery going on is that instead of just a single imagebox or even a margin wrapping an imagebox.  I am using a vertical layout with a small (mostly empty) background widget to act as an "active" indicator.
+  * The base.make_widget() is used to make sure the background isn't actually empty.  If it's truly empty, it won't render anything.
+  * The create_callback is called once the widget is created.  In the case of the taglist, it's called once for each tag that will be set up.  If you have 5 tags registered and 2 screens, it will be called 10 times total on awesome start.
+  * The update_callback is called every time the "data is refreshed".  This effectively means that it will be called those same 10 times on awesome start AND every time there is a change to the taglist.  Client opened/closed, focus on a new tag, sending client to another tag.  The update_callback will be executed for each tag every time one of those events occurs.
+  ```
+  local update_tag = function(widget, tag, index, taglist)
+    local w = widget:get_children_by_id("icon_role")[1]
+    local indicator = widget:get_children_by_id("indicator")[1]
+    local icon_name = tag_to_image_map[tag.name]
+    local color
+
+    if tag.selected then
+      color = beautiful.primary_color
+      indicator.bg = beautiful.primary_color
+    elseif tag.urgent then
+      color = beautiful.bg_urgent
+      indicator.bg = beautiful.bg_normal
+    elseif #tag:clients() > 0 then
+      color = beautiful.active_hover
+      indicator.bg = beautiful.bg_normal
+    else
+      color = beautiful.fg_normal
+      indicator.bg = beautiful.bg_normal
+    end
+
+    w.image = gears.color.recolor_image(beautiful.icon_dir .. icon_name, color)
+  end
+  ```
+  * In my case here, I am fine using the same function as the callback for create AND udpate.  I just want the taglist icons updated to their proper color.
+  * The buttons are still the same as the default buttons, just moved for readability

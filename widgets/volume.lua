@@ -13,8 +13,12 @@ volume-2 will be for 76-100% volume.
 pamixer is what I use for volume.  Change the cmd if you use something different.  Just make sure the output doesn't have the % symbol to deal with.
 ]]
 
-local volume = wrappers.image_widget("/volume-2.svg", beautiful.bg_normal)
-local volume_widget = wrappers.square_icon(volume, beautiful.highlight, beautiful.highlight_hover)
+local icon_color = beautiful.fg_normal
+local background_color = beautiful.highlight
+local background_color_hover = beautiful.highlight_hover
+local volume = wrappers.image_widget("/volume-2.svg", icon_color)
+-- local volume_widget = wrappers.square_icon(volume, background_color, background_color_hover)
+local volume_widget = wrappers.icon_with_text(volume)
 
 volume_widget.tooltip = awful.tooltip({
   objects = { volume_widget },
@@ -23,21 +27,25 @@ volume_widget.tooltip = awful.tooltip({
 local function update_volume()
   awful.spawn.easy_async_with_shell("pamixer --get-volume", function(vol)
     -- INFO: This stdout contains a \n character that messes up how the tooltip looks.
-    volume_widget.tooltip.text = string.gsub(vol, "\n", "") .. "%"
+    local vol_string = string.gsub(vol, "\n", "")
+    local tbox = volume_widget:get_children_by_id("text")[1]
+    volume_widget.tooltip.text = " " .. vol_string .. "%"
+    tbox.text = " " .. vol_string .. "%"
+
     --INFO: The way pamixer works, if you increase volume, it does not break `mute`.  So I want to update the tooltip, but not the icon, that's why I have it nested instead of a separate function.
     awful.spawn.easy_async_with_shell("pamixer --get-mute", function(mute)
       if string.find(mute, "true") then
-        volume.image = recolor(icon_dir .. "/volume-x.svg", beautiful.bg_normal)
+        volume.image = recolor(icon_dir .. "/volume-x.svg", icon_color)
       else
         local volume_level = tonumber(vol)
         if volume_level == 0 then
-          volume.image = recolor(icon_dir .. "/volume-x.svg", beautiful.bg_normal)
+          volume.image = recolor(icon_dir .. "/volume-x.svg", icon_color)
         elseif volume_level <= 25 then
-          volume.image = recolor(icon_dir .. "/volume.svg", beautiful.bg_normal)
+          volume.image = recolor(icon_dir .. "/volume.svg", icon_color)
         elseif volume_level <= 75 then
-          volume.image = recolor(icon_dir .. "/volume-1.svg", beautiful.bg_normal)
+          volume.image = recolor(icon_dir .. "/volume-1.svg", icon_color)
         else
-          volume.image = recolor(icon_dir .. "/volume-2.svg", beautiful.bg_normal)
+          volume.image = recolor(icon_dir .. "/volume-2.svg", icon_color)
         end
       end
     end)
