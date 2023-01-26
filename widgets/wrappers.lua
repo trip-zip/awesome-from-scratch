@@ -22,12 +22,6 @@ M.image_widget = function(image, color, hover_color)
   return widget
 end
 
--- Sometimes I like to recolor an existing widget depending on the context
-M.recolor_imagebox = function(widget, color)
-  widget.image = recolor(widget.image, color)
-  return widget
-end
-
 M.square_icon = function(w, color, hover_color)
   local widget = wibox.widget({
     {
@@ -51,10 +45,31 @@ M.square_icon = function(w, color, hover_color)
   return widget
 end
 
-M.vertical_separator = wibox.widget({
-  bg = beautiful.bg_normal,
-  forced_width = beautiful.wibar_height * 0.2,
-  widget = wibox.container.background,
-})
+M.vertical_separator = function(width)
+  return wibox.widget({
+    bg = beautiful.bg_normal,
+    forced_width = width,
+    widget = wibox.container.background,
+  })
+end
+
+M.icon_with_text = function(w, text)
+  return wibox.widget({
+    {
+      w,
+      margins = {
+        top = beautiful.wibar_height / 4,
+        bottom = beautiful.wibar_height / 4,
+      },
+      widget = wibox.container.margin,
+    },
+    {
+      id = "text",
+      text = text,
+      widget = wibox.widget.textbox,
+    },
+    layout = wibox.layout.fixed.horizontal,
+  })
+end
 
 return M
