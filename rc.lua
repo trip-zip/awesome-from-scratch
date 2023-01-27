@@ -113,7 +113,6 @@ mytextclock = wibox.widget.textclock()
 
 -- @DOC_FOR_EACH_SCREEN@
 screen.connect_signal("request::desktop_decoration", function(s)
-
   -- Create a promptbox for each screen
   s.mypromptbox = awful.widget.prompt()
 
@@ -136,7 +135,7 @@ screen.connect_signal("request::desktop_decoration", function(s)
       end),
     },
   })
-  
+
   -- @TASKLIST_BUTTON@
   -- Create a tasklist widget
   s.mytasklist = awful.widget.tasklist({
