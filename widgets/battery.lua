@@ -24,7 +24,8 @@ local function update()
   
   Again, since I only have 2 icons.  Charging and regular battery.  If it's doing anything but charging, it's regular battery
 --]]
-  local cmd = [[upower -i $(upower -e | grep 'BAT') | grep -E "state|to full|to empty|percentage" | cut -d ':' -f2 | awk '{$1=$1};1']]
+  local cmd =
+    [[upower -i $(upower -e | grep 'BAT') | grep -E "state|to full|to empty|percentage" | cut -d ':' -f2 | awk '{$1=$1};1']]
   awful.spawn.easy_async_with_shell(cmd, function(stdout)
     local data = gears.string.split(stdout, "\n")
     local state = data[1]
