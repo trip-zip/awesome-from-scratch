@@ -3,7 +3,7 @@
 * [Section 1 - Theme](https://github.com/trip-zip/awesome-from-scratch/tree/01-theme)
 * [Section 2 - Keybindings](https://github.com/trip-zip/awesome-from-scratch/tree/02-keybindings)
 * [Section 3 - Wibar](https://github.com/trip-zip/awesome-from-scratch/tree/03-wibar)
-* Section 4 - Notifications
+* [Section 4 - Notifications](https://github.com/trip-zip/awesome-from-scratch/tree/04-notifications)
 * Section 5 - Titlebars
 * Section 6 - Logout Screen
 * ??
