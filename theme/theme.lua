@@ -268,16 +268,17 @@ theme.graph_bg = nil
 theme.graph_border_color = nil
 theme.graph_fg = nil
 
-theme.hotkeys_bg = nil
-theme.hotkeys_border_color = nil
-theme.hotkeys_border_width = nil
-theme.hotkeys_description_font = nil
+theme.hotkeys_override_label_bgs = true
+theme.hotkeys_bg = theme.bg_focus
+theme.hotkeys_border_color = theme.accent
+theme.hotkeys_border_width = dpi(1)
+theme.hotkeys_description_font = theme.font
 theme.hotkeys_fg = nil
 theme.hotkeys_font = nil
 theme.hotkeys_group_margin = nil
-theme.hotkeys_label_bg = nil
-theme.hotkeys_label_fg = nil
-theme.hotkeys_modifiers_fg = nil
+theme.hotkeys_label_bg = theme.active
+theme.hotkeys_label_fg = theme.fg_normal
+theme.hotkeys_modifiers_fg = theme.primary_color
 theme.hotkeys_shape = nil
 
 theme.icon_theme = nil
