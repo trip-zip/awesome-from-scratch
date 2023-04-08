@@ -6,7 +6,6 @@ pcall(require, "luarocks.loader")
 -- @DOC_REQUIRE_SECTION@
 -- Standard awesome library
 local awful = require("awful")
-require("awful.autofocus")
 -- Widget and layout library
 local wibox = require("wibox")
 -- Theme handling library
@@ -17,6 +16,7 @@ local naughty = require("naughty")
 local ruled = require("ruled")
 local menubar = require("menubar")
 require("awful.hotkeys_popup.keys")
+local utils = require("utils")
 
 naughty.connect_signal("request::display_error", function(message, startup)
   naughty.notification({
@@ -183,6 +183,9 @@ ruled.client.connect_signal("request::rules", function()
       placement = awful.placement.no_overlap + awful.placement.no_offscreen,
     },
     callback = function(c)
+      c:grant("autoactivate", "switch_tag")
+      c:grant("autoactivate", "history")
+      c:deny("autoactivate", "mouse_enter")
       c:to_secondary_section()
     end,
   })
@@ -234,6 +237,7 @@ ruled.client.connect_signal("request::rules", function()
   -- }
 end)
 -- }}}
+
 
 -- {{{ Titlebars
 -- @DOC_TITLEBARS@

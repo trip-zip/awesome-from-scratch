@@ -3,6 +3,7 @@ local gears = require("gears")
 local recolor = require("gears").color.recolor_image
 local beautiful = require("beautiful")
 local wrappers = require("widgets.wrappers")
+local hostname = awesome.hostname
 
 local icon_color = beautiful.fg_normal
 local background_color = beautiful.accent
@@ -24,6 +25,9 @@ local function update()
   
   Again, since I only have 2 icons.  Charging and regular battery.  If it's doing anything but charging, it's regular battery
 --]]
+  if hostname == "c3po" then
+    return
+  end
   local cmd =
     [[upower -i $(upower -e | grep 'BAT') | grep -E "state|to full|to empty|percentage" | cut -d ':' -f2 | awk '{$1=$1};1']]
   awful.spawn.easy_async_with_shell(cmd, function(stdout)
