@@ -19,10 +19,6 @@ require("awful.hotkeys_popup.keys")
 local utils = require("utils")
 local gears = require("gears")
 
--- {{{ Error handling
--- Check if awesome encountered an error during startup and fell back to
--- another config (This code will only ever execute for the fallback config)
--- @DOC_ERROR_HANDLING@
 naughty.connect_signal("request::display_error", function(message, startup)
   naughty.notification({
     urgency = "critical",
@@ -30,7 +26,6 @@ naughty.connect_signal("request::display_error", function(message, startup)
     message = message,
   })
 end)
--- }}}
 
 -- {{{ Variable definitions
 -- @DOC_LOAD_THEME@
@@ -297,23 +292,4 @@ client.connect_signal("request::titlebars", function(c)
     layout = wibox.layout.align.horizontal,
   }
 end)
--- }}}
-
--- {{{ Notifications
-
-ruled.notification.connect_signal("request::rules", function()
-  -- All notifications will match this rule.
-  ruled.notification.append_rule({
-    rule = {},
-    properties = {
-      screen = awful.screen.preferred,
-      implicit_timeout = 5,
-    },
-  })
-end)
-
-naughty.connect_signal("request::display", function(n)
-  naughty.layout.box({ notification = n })
-end)
-
 -- }}}

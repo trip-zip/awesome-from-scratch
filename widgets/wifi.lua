@@ -24,7 +24,7 @@ local function update()
     local tbox = wifi_widget:get_children_by_id("text")[1]
     wifi_widget.tooltip.text = " " .. ssid_string
     tbox.text = " " .. ssid_string
-    if string.find(ssid, "Not connected") then
+    if string.find(ssid, "Not connected") or ssid == "" then
       wifi.image = recolor(beautiful.icon_dir .. "/wifi-off.svg", icon_color)
     else
       wifi.image = recolor(beautiful.icon_dir .. "/wifi.svg", icon_color)
