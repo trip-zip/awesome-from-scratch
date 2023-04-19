@@ -17,6 +17,7 @@ local ruled = require("ruled")
 local menubar = require("menubar")
 require("awful.hotkeys_popup.keys")
 local utils = require("utils")
+local gears = require("gears")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -84,25 +85,38 @@ tag.connect_signal("request::default_layouts", function()
   })
 end)
 -- }}}
+--
+-- local wallpapers = {
+--   "/home/jimmy/Pictures/wallpapers/gruvbox/penguin.jpg",
+--   "/home/jimmy/Pictures/wallpapers/gruvbox/spaceman.jpg",
+-- }
+local wallpapers = {
+  "/home/${USER}/.config/awesome/default/backgrounds/jellyfish_main.png",
+  "/home/${USER}/.config/awesome/default/backgrounds/jellyfish_second.jpg",
+}
+local function set_wallpaper(s)
+  gears.wallpaper.maximized(wallpapers[s.index], s, true)
+end
 
 -- {{{ Wallpaper
 -- @DOC_WALLPAPER@
 screen.connect_signal("request::wallpaper", function(s)
-  awful.wallpaper({
-    screen = s,
-    widget = {
-      {
-        image = beautiful.wallpaper,
-        upscale = true,
-        downscale = true,
-        widget = wibox.widget.imagebox,
-      },
-      valign = "center",
-      halign = "center",
-      tiled = false,
-      widget = wibox.container.tile,
-    },
-  })
+  -- awful.wallpaper({
+  --   screen = s,
+  --   widget = {
+  --     {
+  --       image = beautiful.wallpaper,
+  --       upscale = true,
+  --       downscale = true,
+  --       widget = wibox.widget.imagebox,
+  --     },
+  --     valign = "center",
+  --     halign = "center",
+  --     tiled = false,
+  --     widget = wibox.container.tile,
+  --   },
+  -- })
+  set_wallpaper(s)
 end)
 -- }}}
 
@@ -242,7 +256,6 @@ ruled.client.connect_signal("request::rules", function()
   -- }
 end)
 -- }}}
-
 
 -- {{{ Titlebars
 -- @DOC_TITLEBARS@

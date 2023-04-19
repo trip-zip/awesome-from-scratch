@@ -3,7 +3,8 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 -- Enable hotkeys help widget for VIM and other apps
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
-local menubar = require("menubar")
+local bling = require("bling")
+local app_launcher = bling.widget.app_launcher()
 
 local function table_to_keybinding(bindings)
   local key_bindings = {}
@@ -94,7 +95,8 @@ local global_keys = {
   {{ modkey }, "j",                     function () awful.client.focus.byidx( 1) end,             "focus next by index",                   "client"   },
   {{ modkey }, "k",                     function () awful.client.focus.byidx(-1) end,             "focus previous by index",               "client"   },
   {{ modkey }, "l",                     function () awful.tag.incmwfact( 0.05) end,               "increase master width factor",          "layout"   },
-  {{ modkey }, "p",                     function() menubar.show() end,                            "show the menubar",                      "launcher" },
+  {{ modkey }, "p",                     function() app_launcher:toggle() end,                     "show the menubar",                      "launcher" },
+  -- {{ modkey }, "p",                     function() menubar.show() end,                            "show the menubar",                      "launcher" },
   {{ modkey }, "r",                     function () awful.screen.focused().mypromptbox:run() end, "run prompt",                            "launcher" },
   {{ modkey }, "s",                     hotkeys_popup.show_help,                                  "show help",                             "awesome"  },
   {{ modkey }, "u",                     awful.client.urgent.jumpto,                               "jump to urgent client",                 "client"   },
