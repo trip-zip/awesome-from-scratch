@@ -17,7 +17,7 @@ return function(s)
       },
       {
         nil,
-        widgets.clock,
+        -- widgets.clock,
         nil,
         expand = "none",
         layout = wibox.layout.align.horizontal,
@@ -25,8 +25,8 @@ return function(s)
       {
         widgets.volume,
         widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
-        widgets.wifi,
-        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
+        -- widgets.wifi,
+        -- widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         widgets.battery,
         widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         widgets.power,

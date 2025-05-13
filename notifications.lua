@@ -5,24 +5,24 @@ local ruled = require("ruled")
 local naughty = require("naughty")
 local beautiful = require("beautiful")
 
-notification_list = {
-  { name = 'Reddit', icon_name = 'reddit.svg', url = 'https://www.reddit.com/' },
-  { name = 'StackOverflow', icon_name = 'stackoverflow.svg', url = 'http://github.com/' },
-  { name = 'GitHub', icon_name = 'github.svg', url = 'https://stackoverflow.com/' },
+local notification_list = {
+  { name = "Reddit", icon_name = "reddit.svg", url = "https://www.reddit.com/" },
+  { name = "StackOverflow", icon_name = "stackoverflow.svg", url = "http://github.com/" },
+  { name = "GitHub", icon_name = "github.svg", url = "https://stackoverflow.com/" },
 }
 
-local popup = awful.popup {
-    ontop = true,
-    visible = false, -- should be hidden when created
-    shape = function(cr, width, height)
-        gears.shape.rounded_rect(cr, width, height, 4)
-    end,
-    border_width = 1,
-    border_color = beautiful.bg_focus,
-    maximum_width = 400,
-    offset = { y = 5 },
-    widget = {}
-}
+local popup = awful.popup({
+  ontop = true,
+  visible = false, -- should be hidden when created
+  shape = function(cr, width, height)
+    gears.shape.rounded_rect(cr, width, height, 4)
+  end,
+  border_width = 1,
+  border_color = beautiful.bg_focus,
+  maximum_width = 400,
+  offset = { y = 5 },
+  widget = {},
+})
 
 local function update_popup()
   local n = #notification_list
@@ -32,22 +32,15 @@ local function update_popup()
   })
   local rows = { layout = wibox.layout.fixed.vertical }
   for _, item in ipairs(notification_list) do
-      local row = wibox.widget {
-          text = item.name,
-          widget = wibox.widget.textbox
-      }
-      table.insert(rows, row)
+    local row = wibox.widget({
+      text = item.name,
+      widget = wibox.widget.textbox,
+    })
+    table.insert(rows, row)
   end
-  local n = #notification_list
-  naughty.notify({
-    title = "Notifications",
-    text = tostring(n) .. " notifications",
-  })
   popup:setup(rows)
 end
 update_popup()
-
-
 
 local M = {}
 
@@ -83,7 +76,7 @@ end)
 local function append_notification(n)
   local notification = {
     name = n.title,
-    icon_name = n.app_icon
+    icon_name = n.app_icon,
   }
   gears.table.join(notification_list, notification)
 end

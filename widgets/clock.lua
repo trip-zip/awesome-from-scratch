@@ -12,8 +12,6 @@ clock_widget:add_button(awful.button({}, 1, function()
   notifications.toggle_notif_list()
 end))
 
-
-
 local set_clock = function()
   local time = " " .. os.date("%I:%M")
   local tbox = clock_widget:get_children_by_id("text")[1]

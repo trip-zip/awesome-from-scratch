@@ -227,9 +227,9 @@ ruled.client.connect_signal("request::rules", function()
         "Event Tester", -- xev.
       },
       role = {
-        "AlarmWindow", -- Thunderbird's calendar.
+        "AlarmWindow",   -- Thunderbird's calendar.
         "ConfigManager", -- Thunderbird's about:config.
-        "pop-up", -- e.g. Google Chrome's (detached) Developer Tools.
+        "pop-up",        -- e.g. Google Chrome's (detached) Developer Tools.
       },
     },
     properties = { floating = true },
@@ -273,7 +273,7 @@ client.connect_signal("request::titlebars", function(c)
       awful.titlebar.widget.floatingbutton(c),
       awful.titlebar.widget.maximizedbutton(c),
     },
-    { -- Middle
+    {   -- Middle
       { -- Title
         halign = "center",
         widget = awful.titlebar.widget.titlewidget(c),

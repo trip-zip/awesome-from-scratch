@@ -4,12 +4,15 @@ local beautiful = require("beautiful")
 local wrappers = require("widgets.wrappers")
 local icon_dir = string.format("%s/.config/awesome/icons", os.getenv("HOME"))
 
+local cmd = "pamixer --get-volume"
+local muteCmd = "pamixer --get-mute"
+
 --[[
 I have 4 volume related svgs, so I'll need to be a little weird about how to display it.
 volume-x.svg will only be used for mute.
 volume.svg will be for 0-25% volume.  I don't want it to go higher than that since the svg looks almost empty
-volume-1 will be for 26-75% volume. 
-volume-2 will be for 76-100% volume. 
+volume-1 will be for 26-75% volume.
+volume-2 will be for 76-100% volume.
 pamixer is what I use for volume.  Change the cmd if you use something different.  Just make sure the output doesn't have the % symbol to deal with.
 ]]
 
@@ -25,7 +28,7 @@ volume_widget.tooltip = awful.tooltip({
 })
 
 local function update_volume()
-  awful.spawn.easy_async_with_shell("pamixer --get-volume", function(vol)
+  awful.spawn.easy_async_with_shell(cmd, function(vol)
     -- INFO: This stdout contains a \n character that messes up how the tooltip looks.
     local vol_string = string.gsub(vol, "\n", "")
     local tbox = volume_widget:get_children_by_id("text")[1]
@@ -33,7 +36,7 @@ local function update_volume()
     tbox.text = " " .. vol_string .. "%"
 
     --INFO: The way pamixer works, if you increase volume, it does not break `mute`.  So I want to update the tooltip, but not the icon, that's why I have it nested instead of a separate function.
-    awful.spawn.easy_async_with_shell("pamixer --get-mute", function(mute)
+    awful.spawn.easy_async_with_shell(muteCmd, function(mute)
       if string.find(mute, "true") then
         volume.image = recolor(icon_dir .. "/volume-x.svg", icon_color)
       else
