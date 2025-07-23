@@ -28,26 +28,58 @@ local function update()
   if hostname == "c3po" then
     return
   end
-  local cmd =
-    [[upower -i $(upower -e | grep 'BAT') | grep -E "state|to full|to empty|percentage" | cut -d ':' -f2 | awk '{$1=$1};1']]
+  
+  -- First try upower, then fall back to sysfs
+  local cmd = [[
+    if command -v upower >/dev/null 2>&1; then
+      upower -i $(upower -e | grep 'BAT') | grep -E "state|to full|to empty|percentage" | cut -d ':' -f2 | awk '{$1=$1};1'
+    else
+      # Fallback to sysfs
+      if [ -f /sys/class/power_supply/BAT1/capacity ] && [ -f /sys/class/power_supply/BAT1/status ]; then
+        cat /sys/class/power_supply/BAT1/status
+        echo "N/A"  # No time estimate available from sysfs
+        echo "$(cat /sys/class/power_supply/BAT1/capacity)%"
+      else
+        echo "unknown"
+        echo "N/A"
+        echo "N/A"
+      fi
+    fi
+  ]]
+  
   awful.spawn.easy_async_with_shell(cmd, function(stdout)
     local data = gears.string.split(stdout, "\n")
-    local state = data[1]
-    local time = data[2]
-    local percentage = data[3]
+    local state = data[1] or "unknown"
+    local time = data[2] or "N/A"
+    local percentage = data[3] or "N/A"
+    
+    -- Handle nil or empty percentage
+    if not percentage or percentage == "" then
+      percentage = "N/A"
+    end
+    
     local tbox = battery_widget:get_children_by_id("text")[1]
     tbox.text = " " .. percentage
 
-    local time_key
-
-    if string.find(state, "discharging") then
+    local time_key = ""
+    
+    if string.find(state:lower(), "discharging") then
       time_key = "Time to empty: "
       battery.image = recolor(beautiful.icon_dir .. "/battery.svg", icon_color)
-    else
+    elseif string.find(state:lower(), "charging") then
       battery.image = recolor(beautiful.icon_dir .. "/battery-charging.svg", icon_color)
       time_key = "Time to full: "
+    else
+      -- For "Not charging", "Full", or other states
+      battery.image = recolor(beautiful.icon_dir .. "/battery.svg", icon_color)
+      time_key = "Status: " .. state .. " "
     end
-    battery_widget.tooltip.text = time_key .. time
+    
+    if time ~= "N/A" then
+      battery_widget.tooltip.text = time_key .. time
+    else
+      battery_widget.tooltip.text = "Battery: " .. percentage .. " (" .. state .. ")"
+    end
   end)
 end
 

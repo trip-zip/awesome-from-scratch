@@ -4,8 +4,30 @@ local beautiful = require("beautiful")
 local wrappers = require("widgets.wrappers")
 local icon_dir = string.format("%s/.config/awesome/icons", os.getenv("HOME"))
 
-local cmd = "pamixer --get-volume"
-local muteCmd = "pamixer --get-mute"
+-- Detect which volume control command to use
+local function get_volume_cmd()
+  return [[
+    if command -v pamixer >/dev/null 2>&1; then
+      pamixer --get-volume
+    elif command -v wpctl >/dev/null 2>&1; then
+      wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2 * 100)}'
+    else
+      echo "0"
+    fi
+  ]]
+end
+
+local function get_mute_cmd()
+  return [[
+    if command -v pamixer >/dev/null 2>&1; then
+      pamixer --get-mute
+    elif command -v wpctl >/dev/null 2>&1; then
+      wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -q "MUTED" && echo "true" || echo "false"
+    else
+      echo "false"
+    fi
+  ]]
+end
 
 --[[
 I have 4 volume related svgs, so I'll need to be a little weird about how to display it.
@@ -28,7 +50,7 @@ volume_widget.tooltip = awful.tooltip({
 })
 
 local function update_volume()
-  awful.spawn.easy_async_with_shell(cmd, function(vol)
+  awful.spawn.easy_async_with_shell(get_volume_cmd(), function(vol)
     -- INFO: This stdout contains a \n character that messes up how the tooltip looks.
     local vol_string = string.gsub(vol, "\n", "")
     local tbox = volume_widget:get_children_by_id("text")[1]
@@ -36,7 +58,7 @@ local function update_volume()
     tbox.text = " " .. vol_string .. "%"
 
     --INFO: The way pamixer works, if you increase volume, it does not break `mute`.  So I want to update the tooltip, but not the icon, that's why I have it nested instead of a separate function.
-    awful.spawn.easy_async_with_shell(muteCmd, function(mute)
+    awful.spawn.easy_async_with_shell(get_mute_cmd(), function(mute)
       if string.find(mute, "true") then
         volume.image = recolor(icon_dir .. "/volume-x.svg", icon_color)
       else
