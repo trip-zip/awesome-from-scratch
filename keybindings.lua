@@ -63,15 +63,15 @@ local client_helpers = {
 
 local media_helpers = {
   raise_volume = function()
-    awful.spawn("pamixer -i 3")
+    awful.spawn("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+")
     awesome.emit_signal("volume::update")
   end,
   lower_volume = function()
-    awful.spawn("pamixer -d 3")
+    awful.spawn("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
     awesome.emit_signal("volume::update")
   end,
   toggle_mute = function()
-    awful.spawn("pamixer -t")
+    awful.spawn("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
     awesome.emit_signal("volume::update")
   end,
 }
