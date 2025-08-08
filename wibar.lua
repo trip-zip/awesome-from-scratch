@@ -17,7 +17,7 @@ return function(s)
       },
       {
         nil,
-        -- widgets.clock,
+        widgets.clock,
         nil,
         expand = "none",
         layout = wibox.layout.align.horizontal,
