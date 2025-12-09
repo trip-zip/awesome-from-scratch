@@ -7,12 +7,13 @@ local xresources = require("beautiful.xresources")
 local dpi = xresources.apply_dpi
 local recolor = require("gears").color.recolor_image
 
-local theme_path = string.format("%s/.config/awesome/theme", os.getenv("HOME"))
+local config_dir = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config") .. "/somewm"
+local theme_path = config_dir .. "/theme"
 
 local theme = {}
 
 -- Just set this on theme so I'm not requring it everywhere...
-theme.icon_dir = string.format("%s/.config/awesome/icons", os.getenv("HOME"))
+theme.icon_dir = config_dir .. "/icons"
 
 local colors = {
   gruvbox = {

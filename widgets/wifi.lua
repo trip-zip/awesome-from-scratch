@@ -15,10 +15,25 @@ wifi_widget.tooltip = awful.tooltip({
   objects = { wifi_widget },
 })
 
+local function get_ssid_cmd()
+  return [[
+    # Try iw first (modern, Wayland-friendly)
+    if command -v iw >/dev/null 2>&1; then
+      interface=$(iw dev 2>/dev/null | grep "Interface" | head -1 | awk '{print $2}')
+      if [ -n "$interface" ]; then
+        iw dev "$interface" link 2>/dev/null | grep "SSID" | awk '{$1=""; print $0}' | xargs
+      fi
+    # Fallback to iwgetid
+    elif command -v iwgetid >/dev/null 2>&1; then
+      iwgetid -r 2>/dev/null
+    fi
+  ]]
+end
+
 local function update()
   -- Since I only have 2 wifi svgs, it's either on or off.  So I only really need to get the ssid and set a tooltip.
   -- I'll do a little check to see if it says "Not connected", if so, I'll set the svg to wifi-off.svg
-  awful.spawn.easy_async_with_shell("iwgetid -r", function(ssid)
+  awful.spawn.easy_async_with_shell(get_ssid_cmd(), function(ssid)
     local ssid_string = string.gsub(ssid, "\n", "")
     wifi_widget.tooltip.text = ssid_string
     local tbox = wifi_widget:get_children_by_id("text")[1]

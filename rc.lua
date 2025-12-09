@@ -1,4 +1,9 @@
 -- awesome_mode: api-level=4:screen=on
+
+-- Add config directory to Lua search path for somewm compatibility
+local config_dir = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config") .. "/somewm"
+package.path = config_dir .. "/?.lua;" .. config_dir .. "/?/init.lua;" .. package.path
+
 -- If LuaRocks is installed, make sure that packages installed through it are
 -- found (e.g. lgi). If LuaRocks is not installed, do nothing.
 pcall(require, "luarocks.loader")
@@ -16,7 +21,6 @@ local naughty = require("naughty")
 local ruled = require("ruled")
 local menubar = require("menubar")
 require("awful.hotkeys_popup.keys")
-local utils = require("utils")
 local gears = require("gears")
 
 naughty.connect_signal("request::display_error", function(message, startup)
@@ -30,14 +34,15 @@ end)
 -- {{{ Variable definitions
 -- @DOC_LOAD_THEME@
 -- Themes define colours, icons, font and wallpapers.
-local theme_path = string.format("%s/.config/awesome/theme/", os.getenv("HOME"))
-beautiful.init(theme_path .. "/theme.lua")
+local config_dir = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config") .. "/somewm"
+local theme_path = config_dir .. "/theme/"
+beautiful.init(theme_path .. "theme.lua")
 
 -- @DOC_DEFAULT_APPLICATIONS@
 -- This is used later as the default terminal and editor to run.
-terminal = "wezterm"
+terminal = "ghostty"
 editor = os.getenv("EDITOR") or "nvim"
-editor_cmd = "wezterm start -- " .. editor
+editor_cmd = "ghostty -e " .. editor
 filemanager = "thunar" --While I'm in here, may as well make this a variable
 
 -- Default modkey.
@@ -81,14 +86,14 @@ tag.connect_signal("request::default_layouts", function()
 end)
 -- }}}
 --
--- local wallpapers = {
---   "/home/jimmy/Pictures/wallpapers/gruvbox/penguin.jpg",
---   "/home/jimmy/Pictures/wallpapers/gruvbox/spaceman.jpg",
--- }
 local wallpapers = {
-  "/home/${USER}/.config/awesome/default/backgrounds/jellyfish_main.png",
-  "/home/${USER}/.config/awesome/default/backgrounds/jellyfish_second.jpg",
+  "/home/jimmy/wallpapers/gruvbox/penguin.jpg",
+  "/home/jimmy/wallpapers/gruvbox/spaceman.jpg",
 }
+-- local wallpapers = {
+--   "/home/${USER}/.config/awesome/default/backgrounds/jellyfish_main.png",
+--   "/home/${USER}/.config/awesome/default/backgrounds/jellyfish_second.jpg",
+-- }
 local function set_wallpaper(s)
   gears.wallpaper.maximized(wallpapers[s.index], s, true)
 end
@@ -195,6 +200,7 @@ ruled.client.connect_signal("request::rules", function()
       raise = true,
       screen = awful.screen.preferred,
       placement = awful.placement.no_overlap + awful.placement.no_offscreen,
+      opacity = 0.85,
     },
     callback = function(c)
       c:grant("autoactivate", "switch_tag")
