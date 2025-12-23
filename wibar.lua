@@ -23,6 +23,8 @@ return function(s)
         layout = wibox.layout.align.horizontal,
       },
       {
+        wibox.widget.systray(),
+        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         widgets.volume,
         widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         widgets.wifi,

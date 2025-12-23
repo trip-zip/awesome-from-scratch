@@ -439,8 +439,42 @@ theme.snap_border_width = nil
 theme.snap_shape = nil
 theme.snapper_gap = nil
 
-theme.systray_icon_spacing = dpi(2)
-theme.systray_max_rows = nil
+theme.systray_icon_spacing = dpi(4)
+theme.systray_max_rows = 1
+
+-- Systray hover effects (default for all icons)
+theme.systray_hover_scale = 1.1
+theme.systray_hover_bg = color.grey2 .. "88"  -- subtle background on hover
+
+-- Systray urgent styling (when app needs attention)
+theme.systray_urgent_style = "dot"
+theme.systray_urgent_color = color.soft_red
+theme.systray_urgent_outline_color = color.bg
+
+-- Per-app systray styling
+theme.systray_icon_style = {
+    Discord = {
+        hover_scale = 1.3,
+        hover_bg = "#5865F266",        -- Discord blurple
+        urgent_bg = "#ED424522",       -- Discord red tint
+        urgent_color = "#ED4245",      -- Discord red
+        urgent_style = "ring",
+        -- icon_override = "/usr/share/pixmaps/archlinux-logo.png",  -- Replace with Arch logo for fun
+    },
+    Slack = {
+        -- icon_override = "/home/jimmy/.config/somewm/icons/slack.svg",
+        -- icon_change_triggers_urgent = false,
+        hover_scale = 1.2,
+        hover_bg = "#4a154b44",        -- Slack aubergine
+        urgent_bg = "#E0115522",       -- Slack magenta tint
+        urgent_color = "#E01155",      -- Slack magenta
+        urgent_style = "dot",          -- try "dot", "ring", or "glow"
+        urgent_position = "bottom_right",
+        urgent_shape = function(cr, w, h)
+            gears.shape.rounded_rect(cr, w, h, 4)
+        end,
+    },
+}
 
 theme.taglist_bg_empty = color.bg
 theme.taglist_bg_focus = color.grey1

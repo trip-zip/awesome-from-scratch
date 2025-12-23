@@ -11,6 +11,7 @@ pcall(require, "luarocks.loader")
 -- @DOC_REQUIRE_SECTION@
 -- Standard awesome library
 local awful = require("awful")
+require("awful.autofocus")
 -- Widget and layout library
 local wibox = require("wibox")
 -- Theme handling library
@@ -22,6 +23,7 @@ local ruled = require("ruled")
 local menubar = require("menubar")
 require("awful.hotkeys_popup.keys")
 local gears = require("gears")
+
 
 naughty.connect_signal("request::display_error", function(message, startup)
   naughty.notification({
@@ -299,3 +301,8 @@ client.connect_signal("request::titlebars", function(c)
   }
 end)
 -- }}}
+
+-- Enable sloppy focus, so that focus follows mouse.
+-- client.connect_signal("mouse::enter", function(c)
+--     c:activate { context = "mouse_enter", raise = false }
+-- end)
