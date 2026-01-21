@@ -62,9 +62,7 @@ local function create_toggle(icon, label, key, on_toggle, check_cmd)
         },
         bg = toggle_states[key] and active_color or inactive_color,
         fg = toggle_states[key] and beautiful.bg_normal or beautiful.fg_normal,
-        shape = function(cr, w, h)
-            gears.shape.rounded_rect(cr, w, h, 8)
-        end,
+        shape = beautiful.shape_small,
         forced_width = 90,
         forced_height = 76,
         widget = wibox.container.background,

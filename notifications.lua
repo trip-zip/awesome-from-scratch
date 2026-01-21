@@ -114,9 +114,7 @@ end
 M.notification_center = awful.popup({
   ontop = true,
   visible = false,
-  shape = function(cr, width, height)
-    gears.shape.rounded_rect(cr, width, height, beautiful.border_radius or 8)
-  end,
+  shape = beautiful.shape,
   border_width = beautiful.border_width or 2,
   border_color = beautiful.border_focus or beautiful.bg_focus or "#3c3836",
   preferred_positions = "bottom",
@@ -152,7 +150,7 @@ local function update_notification_center()
           },
           widget = wibox.container.background,
           bg = beautiful.bg_minimize,
-          shape = gears.shape.rounded_rect,
+          shape = beautiful.shape_small,
           forced_width = 80,
           forced_height = 25,
           buttons = awful.button({}, 1, function()
@@ -180,7 +178,7 @@ local function update_notification_center()
           widget = wibox.container.background,
           bg = beautiful.bg_urgent,
           fg = beautiful.fg_urgent,
-          shape = gears.shape.rounded_rect,
+          shape = beautiful.shape_small,
           forced_width = 80,
           forced_height = 25,
           buttons = awful.button({}, 1, function()
@@ -315,7 +313,7 @@ local function update_notification_center()
         },
         widget = wibox.container.background,
         bg = item_bg,
-        shape = gears.shape.rounded_rect,
+        shape = beautiful.shape_small,
         buttons = awful.button({}, 1, function()
           -- Mark as read on click
           if not notif.is_read then
@@ -584,7 +582,7 @@ naughty.connect_signal("request::display", function(n)
         widget = wibox.container.margin,
       },
       widget = wibox.container.background,
-      shape = gears.shape.rounded_rect,
+      shape = beautiful.shape,
       bg = n.bg or beautiful.bg_normal,
       fg = n.fg or beautiful.fg_normal,
       border_width = beautiful.notification_border_width or 2,

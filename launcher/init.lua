@@ -30,9 +30,6 @@ local config = {
     icon_size = 40,
     item_height = 50,
     margin = 16,
-    shape = function(cr, w, h)
-        gears.shape.rounded_rect(cr, w, h, 12)
-    end,
 }
 
 --- Fuzzy match function
@@ -291,9 +288,7 @@ local function create_app_item(app, index)
         },
         bg = is_selected and (beautiful.primary_color or "#d65d0e") or "transparent",
         fg = is_selected and beautiful.bg_normal or beautiful.fg_normal,
-        shape = function(cr, w, h)
-            gears.shape.rounded_rect(cr, w, h, 6)
-        end,
+        shape = beautiful.shape_small,
         forced_height = config.item_height,
         widget = wibox.container.background,
     })
@@ -419,7 +414,7 @@ local function create_launcher_widget()
             widget = wibox.container.margin,
         },
         bg = (beautiful.bg_normal or "#282828") .. "F8",
-        shape = config.shape,
+        shape = beautiful.shape,
         forced_width = config.width,
         forced_height = max_height,
         widget = wibox.container.background,
@@ -519,7 +514,7 @@ function launcher.show()
             bg = "#00000000",
             border_width = beautiful.border_width or 1,
             border_color = beautiful.primary_color or "#d65d0e",
-            shape = config.shape,
+            shape = beautiful.shape,
         })
     end
 

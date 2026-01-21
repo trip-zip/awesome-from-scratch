@@ -136,6 +136,15 @@ screen.connect_signal("request::wallpaper", function(s)
 end)
 -- }}}
 
+-- {{{ Screen scaling
+-- Scale up the laptop monitor (screen 1) for better readability
+awful.screen.connect_for_each_screen(function(s)
+  if s.index == 1 then
+    s.scale = 1.5
+  end
+end)
+-- }}}
+
 -- {{{ Wibar
 
 -- Create a textclock widget

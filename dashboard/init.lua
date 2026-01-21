@@ -33,9 +33,6 @@ local config = {
     bg = (beautiful.bg_normal or "#282828") .. "F2", -- Slightly transparent
     border_width = beautiful.border_width or 1,
     border_color = beautiful.border_color_active or beautiful.primary_color or "#d65d0e",
-    shape = function(cr, w, h)
-        gears.shape.rounded_rect(cr, w, h, 12)
-    end,
 }
 
 --- Create the main dashboard widget
@@ -58,7 +55,7 @@ local function create_dashboard_widget()
             widget = wibox.container.margin,
         },
         bg = config.bg,
-        shape = config.shape,
+        shape = beautiful.shape,
         forced_width = config.width,
         widget = wibox.container.background,
     })
@@ -97,7 +94,7 @@ function dashboard.show()
             ontop = true,
             visible = false,
             bg = "#00000000", -- Fully transparent (widget has its own bg)
-            shape = config.shape,
+            shape = beautiful.shape,
             border_width = config.border_width,
             border_color = config.border_color,
         })

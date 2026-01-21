@@ -36,9 +36,7 @@ function calendar_widget.create()
                 widget,
                 bg = beautiful.primary_color or "#d65d0e",
                 fg = beautiful.bg_normal or "#282828",
-                shape = function(cr, w, h)
-                    gears.shape.rounded_rect(cr, w, h, 4)
-                end,
+                shape = beautiful.shape_small,
                 widget = wibox.container.background,
             })
         elseif flag == "blank" then

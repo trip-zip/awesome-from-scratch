@@ -117,9 +117,7 @@ local function create_button(option, index)
         },
         bg = is_selected and (beautiful.primary_color or "#d65d0e") or (beautiful.bg_focus or "#3c3836"),
         fg = is_selected and beautiful.bg_normal or beautiful.fg_normal,
-        shape = function(cr, w, h)
-            gears.shape.rounded_rect(cr, w, h, 12)
-        end,
+        shape = beautiful.shape,
         forced_width = config.button_size,
         forced_height = config.button_size + 30,
         widget = wibox.container.background,

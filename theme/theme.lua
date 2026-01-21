@@ -75,6 +75,30 @@ theme.accent_hover = color.soft_yellow
 theme.highlight = color.blue
 theme.highlight_hover = color.soft_blue
 
+-- Global shape setting: "rectangle" or "rounded"
+-- Change this single setting to switch all widget corners
+theme.shape_style = "rectangle"
+theme.corner_radius = 12  -- Only used when shape_style = "rounded"
+
+-- Helper function to get the appropriate shape
+-- Usage: beautiful.shape(cr, w, h) or beautiful.shape
+function theme.shape(cr, w, h)
+    if theme.shape_style == "rounded" then
+        gears.shape.rounded_rect(cr, w, h, theme.corner_radius)
+    else
+        gears.shape.rectangle(cr, w, h)
+    end
+end
+
+-- Smaller radius shape for inner elements (buttons, toggles, etc.)
+function theme.shape_small(cr, w, h)
+    if theme.shape_style == "rounded" then
+        gears.shape.rounded_rect(cr, w, h, math.min(theme.corner_radius / 2, 6))
+    else
+        gears.shape.rectangle(cr, w, h)
+    end
+end
+
 theme.bg_normal = color.bg
 theme.bg_focus = color.grey2
 theme.bg_urgent = color.soft_red
