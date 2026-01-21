@@ -118,7 +118,7 @@ M.notification_center = awful.popup({
     gears.shape.rounded_rect(cr, width, height, beautiful.border_radius or 8)
   end,
   border_width = beautiful.border_width or 2,
-  border_color = beautiful.border_focus or beautiful.bg_focus,
+  border_color = beautiful.border_focus or beautiful.bg_focus or "#3c3836",
   preferred_positions = "bottom",
   preferred_anchors = "middle",
   minimum_width = 400,

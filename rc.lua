@@ -40,6 +40,14 @@ local config_dir = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.conf
 local theme_path = config_dir .. "/theme/"
 beautiful.init(theme_path .. "theme.lua")
 
+-- Load notification system (after theme init, before any notifications can fire)
+local notifications_ok, notifications_err = pcall(require, "notifications")
+if not notifications_ok then
+  io.stderr:write("[RC.LUA] Failed to load notifications: " .. tostring(notifications_err) .. "\n")
+else
+  io.stderr:write("[RC.LUA] Notifications module loaded successfully\n")
+end
+
 -- @DOC_DEFAULT_APPLICATIONS@
 -- This is used later as the default terminal and editor to run.
 terminal = "ghostty"

@@ -27,12 +27,12 @@ local calendar = require("dashboard.calendar")
 
 -- Configuration
 local config = {
-    width = 420,
+    width = 440,
     margin = 20,
     spacing = 16,
-    bg = beautiful.bg_normal .. "F2", -- Slightly transparent
+    bg = (beautiful.bg_normal or "#282828") .. "F2", -- Slightly transparent
     border_width = beautiful.border_width or 1,
-    border_color = beautiful.border_color_active or beautiful.primary_color,
+    border_color = beautiful.border_color_active or beautiful.primary_color or "#d65d0e",
     shape = function(cr, w, h)
         gears.shape.rounded_rect(cr, w, h, 12)
     end,
@@ -59,6 +59,7 @@ local function create_dashboard_widget()
         },
         bg = config.bg,
         shape = config.shape,
+        forced_width = config.width,
         widget = wibox.container.background,
     })
 end

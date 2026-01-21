@@ -18,58 +18,41 @@ local calendar_widget = {}
 function calendar_widget.create()
     -- Calendar styling functions
     local function decorate_cell(widget, flag, date)
-        local props = {
-            markup = widget.text,
-            halign = "center",
-            valign = "center",
-            widget = wibox.widget.textbox,
-        }
-
+        -- Style the original widget based on cell type
         if flag == "header" then
             -- Month/Year header
-            props.font = "JetBrainsMono Nerd Font Bold 12"
-            props.markup = '<span color="' .. (beautiful.primary_color or "#d65d0e") .. '">' .. widget.text .. '</span>'
+            widget.font = "JetBrainsMono Nerd Font Bold 12"
+            widget.markup = '<span color="' .. (beautiful.primary_color or "#d65d0e") .. '">' .. (widget.text or "") .. '</span>'
+            return widget
         elseif flag == "weekday" then
             -- Day names
-            props.font = "JetBrainsMono Nerd Font Bold 10"
-            props.markup = '<span color="' .. (beautiful.fg_normal or "#ebdbb2") .. '88">' .. widget.text .. '</span>'
-        elseif flag == "normal" then
-            -- Regular days
-            props.font = "JetBrainsMono Nerd Font 10"
+            widget.font = "JetBrainsMono Nerd Font Bold 10"
+            widget.markup = '<span color="' .. (beautiful.fg_normal or "#ebdbb2") .. '88">' .. (widget.text or "") .. '</span>'
+            return widget
         elseif flag == "focus" then
-            -- Today
-            props.font = "JetBrainsMono Nerd Font Bold 10"
+            -- Today - orange background (no forced size, let it match other cells)
+            widget.font = "JetBrainsMono Nerd Font Bold 10"
             return wibox.widget({
-                {
-                    props,
-                    halign = "center",
-                    valign = "center",
-                    widget = wibox.container.place,
-                },
+                widget,
                 bg = beautiful.primary_color or "#d65d0e",
                 fg = beautiful.bg_normal or "#282828",
-                shape = gears.shape.circle,
-                forced_width = 28,
-                forced_height = 28,
+                shape = function(cr, w, h)
+                    gears.shape.rounded_rect(cr, w, h, 4)
+                end,
                 widget = wibox.container.background,
             })
+        elseif flag == "blank" then
+            -- Empty cells
+            return widget
         else
-            -- Other month days
-            props.font = "JetBrainsMono Nerd Font 10"
-            props.markup = '<span color="' .. (beautiful.fg_normal or "#ebdbb2") .. '44">' .. widget.text .. '</span>'
+            -- Normal days and other month days
+            widget.font = "JetBrainsMono Nerd Font 10"
+            if flag ~= "normal" then
+                -- Other month days - dimmed
+                widget.markup = '<span color="' .. (beautiful.fg_normal or "#ebdbb2") .. '44">' .. (widget.text or "") .. '</span>'
+            end
+            return widget
         end
-
-        return wibox.widget({
-            {
-                props,
-                halign = "center",
-                valign = "center",
-                widget = wibox.container.place,
-            },
-            forced_width = 28,
-            forced_height = 28,
-            widget = wibox.container.background,
-        })
     end
 
     -- Create the calendar
@@ -185,11 +168,7 @@ function calendar_widget.create()
             layout = wibox.layout.align.horizontal,
         },
         {
-            {
-                cal,
-                halign = "center",
-                widget = wibox.container.place,
-            },
+            cal,
             top = 8,
             widget = wibox.container.margin,
         },

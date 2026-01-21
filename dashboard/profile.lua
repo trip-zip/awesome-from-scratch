@@ -88,7 +88,7 @@ function profile.create()
                     date_widget,
                     {
                         greeting_widget,
-                        fg = beautiful.fg_normal .. "AA",
+                        fg = (beautiful.fg_normal or "#ebdbb2") .. "AA",
                         widget = wibox.container.background,
                     },
                     spacing = 4,
@@ -104,7 +104,7 @@ function profile.create()
             {
                 orientation = "horizontal",
                 forced_height = 1,
-                color = beautiful.fg_normal .. "33",
+                color = (beautiful.fg_normal or "#ebdbb2") .. "33",
                 widget = wibox.widget.separator,
             },
             top = 16,

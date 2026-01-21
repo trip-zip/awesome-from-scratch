@@ -2,7 +2,6 @@ local awful = require("awful")
 local recolor = require("gears").color.recolor_image
 local beautiful = require("beautiful")
 local wrappers = require("widgets.wrappers")
-local icon_dir = string.format("%s/.config/awesome/icons", os.getenv("HOME"))
 
 -- Detect which volume control command to use
 local function get_volume_cmd()
@@ -60,17 +59,17 @@ local function update_volume()
     --INFO: The way pamixer works, if you increase volume, it does not break `mute`.  So I want to update the tooltip, but not the icon, that's why I have it nested instead of a separate function.
     awful.spawn.easy_async_with_shell(get_mute_cmd(), function(mute)
       if string.find(mute, "true") then
-        volume.image = recolor(icon_dir .. "/volume-x.svg", icon_color)
+        volume.image = recolor(beautiful.icon_dir .. "/volume-x.svg", icon_color)
       else
         local volume_level = tonumber(vol)
         if volume_level == 0 then
-          volume.image = recolor(icon_dir .. "/volume-x.svg", icon_color)
+          volume.image = recolor(beautiful.icon_dir .. "/volume-x.svg", icon_color)
         elseif volume_level <= 25 then
-          volume.image = recolor(icon_dir .. "/volume.svg", icon_color)
+          volume.image = recolor(beautiful.icon_dir .. "/volume.svg", icon_color)
         elseif volume_level <= 75 then
-          volume.image = recolor(icon_dir .. "/volume-1.svg", icon_color)
+          volume.image = recolor(beautiful.icon_dir .. "/volume-1.svg", icon_color)
         else
-          volume.image = recolor(icon_dir .. "/volume-2.svg", icon_color)
+          volume.image = recolor(beautiful.icon_dir .. "/volume-2.svg", icon_color)
         end
       end
     end)

@@ -1,7 +1,6 @@
 local awful = require("awful")
 local beautiful = require("beautiful")
 local hotkeys_popup = require("awful.hotkeys_popup")
-local utils = require("utils")
 
 local awesomemenu = {
   {
@@ -12,7 +11,6 @@ local awesomemenu = {
   },
   { "manual", terminal .. " -e man awesome" },
   { "edit config", editor_cmd .. " " .. awesome.conffile },
-  { "Configs", utils.list_configs() },
   { "restart", awesome.restart },
   {
     "quit",

@@ -65,8 +65,8 @@ local function create_toggle(icon, label, key, on_toggle, check_cmd)
         shape = function(cr, w, h)
             gears.shape.rounded_rect(cr, w, h, 8)
         end,
-        forced_width = 80,
-        forced_height = 70,
+        forced_width = 90,
+        forced_height = 76,
         widget = wibox.container.background,
     })
 
@@ -135,7 +135,7 @@ function toggles.create()
     -- Bluetooth toggle
     local bluetooth_toggle = create_toggle(
         "󰂯",
-        "Bluetooth",
+        "BT",
         "bluetooth",
         function(state)
             if state then
@@ -235,7 +235,7 @@ function toggles.create()
             {
                 orientation = "horizontal",
                 forced_height = 1,
-                color = beautiful.fg_normal .. "33",
+                color = (beautiful.fg_normal or "#ebdbb2") .. "33",
                 widget = wibox.widget.separator,
             },
             top = 16,

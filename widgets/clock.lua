@@ -4,7 +4,6 @@ local wibox = require("wibox")
 local beautiful = require("beautiful")
 local wrappers = require("widgets.wrappers")
 local notifications = require("notifications")
-local utils = require("utils")
 
 local clock = wrappers.image_widget("/clock.svg", beautiful.fg_normal)
 local clock_widget_base = wrappers.icon_with_text(clock)

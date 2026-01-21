@@ -49,6 +49,7 @@ local function create_slider(icon, color, get_cmd, set_cmd, signal)
         font = "JetBrainsMono Nerd Font 18",
         halign = "center",
         valign = "center",
+        forced_width = 28,
         widget = wibox.widget.textbox,
     })
 
@@ -150,7 +151,7 @@ function sliders.create()
             {
                 orientation = "horizontal",
                 forced_height = 1,
-                color = beautiful.fg_normal .. "33",
+                color = (beautiful.fg_normal or "#ebdbb2") .. "33",
                 widget = wibox.widget.separator,
             },
             top = 16,

@@ -12,7 +12,6 @@ local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")
 local wibox = require("wibox")
-local menubar = require("menubar")
 
 local launcher = {}
 
@@ -83,21 +82,116 @@ local function fuzzy_match(pattern, str)
     return nil
 end
 
+--- Parse a single .desktop file
+local function parse_desktop_file(path)
+    local file = io.open(path, "r")
+    if not file then return nil end
+
+    local app = {}
+    local in_desktop_entry = false
+
+    for line in file:lines() do
+        if line:match("^%[Desktop Entry%]") then
+            in_desktop_entry = true
+        elseif line:match("^%[") then
+            in_desktop_entry = false
+        elseif in_desktop_entry then
+            local key, value = line:match("^([^=]+)=(.*)$")
+            if key and value then
+                if key == "Name" and not app.name then
+                    app.name = value
+                elseif key == "Exec" then
+                    -- Remove field codes like %f, %F, %u, %U, etc.
+                    app.exec = value:gsub("%%[fFuUdDnNickvm]", ""):gsub("%s+$", "")
+                elseif key == "Icon" then
+                    app.icon = value
+                elseif key == "Comment" then
+                    app.comment = value
+                elseif key == "NoDisplay" and value == "true" then
+                    file:close()
+                    return nil
+                elseif key == "Hidden" and value == "true" then
+                    file:close()
+                    return nil
+                elseif key == "Type" and value ~= "Application" then
+                    file:close()
+                    return nil
+                end
+            end
+        end
+    end
+
+    file:close()
+
+    if app.name and app.exec then
+        app.comment = app.comment or ""
+        return app
+    end
+    return nil
+end
+
+--- Find icon path from icon name
+local function find_icon(icon_name)
+    if not icon_name then return nil end
+
+    -- If it's already a path, return it
+    if icon_name:match("^/") and gears.filesystem.file_readable(icon_name) then
+        return icon_name
+    end
+
+    -- Common icon directories and sizes to search
+    local icon_dirs = {
+        "/usr/share/icons/hicolor/48x48/apps",
+        "/usr/share/icons/hicolor/64x64/apps",
+        "/usr/share/icons/hicolor/128x128/apps",
+        "/usr/share/icons/hicolor/scalable/apps",
+        "/usr/share/pixmaps",
+        "/usr/share/icons/Adwaita/48x48/apps",
+        "/usr/share/icons/Adwaita/scalable/apps",
+    }
+
+    local extensions = { ".png", ".svg", ".xpm", "" }
+
+    for _, dir in ipairs(icon_dirs) do
+        for _, ext in ipairs(extensions) do
+            local path = dir .. "/" .. icon_name .. ext
+            if gears.filesystem.file_readable(path) then
+                return path
+            end
+        end
+    end
+
+    return nil
+end
+
 --- Load applications from .desktop files
 local function load_apps()
     all_apps = {}
 
-    -- Use menubar's app loading (already handles .desktop parsing)
-    menubar.utils.compute_categories()
+    -- Desktop file directories
+    local desktop_dirs = {
+        "/usr/share/applications",
+        "/usr/local/share/applications",
+        os.getenv("HOME") .. "/.local/share/applications",
+    }
 
-    for _, app in ipairs(menubar.menu_entries) do
-        if app.Name and app.cmdline then
-            table.insert(all_apps, {
-                name = app.Name,
-                exec = app.cmdline,
-                icon = app.icon_path,
-                comment = app.comment or "",
-            })
+    local seen = {} -- Avoid duplicates
+
+    for _, dir in ipairs(desktop_dirs) do
+        local handle = io.popen('find "' .. dir .. '" -name "*.desktop" 2>/dev/null')
+        if handle then
+            for path in handle:lines() do
+                local basename = path:match("([^/]+)$")
+                if not seen[basename] then
+                    seen[basename] = true
+                    local app = parse_desktop_file(path)
+                    if app then
+                        app.icon = find_icon(app.icon)
+                        table.insert(all_apps, app)
+                    end
+                end
+            end
+            handle:close()
         end
     end
 
@@ -207,6 +301,7 @@ local function create_app_item(app, index)
     -- Click to launch
     item:buttons(gears.table.join(
         awful.button({}, 1, function()
+            io.stderr:write("[LAUNCHER] Click on: " .. app.name .. " -> " .. app.exec .. "\n")
             launcher.hide()
             awful.spawn(app.exec)
         end)
@@ -259,13 +354,7 @@ end
 
 --- Create the results list widget
 local function create_results_list()
-    local items = {}
-
-    for i, app in ipairs(filtered_apps) do
-        table.insert(items, create_app_item(app, i))
-    end
-
-    if #items == 0 then
+    if #filtered_apps == 0 then
         return wibox.widget({
             {
                 text = "No applications found",
@@ -273,20 +362,48 @@ local function create_results_list()
                 halign = "center",
                 widget = wibox.widget.textbox,
             },
-            fg = beautiful.fg_normal .. "88",
+            fg = (beautiful.fg_normal or "#ebdbb2") .. "88",
             widget = wibox.container.background,
         })
     end
 
-    return wibox.widget({
-        table.unpack(items),
-        spacing = 4,
-        layout = wibox.layout.fixed.vertical,
+    local layout = wibox.layout.fixed.vertical()
+    layout.spacing = 4
+
+    for i, app in ipairs(filtered_apps) do
+        layout:add(create_app_item(app, i))
+    end
+
+    -- Wrap in a container to capture scroll events
+    local container = wibox.widget({
+        layout,
+        widget = wibox.container.background,
     })
+
+    container:buttons(gears.table.join(
+        awful.button({}, 4, function()
+            -- Scroll up
+            selected_index = math.max(1, selected_index - 1)
+            launcher.refresh()
+        end),
+        awful.button({}, 5, function()
+            -- Scroll down
+            selected_index = math.min(#filtered_apps, selected_index + 1)
+            launcher.refresh()
+        end)
+    ))
+
+    return container
 end
 
 --- Create the main launcher widget
 local function create_launcher_widget()
+    -- Calculate max height based on max_results
+    local max_height = config.margin * 2  -- top + bottom margin
+        + 40  -- search input area
+        + 16  -- spacing
+        + (config.item_height + 4) * config.max_results  -- items + spacing
+
     return wibox.widget({
         {
             {
@@ -303,6 +420,8 @@ local function create_launcher_widget()
         },
         bg = (beautiful.bg_normal or "#282828") .. "F8",
         shape = config.shape,
+        forced_width = config.width,
+        forced_height = max_height,
         widget = wibox.container.background,
     })
 end
@@ -317,9 +436,14 @@ end
 
 --- Launch selected app
 local function launch_selected()
+    io.stderr:write("[LAUNCHER] launch_selected called, filtered_apps=" .. #filtered_apps .. " selected=" .. selected_index .. "\n")
     if #filtered_apps > 0 and filtered_apps[selected_index] then
+        local app = filtered_apps[selected_index]
+        io.stderr:write("[LAUNCHER] Launching: " .. app.name .. " -> " .. app.exec .. "\n")
         launcher.hide()
-        awful.spawn(filtered_apps[selected_index].exec)
+        awful.spawn(app.exec)
+    else
+        io.stderr:write("[LAUNCHER] No app to launch\n")
     end
 end
 
@@ -331,7 +455,14 @@ local function start_keygrabber()
         autostart = true,
         stop_key = "Escape",
         stop_callback = function()
-            launcher.hide()
+            -- Don't call hide() here - it causes recursion
+            -- Just do visual cleanup since keygrabber already stopped
+            if launcher_popup then
+                launcher_popup.visible = false
+            end
+            launcher_visible = false
+            keygrabber = nil
+            awesome.emit_signal("launcher::visible", false)
         end,
         keypressed_callback = function(_, _, key, _)
             if key == "Return" then
@@ -409,16 +540,19 @@ function launcher.hide()
         return
     end
 
-    if keygrabber then
-        keygrabber:stop()
-        keygrabber = nil
+    -- Set this first to prevent recursion from stop_callback
+    launcher_visible = false
+
+    local kg = keygrabber
+    keygrabber = nil
+    if kg then
+        kg:stop()
     end
 
     if launcher_popup then
         launcher_popup.visible = false
     end
 
-    launcher_visible = false
     awesome.emit_signal("launcher::visible", false)
 end
 
