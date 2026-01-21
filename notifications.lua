@@ -103,267 +103,450 @@ end
 -- Helper function to play notification sound
 local function play_sound(urgency)
   if not M.config.enable_sounds then return end
-  
+
   local sound_file = M.config.sound_files[urgency] or M.config.sound_files.normal
-  if sound_file then
+  if sound_file and gears.filesystem.file_readable(sound_file) then
     awful.spawn.easy_async("paplay " .. sound_file, function() end)
   end
 end
 
--- Create notification center widget
-M.notification_center = awful.popup({
-  ontop = true,
-  visible = false,
-  shape = beautiful.shape,
-  border_width = beautiful.border_width or 2,
-  border_color = beautiful.border_focus or beautiful.bg_focus or "#3c3836",
-  preferred_positions = "bottom",
-  preferred_anchors = "middle",
-  minimum_width = 400,
-  maximum_width = 500,
-  minimum_height = 100,
-  maximum_height = 600,
-  offset = { y = 5 },
-  widget = {},
-})
+-- Notification center configuration (following launcher/dashboard patterns)
+local nc_config = {
+  width = 480,
+  max_visible = 15,
+  item_height = 80,
+  margin = 16,
+  spacing = 8,
+}
 
--- Update notification center content
-local function update_notification_center()
-  local rows = { layout = wibox.layout.fixed.vertical, spacing = 5 }
-  
-  -- Header
-  local unread_text = M.unread_count > 0 and " (" .. M.unread_count .. " unread)" or ""
+-- Notification center state
+local notification_popup = nil
+local popup_visible = false
+local expanded_groups = {} -- Track which app groups are expanded (default: collapsed)
+
+-- Forward declaration for refresh
+local refresh_popup
+
+-- Helper: Group notifications by app_name
+local function group_notifications_by_app()
+  local groups = {}
+  local group_order = {}
+
+  for _, notif in ipairs(M.history) do
+    local app = notif.app_name or "Unknown"
+    if not groups[app] then
+      groups[app] = {
+        app_name = app,
+        notifications = {},
+        unread_count = 0,
+        latest_timestamp = notif.timestamp,
+      }
+      table.insert(group_order, app)
+    end
+    table.insert(groups[app].notifications, notif)
+    if not notif.is_read then
+      groups[app].unread_count = groups[app].unread_count + 1
+    end
+    -- Track latest timestamp for sorting
+    if notif.timestamp > groups[app].latest_timestamp then
+      groups[app].latest_timestamp = notif.timestamp
+    end
+  end
+
+  -- Sort groups by latest notification timestamp (most recent first)
+  table.sort(group_order, function(a, b)
+    return groups[a].latest_timestamp > groups[b].latest_timestamp
+  end)
+
+  return groups, group_order
+end
+
+-- Helper function to format time ago
+local function format_time_ago(timestamp)
+  local time_diff = os.time() - timestamp
+  if time_diff < 60 then
+    return "now"
+  elseif time_diff < 3600 then
+    return math.floor(time_diff / 60) .. "m ago"
+  elseif time_diff < 86400 then
+    return math.floor(time_diff / 3600) .. "h ago"
+  else
+    return os.date("%b %d", timestamp)
+  end
+end
+
+-- Helper: Create group header widget
+local function create_group_header(group)
+  local is_expanded = expanded_groups[group.app_name]
+  local chevron = is_expanded and "▼" or "▶"
+  local unread_badge = group.unread_count > 0 and
+    " <span foreground='" .. (beautiful.primary_color or "#d65d0e") .. "'>(" .. group.unread_count .. ")</span>" or ""
+
   local header = wibox.widget({
     {
       {
-        markup = "<b>Notifications</b>" .. unread_text,
-        font = (beautiful.font and beautiful.font:match("^[^,]+") or "sans") .. " Bold 14",
+        -- Chevron + App name + count
+        {
+          markup = chevron .. "  <b>" .. gears.string.xml_escape(group.app_name) .. "</b>" ..
+                   " <span foreground='" .. (beautiful.fg_normal or "#ebdbb2") .. "88'>" ..
+                   #group.notifications .. " notifications</span>" .. unread_badge,
+          widget = wibox.widget.textbox,
+        },
+        nil,
+        {
+          text = format_time_ago(group.latest_timestamp),
+          font = (beautiful.font and beautiful.font:gsub("%d+$", "9") or "sans 9"),
+          widget = wibox.widget.textbox,
+        },
+        layout = wibox.layout.align.horizontal,
+      },
+      margins = 10,
+      widget = wibox.container.margin,
+    },
+    bg = beautiful.bg_focus or "#504945",
+    fg = beautiful.fg_normal or "#ebdbb2",
+    shape = beautiful.shape_small or gears.shape.rounded_rect,
+    widget = wibox.container.background,
+  })
+
+  -- Click to toggle expand/collapse
+  header:buttons(gears.table.join(
+    awful.button({}, 1, function()
+      expanded_groups[group.app_name] = not expanded_groups[group.app_name]
+      refresh_popup()
+    end)
+  ))
+
+  -- Hover effect
+  local default_bg = beautiful.bg_focus or "#504945"
+  header:connect_signal("mouse::enter", function()
+    header.bg = beautiful.primary_color or "#d65d0e"
+  end)
+  header:connect_signal("mouse::leave", function()
+    header.bg = default_bg
+  end)
+
+  return header
+end
+
+-- Helper: Create notification item widget
+local function create_notification_item(notif, index)
+  local time_ago = format_time_ago(notif.timestamp)
+  local is_unread = not notif.is_read
+
+  local item_bg = is_unread and (beautiful.bg_normal or "#282828") or (beautiful.bg_minimize or "#1d2021")
+  if notif.urgency == "critical" and is_unread then
+    item_bg = beautiful.bg_urgent or "#cc241d"
+  end
+
+  local item = wibox.widget({
+    {
+      {
+        -- Row 1: Title + time
+        {
+          {
+            markup = (is_unread and "<span foreground='" .. (beautiful.primary_color or "#d65d0e") .. "'>● </span>" or "") ..
+                     "<b>" .. gears.string.xml_escape(notif.title or "Notification") .. "</b>",
+            widget = wibox.widget.textbox,
+          },
+          nil,
+          {
+            text = time_ago,
+            font = (beautiful.font and beautiful.font:gsub("%d+$", "9") or "sans 9"),
+            widget = wibox.widget.textbox,
+          },
+          layout = wibox.layout.align.horizontal,
+        },
+        -- Row 2: Message (truncated)
+        {
+          markup = gears.string.xml_escape(notif.message or ""),
+          ellipsize = "end",
+          widget = wibox.widget.textbox,
+        },
+        spacing = 2,
+        layout = wibox.layout.fixed.vertical,
+      },
+      left = 20, -- Indent under group header
+      right = 10,
+      top = 8,
+      bottom = 8,
+      widget = wibox.container.margin,
+    },
+    bg = item_bg,
+    shape = beautiful.shape_small or gears.shape.rounded_rect,
+    widget = wibox.container.background,
+  })
+
+  -- Click to mark as read
+  item:buttons(gears.table.join(
+    awful.button({}, 1, function()
+      if not notif.is_read then
+        notif.is_read = true
+        M.unread_count = math.max(0, M.unread_count - 1)
+        awesome.emit_signal("notification::unread_count", M.unread_count)
+        refresh_popup()
+      end
+    end)
+  ))
+
+  -- Hover effect
+  item:connect_signal("mouse::enter", function()
+    item.bg = beautiful.bg_focus or "#504945"
+  end)
+  item:connect_signal("mouse::leave", function()
+    item.bg = item_bg
+  end)
+
+  return item
+end
+
+-- Helper: Create header widget
+local function create_header()
+  local unread_text = M.unread_count > 0 and " (" .. M.unread_count .. " unread)" or ""
+
+  -- Clear Read button
+  local clear_read_btn = wibox.widget({
+    {
+      {
+        text = "Clear Read",
+        align = "center",
         widget = wibox.widget.textbox,
       },
-      nil,
-      {
-        {
-          {
-            text = "Clear Read",
-            align = "center",
-            widget = wibox.widget.textbox,
-          },
-          widget = wibox.container.background,
-          bg = beautiful.bg_minimize,
-          shape = beautiful.shape_small,
-          forced_width = 80,
-          forced_height = 25,
-          buttons = awful.button({}, 1, function()
-            local new_history = {}
-            for _, notif in ipairs(M.history) do
-              if not notif.is_read then
-                table.insert(new_history, notif)
-              else
-                if M.active_notifications[notif.id] then
-                  M.active_notifications[notif.id] = nil
-                end
-              end
-            end
-            M.history = new_history
-            awesome.emit_signal("notification::unread_count", M.unread_count)
-            update_notification_center()
-          end),
-        },
-        {
-          {
-            text = "Clear All",
-            align = "center",
-            widget = wibox.widget.textbox,
-          },
-          widget = wibox.container.background,
-          bg = beautiful.bg_urgent,
-          fg = beautiful.fg_urgent,
-          shape = beautiful.shape_small,
-          forced_width = 80,
-          forced_height = 25,
-          buttons = awful.button({}, 1, function()
-            M.history = {}
-            M.unread_count = 0
-            M.active_notifications = {}
-            awesome.emit_signal("notification::unread_count", M.unread_count)
-            update_notification_center()
-          end),
-        },
-        layout = wibox.layout.fixed.horizontal,
-        spacing = 5,
-      },
-      layout = wibox.layout.align.horizontal,
+      margins = 4,
+      widget = wibox.container.margin,
     },
-    widget = wibox.container.margin,
-    margins = 10,
+    bg = beautiful.bg_minimize or "#1d2021",
+    fg = beautiful.fg_normal or "#ebdbb2",
+    shape = beautiful.shape_small or gears.shape.rounded_rect,
+    forced_width = 80,
+    forced_height = 26,
+    widget = wibox.container.background,
   })
-  
-  table.insert(rows, header)
-  table.insert(rows, wibox.widget({
-    widget = wibox.widget.separator,
-    orientation = "horizontal",
-    thickness = 1,
-    color = beautiful.border_color,
-  }))
-  
-  -- Notification items  
-  if #M.history == 0 then
-    table.insert(rows, wibox.container.margin(wibox.widget({
-      text = "No notifications",
-      align = "center",
-      widget = wibox.widget.textbox,
-    }), 10, 10, 50, 50))
-  else
-    local notification_list = { layout = wibox.layout.fixed.vertical, spacing = 5 }
-    
-    for i, notif in ipairs(M.history) do
-      if i > 20 then break end -- Limit displayed items
-      
-      local time_str = os.date("%H:%M", notif.timestamp)
-      local time_diff = os.time() - notif.timestamp
-      local time_ago = ""
-      if time_diff < 60 then
-        time_ago = "now"
-      elseif time_diff < 3600 then
-        time_ago = math.floor(time_diff / 60) .. "m ago"
-      elseif time_diff < 86400 then
-        time_ago = math.floor(time_diff / 3600) .. "h ago"
-      else
-        time_ago = os.date("%b %d", notif.timestamp)
-      end
-      
-      local item_bg = notif.is_read and beautiful.bg_minimize or beautiful.bg_normal
-      if notif.urgency == "critical" and not notif.is_read then
-        item_bg = beautiful.bg_urgent
-      end
-      
-      local item = wibox.widget({
-        {
-          {
-            {
-              {
-                markup = (notif.is_read and "" or "● ") .. "<b>" .. (notif.title or "Notification") .. "</b>",
-                widget = wibox.widget.textbox,
-                forced_width = 300,
-              },
-              nil,
-              {
-                {
-                  text = time_ago,
-                  opacity = 0.6,
-                  font = (beautiful.font and beautiful.font:match("^[^,]+") or "sans") .. " 9",
-                  widget = wibox.widget.textbox,
-                },
-                {
-                  {
-                    text = "×",
-                    align = "center",
-                    font = (beautiful.font and beautiful.font:match("^[^,]+") or "sans") .. " Bold 12",
-                    widget = wibox.widget.textbox,
-                  },
-                  widget = wibox.container.background,
-                  bg = beautiful.bg_minimize,
-                  shape = gears.shape.circle,
-                  forced_width = 20,
-                  forced_height = 20,
-                  buttons = awful.button({}, 1, function()
-                    -- Remove this notification
-                    for idx, h in ipairs(M.history) do
-                      if h.id == notif.id then
-                        table.remove(M.history, idx)
-                        if not h.is_read then
-                          M.unread_count = math.max(0, M.unread_count - 1)
-                          awesome.emit_signal("notification::unread_count", M.unread_count)
-                        end
-                        if M.active_notifications[h.id] then
-                          M.active_notifications[h.id] = nil
-                        end
-                        break
-                      end
-                    end
-                    update_notification_center()
-                  end),
-                },
-                layout = wibox.layout.fixed.horizontal,
-                spacing = 8,
-              },
-              layout = wibox.layout.align.horizontal,
-            },
-            {
-              {
-                text = notif.app_name or "",
-                opacity = 0.5,
-                font = (beautiful.font and beautiful.font:match("^[^,]+") or "sans") .. " 9",
-                widget = wibox.widget.textbox,
-              },
-              {
-                text = notif.message or "",
-                widget = wibox.widget.textbox,
-                wrap = "word",
-                forced_width = 450,
-              },
-              layout = wibox.layout.fixed.vertical,
-              spacing = 2,
-            },
-            layout = wibox.layout.fixed.vertical,
-            spacing = 4,
-          },
-          widget = wibox.container.margin,
-          margins = 10,
-        },
-        widget = wibox.container.background,
-        bg = item_bg,
-        shape = beautiful.shape_small,
-        buttons = awful.button({}, 1, function()
-          -- Mark as read on click
-          if not notif.is_read then
-            notif.is_read = true
-            M.unread_count = math.max(0, M.unread_count - 1)
-            awesome.emit_signal("notification::unread_count", M.unread_count)
-            update_notification_center()
+
+  clear_read_btn:buttons(gears.table.join(
+    awful.button({}, 1, function()
+      local new_history = {}
+      for _, notif in ipairs(M.history) do
+        if not notif.is_read then
+          table.insert(new_history, notif)
+        else
+          if M.active_notifications[notif.id] then
+            M.active_notifications[notif.id] = nil
           end
-        end),
-      })
-      
-      table.insert(notification_list, item)
-    end
-    
-    -- Wrap in scrollable container
-    local scrollable = wibox.widget({
-      notification_list,
-      forced_height = math.min(400, #M.history * 85),
-      widget = wibox.container.constraint,
-    })
-    
-    table.insert(rows, wibox.container.margin(scrollable, 5, 5, 5, 5))
-  end
-  
-  -- Scrollable container
-  M.notification_center:setup({
-    rows,
-    layout = wibox.layout.fixed.vertical,
+        end
+      end
+      M.history = new_history
+      awesome.emit_signal("notification::unread_count", M.unread_count)
+      refresh_popup()
+    end)
+  ))
+
+  -- Clear All button
+  local clear_all_btn = wibox.widget({
+    {
+      {
+        text = "Clear All",
+        align = "center",
+        widget = wibox.widget.textbox,
+      },
+      margins = 4,
+      widget = wibox.container.margin,
+    },
+    bg = beautiful.bg_urgent or "#cc241d",
+    fg = beautiful.fg_urgent or "#ffffff",
+    shape = beautiful.shape_small or gears.shape.rounded_rect,
+    forced_width = 80,
+    forced_height = 26,
+    widget = wibox.container.background,
+  })
+
+  clear_all_btn:buttons(gears.table.join(
+    awful.button({}, 1, function()
+      M.history = {}
+      M.unread_count = 0
+      M.active_notifications = {}
+      awesome.emit_signal("notification::unread_count", M.unread_count)
+      refresh_popup()
+    end)
+  ))
+
+  return wibox.widget({
+    {
+      markup = "<b>Notifications</b>" .. unread_text,
+      font = (beautiful.font and beautiful.font:gsub("%d+$", "14") or "sans 14"),
+      widget = wibox.widget.textbox,
+    },
+    nil,
+    {
+      clear_read_btn,
+      clear_all_btn,
+      spacing = 8,
+      layout = wibox.layout.fixed.horizontal,
+    },
+    layout = wibox.layout.align.horizontal,
   })
 end
 
--- Toggle notification center visibility
-function M.toggle_notification_center(widget_geometry)
-  update_notification_center()
-  
-  if M.notification_center.visible then
-    M.notification_center.visible = false
+-- Main widget creator
+local function create_popup_widget()
+  local layout = wibox.layout.fixed.vertical()
+  layout.spacing = nc_config.spacing
+
+  -- Header
+  layout:add(create_header())
+
+  -- Separator
+  layout:add(wibox.widget({
+    orientation = "horizontal",
+    forced_height = 1,
+    color = beautiful.border_color or "#504945",
+    widget = wibox.widget.separator,
+  }))
+
+  -- Notification list or empty state
+  if #M.history == 0 then
+    layout:add(wibox.widget({
+      {
+        {
+          text = "No notifications",
+          align = "center",
+          valign = "center",
+          widget = wibox.widget.textbox,
+        },
+        fg = (beautiful.fg_normal or "#ebdbb2") .. "88",
+        widget = wibox.container.background,
+      },
+      forced_height = 100,
+      widget = wibox.container.constraint,
+    }))
   else
-    -- Position below the clock widget if geometry provided, otherwise use mouse position
-    if widget_geometry then
-      M.notification_center:move_next_to(widget_geometry)
-    else
-      -- Fallback to center of screen
-      local s = awful.screen.focused()
-      M.notification_center.x = s.geometry.x + (s.geometry.width - M.notification_center.width) / 2
-      M.notification_center.y = s.geometry.y + (beautiful.wibar_height or 30) + 5
+    -- Group notifications by app
+    local groups, group_order = group_notifications_by_app()
+
+    local list_layout = wibox.layout.fixed.vertical()
+    list_layout.spacing = nc_config.spacing
+
+    local total_items = 0
+    for _, app_name in ipairs(group_order) do
+      if total_items >= nc_config.max_visible then break end
+
+      local group = groups[app_name]
+
+      -- Add group header
+      list_layout:add(create_group_header(group))
+      total_items = total_items + 1
+
+      -- Add notifications if group is expanded
+      if expanded_groups[app_name] then
+        for i, notif in ipairs(group.notifications) do
+          if total_items >= nc_config.max_visible then break end
+          list_layout:add(create_notification_item(notif, i))
+          total_items = total_items + 1
+        end
+      end
     end
-    M.notification_center.visible = true
+
+    layout:add(list_layout)
+  end
+
+  -- Wrap in margin and background
+  return wibox.widget({
+    {
+      layout,
+      margins = nc_config.margin,
+      widget = wibox.container.margin,
+    },
+    bg = (beautiful.bg_normal or "#282828") .. "F8",
+    shape = beautiful.shape or gears.shape.rounded_rect,
+    forced_width = nc_config.width,
+    widget = wibox.container.background,
+  })
+end
+
+-- Refresh popup content
+refresh_popup = function()
+  if notification_popup and popup_visible then
+    notification_popup.widget = create_popup_widget()
   end
 end
+
+-- Show the notification center
+function M.show_notification_center()
+  if popup_visible then return end
+
+  local s = awful.screen.focused()
+
+  if not notification_popup then
+    notification_popup = awful.popup({
+      widget = create_popup_widget(),
+      screen = s,
+      ontop = true,
+      visible = false,
+      bg = "#00000000",
+      border_width = beautiful.border_width or 1,
+      border_color = beautiful.primary_color or "#d65d0e",
+      shape = beautiful.shape or gears.shape.rounded_rect,
+    })
+  end
+
+  -- Update screen and widget
+  notification_popup.screen = s
+  notification_popup.widget = create_popup_widget()
+
+  -- Position centered under the click point (use mouse coords for multi-monitor reliability)
+  local coords = mouse.coords()
+  local popup_x = coords.x - (nc_config.width / 2)
+  local popup_y = (beautiful.wibar_height or 30) + (beautiful.useless_gap or 4)
+
+  -- Keep popup on screen
+  if popup_x < s.geometry.x then
+    popup_x = s.geometry.x + (beautiful.useless_gap or 4)
+  elseif popup_x + nc_config.width > s.geometry.x + s.geometry.width then
+    popup_x = s.geometry.x + s.geometry.width - nc_config.width - (beautiful.useless_gap or 4)
+  end
+
+  notification_popup.x = popup_x
+  notification_popup.y = s.geometry.y + popup_y
+
+  notification_popup.visible = true
+  popup_visible = true
+
+  awesome.emit_signal("notification_center::visible", true)
+end
+
+-- Hide the notification center
+function M.hide_notification_center()
+  if not popup_visible then return end
+
+  if notification_popup then
+    notification_popup.visible = false
+  end
+
+  popup_visible = false
+  awesome.emit_signal("notification_center::visible", false)
+end
+
+-- Toggle notification center visibility
+function M.toggle_notification_center()
+  if popup_visible then
+    M.hide_notification_center()
+  else
+    M.show_notification_center()
+  end
+end
+
+-- Close on click outside (following dashboard pattern)
+client.connect_signal("button::press", function()
+  if popup_visible then
+    M.hide_notification_center()
+  end
+end)
+
+tag.connect_signal("property::selected", function()
+  if popup_visible then
+    M.hide_notification_center()
+  end
+end)
 
 -- Setup notification rules
 ruled.notification.connect_signal("request::rules", function()
@@ -594,11 +777,51 @@ naughty.connect_signal("request::display", function(n)
   naughty.layout.box({ notification = n })
 end)
 
--- Handle action invocation
+-- Handle notification destruction
 naughty.connect_signal("destroyed", function(n, reason)
   if reason == naughty.notification_closed_reason.dismissed_by_user then
     -- User dismissed the notification
   end
+end)
+
+-- Handle action button clicks
+naughty.connect_signal("invoked", function(n, a)
+  if a.name == "Open" or a.name == "Reply" then
+    -- Find notification's app and activate it
+    for _, c in ipairs(client.get()) do
+      if c.class and n.app_name and
+         c.class:lower():match(n.app_name:lower()) then
+        c:activate({ context = "notification_action", raise = true })
+        break
+      end
+    end
+  elseif a.name == "Mark Read" then
+    -- Mark notification as read in history
+    for _, h in ipairs(M.history) do
+      if h.title == n.title and h.message == n.message then
+        if not h.is_read then
+          h.is_read = true
+          M.unread_count = math.max(0, M.unread_count - 1)
+          awesome.emit_signal("notification::unread_count", M.unread_count)
+        end
+        break
+      end
+    end
+  elseif a.name == "Read" then
+    -- For email "Read" action - similar to Mark Read
+    for _, h in ipairs(M.history) do
+      if h.title == n.title and h.message == n.message then
+        if not h.is_read then
+          h.is_read = true
+          M.unread_count = math.max(0, M.unread_count - 1)
+          awesome.emit_signal("notification::unread_count", M.unread_count)
+        end
+        break
+      end
+    end
+  end
+  -- Note: "Archive", "Accept", "Decline" etc. are app-specific
+  -- and would need custom handling per-app
 end)
 
 -- Toggle functions
