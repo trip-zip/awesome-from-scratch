@@ -88,16 +88,22 @@ tag.connect_signal("request::default_layouts", function()
 end)
 -- }}}
 --
+-- Wallpaper configuration
+-- Set your wallpaper paths here, or use a solid color
+local wallpaper_path = os.getenv("HOME") .. "/wallpapers/gruvbox"
 local wallpapers = {
-  "/home/jimmy/wallpapers/gruvbox/penguin.jpg",
-  "/home/jimmy/wallpapers/gruvbox/spaceman.jpg",
+  wallpaper_path .. "/penguin.jpg",
+  wallpaper_path .. "/spaceman.jpg",
 }
--- local wallpapers = {
---   "/home/${USER}/.config/awesome/default/backgrounds/jellyfish_main.png",
---   "/home/${USER}/.config/awesome/default/backgrounds/jellyfish_second.jpg",
--- }
+
 local function set_wallpaper(s)
-  gears.wallpaper.maximized(wallpapers[s.index], s, true)
+  local wp = wallpapers[s.index] or wallpapers[1]
+  if wp and gears.filesystem.file_readable(wp) then
+    gears.wallpaper.maximized(wp, s, true)
+  else
+    -- Fallback to gruvbox dark color
+    gears.wallpaper.set("#282828")
+  end
 end
 
 -- {{{ Wallpaper

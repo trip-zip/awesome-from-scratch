@@ -5,6 +5,11 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
 
+-- Load our custom modules
+local dashboard = require("dashboard")
+local launcher = require("launcher")
+local exitscreen = require("exitscreen")
+
 local function table_to_keybinding(bindings)
   local key_bindings = {}
   for _, g_key in ipairs(bindings) do
@@ -94,8 +99,8 @@ local global_keys = {
   {{ modkey }, "j",                     function () awful.client.focus.byidx( 1) end,             "focus next by index",                   "client"   },
   {{ modkey }, "k",                     function () awful.client.focus.byidx(-1) end,             "focus previous by index",               "client"   },
   {{ modkey }, "l",                     function () awful.tag.incmwfact( 0.05) end,               "increase master width factor",          "layout"   },
-  -- {{ modkey }, "p",                     function() app_launcher:toggle() end,                     "show the menubar",                      "launcher" },
-  {{ modkey }, "p",                     function() menubar.show() end,                            "show the menubar",                      "launcher" },
+  {{ modkey }, "d",                     function() dashboard.toggle() end,                        "toggle dashboard",                      "awesome"  },
+  {{ modkey }, "p",                     function() launcher.toggle() end,                         "app launcher",                          "launcher" },
   {{ modkey }, "r",                     function () awful.screen.focused().mypromptbox:run() end, "run prompt",                            "launcher" },
   {{ modkey }, "s",                     hotkeys_popup.show_help,                                  "show help",                             "awesome"  },
   {{ modkey }, "u",                     awful.client.urgent.jumpto,                               "jump to urgent client",                 "client"   },
@@ -120,7 +125,7 @@ local global_keys = {
   {{ modkey, "Shift"   }, "j",          function () awful.client.swap.byidx(  1) end,             "swap with next client by index",        "client"   },
   {{ modkey, "Shift"   }, "k",          function () awful.client.swap.byidx( -1) end,             "swap with previous client by index",    "client"   },
   {{ modkey, "Shift"   }, "l",          function () awful.tag.incnmaster(-1, nil, true) end,      "decrease the number of master clients", "layout"   },
-  {{ modkey, "Shift"   }, "q",          awesome.quit,                                             "quit awesome",                          "awesome"  },
+  {{ modkey, "Shift"   }, "e",          function() exitscreen.toggle() end,                       "exit screen",                           "awesome"  },
   {{ modkey, "Shift"   }, "s",          function () awful.spawn("systemctl suspend") end,         "suspend system",                        "awesome"  },
   {{ modkey, "Shift"   }, "space",      function () awful.layout.inc(-1) end,                     "select previous",                       "layout"   },
 }
