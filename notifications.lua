@@ -54,6 +54,16 @@ M.unread_count = 0
 M.max_history = 50
 M.active_notifications = {} -- Track currently active notifications
 
+-- Snooze storage and configuration
+M.snoozed_notifications = {} -- Store snoozed notifications with their timers
+M.snooze_durations = {
+  { label = "10 seconds", seconds = 10 }, -- For testing
+  { label = "5 minutes", seconds = 5 * 60 },
+  { label = "15 minutes", seconds = 15 * 60 },
+  { label = "1 hour", seconds = 60 * 60 },
+  { label = "3 hours", seconds = 3 * 60 * 60 },
+}
+
 -- Helper function to check if notification matches special contact
 local function is_special_contact(notification, contact_group)
   if not notification.message then return false end
@@ -108,6 +118,159 @@ local function play_sound(urgency)
   if sound_file and gears.filesystem.file_readable(sound_file) then
     awful.spawn.easy_async("paplay " .. sound_file, function() end)
   end
+end
+
+-- Snooze a notification for a given duration
+local function snooze_notification(notif_data, duration_seconds, duration_label)
+  local snooze_id = tostring(os.time()) .. "_" .. math.random(1000, 9999)
+
+  -- Create timer to re-fire the notification
+  local timer = gears.timer({
+    timeout = duration_seconds,
+    single_shot = true,
+    callback = function()
+      -- Re-create the notification
+      naughty.notification({
+        title = notif_data.title,
+        message = notif_data.message .. "\n\n<i>(Snoozed " .. duration_label .. " ago)</i>",
+        app_name = notif_data.app_name,
+        urgency = notif_data.urgency or "normal",
+        icon = notif_data.icon,
+      })
+
+      -- Remove from snoozed list
+      M.snoozed_notifications[snooze_id] = nil
+    end,
+  })
+
+  -- Store and start
+  M.snoozed_notifications[snooze_id] = {
+    data = notif_data,
+    timer = timer,
+    duration_label = duration_label,
+    snooze_time = os.time(),
+  }
+  timer:start()
+
+  -- Show confirmation
+  naughty.notification({
+    title = "Snoozed",
+    message = "\"" .. (notif_data.title or "Notification") .. "\" will remind you in " .. duration_label,
+    timeout = 2,
+    urgency = "low",
+  })
+end
+
+-- Show snooze duration picker popup
+local snooze_picker_popup = nil
+
+local function show_snooze_picker(notif_data, anchor_geometry)
+  -- Close existing picker if open
+  if snooze_picker_popup then
+    snooze_picker_popup.visible = false
+    snooze_picker_popup = nil
+  end
+
+  local s = awful.screen.focused()
+
+  -- Build duration buttons
+  local buttons_layout = wibox.layout.fixed.vertical()
+  buttons_layout.spacing = 4
+
+  for _, duration in ipairs(M.snooze_durations) do
+    local btn = wibox.widget({
+      {
+        {
+          text = "⏰  " .. duration.label,
+          widget = wibox.widget.textbox,
+        },
+        margins = 10,
+        widget = wibox.container.margin,
+      },
+      bg = beautiful.bg_normal or "#282828",
+      fg = beautiful.fg_normal or "#ebdbb2",
+      shape = beautiful.shape_small or gears.shape.rounded_rect,
+      widget = wibox.container.background,
+    })
+
+    btn:buttons(gears.table.join(
+      awful.button({}, 1, function()
+        snooze_picker_popup.visible = false
+        snooze_picker_popup = nil
+        snooze_notification(notif_data, duration.seconds, duration.label)
+      end)
+    ))
+
+    -- Hover effect
+    btn:connect_signal("mouse::enter", function()
+      btn.bg = beautiful.primary_color or "#d65d0e"
+      btn.fg = beautiful.bg_normal or "#282828"
+    end)
+    btn:connect_signal("mouse::leave", function()
+      btn.bg = beautiful.bg_normal or "#282828"
+      btn.fg = beautiful.fg_normal or "#ebdbb2"
+    end)
+
+    buttons_layout:add(btn)
+  end
+
+  -- Create the popup widget
+  local picker_widget = wibox.widget({
+    {
+      {
+        {
+          markup = "<b>Snooze for...</b>",
+          widget = wibox.widget.textbox,
+        },
+        buttons_layout,
+        spacing = 8,
+        layout = wibox.layout.fixed.vertical,
+      },
+      margins = 12,
+      widget = wibox.container.margin,
+    },
+    bg = (beautiful.bg_normal or "#282828") .. "F8",
+    shape = beautiful.shape or gears.shape.rounded_rect,
+    widget = wibox.container.background,
+  })
+
+  snooze_picker_popup = awful.popup({
+    widget = picker_widget,
+    screen = s,
+    ontop = true,
+    visible = true,
+    bg = "#00000000",
+    border_width = beautiful.border_width or 1,
+    border_color = beautiful.primary_color or "#d65d0e",
+    shape = beautiful.shape or gears.shape.rounded_rect,
+  })
+
+  -- Position near mouse
+  local coords = mouse.coords()
+  snooze_picker_popup.x = coords.x - 80
+  snooze_picker_popup.y = coords.y + 10
+
+  -- Keep on screen
+  if snooze_picker_popup.x + 200 > s.geometry.x + s.geometry.width then
+    snooze_picker_popup.x = s.geometry.x + s.geometry.width - 210
+  end
+  if snooze_picker_popup.x < s.geometry.x then
+    snooze_picker_popup.x = s.geometry.x + 10
+  end
+
+  -- Close on click outside (use a timer to avoid immediate close)
+  gears.timer.start_new(0.1, function()
+    local close_handler
+    close_handler = function()
+      if snooze_picker_popup then
+        snooze_picker_popup.visible = false
+        snooze_picker_popup = nil
+      end
+      client.disconnect_signal("button::press", close_handler)
+    end
+    client.connect_signal("button::press", close_handler)
+    return false
+  end)
 end
 
 -- Notification center configuration (following launcher/dashboard patterns)
@@ -239,32 +402,70 @@ local function create_notification_item(notif, index)
     item_bg = beautiful.bg_urgent or "#cc241d"
   end
 
+  -- Snooze button
+  local snooze_btn = wibox.widget({
+    {
+      {
+        text = "⏰",
+        align = "center",
+        valign = "center",
+        widget = wibox.widget.textbox,
+      },
+      margins = 4,
+      widget = wibox.container.margin,
+    },
+    bg = "transparent",
+    fg = beautiful.fg_normal or "#ebdbb2",
+    shape = gears.shape.circle,
+    forced_width = 28,
+    forced_height = 28,
+    widget = wibox.container.background,
+  })
+
+  snooze_btn:buttons(gears.table.join(
+    awful.button({}, 1, function()
+      show_snooze_picker(notif)
+    end)
+  ))
+
+  snooze_btn:connect_signal("mouse::enter", function()
+    snooze_btn.bg = beautiful.primary_color or "#d65d0e"
+  end)
+  snooze_btn:connect_signal("mouse::leave", function()
+    snooze_btn.bg = "transparent"
+  end)
+
   local item = wibox.widget({
     {
       {
-        -- Row 1: Title + time
         {
+          -- Row 1: Title + time
           {
-            markup = (is_unread and "<span foreground='" .. (beautiful.primary_color or "#d65d0e") .. "'>● </span>" or "") ..
-                     "<b>" .. gears.string.xml_escape(notif.title or "Notification") .. "</b>",
+            {
+              markup = (is_unread and "<span foreground='" .. (beautiful.primary_color or "#d65d0e") .. "'>● </span>" or "") ..
+                       "<b>" .. gears.string.xml_escape(notif.title or "Notification") .. "</b>",
+              widget = wibox.widget.textbox,
+            },
+            nil,
+            {
+              text = time_ago,
+              font = (beautiful.font and beautiful.font:gsub("%d+$", "9") or "sans 9"),
+              widget = wibox.widget.textbox,
+            },
+            layout = wibox.layout.align.horizontal,
+          },
+          -- Row 2: Message (truncated)
+          {
+            markup = gears.string.xml_escape(notif.message or ""),
+            ellipsize = "end",
             widget = wibox.widget.textbox,
           },
-          nil,
-          {
-            text = time_ago,
-            font = (beautiful.font and beautiful.font:gsub("%d+$", "9") or "sans 9"),
-            widget = wibox.widget.textbox,
-          },
-          layout = wibox.layout.align.horizontal,
+          spacing = 2,
+          layout = wibox.layout.fixed.vertical,
         },
-        -- Row 2: Message (truncated)
-        {
-          markup = gears.string.xml_escape(notif.message or ""),
-          ellipsize = "end",
-          widget = wibox.widget.textbox,
-        },
-        spacing = 2,
-        layout = wibox.layout.fixed.vertical,
+        nil,
+        snooze_btn,
+        layout = wibox.layout.align.horizontal,
       },
       left = 20, -- Indent under group header
       right = 10,
@@ -277,7 +478,7 @@ local function create_notification_item(notif, index)
     widget = wibox.container.background,
   })
 
-  -- Click to mark as read
+  -- Click to mark as read (but not when clicking snooze button)
   item:buttons(gears.table.join(
     awful.button({}, 1, function()
       if not notif.is_read then
@@ -716,63 +917,73 @@ naughty.connect_signal("request::display", function(n)
   
   -- Play sound
   play_sound(n.urgency or "normal")
-  
-  -- Create custom notification layout with actions
+
+  -- Build actions widget if notification has actions
+  local actions_widget = nil
   if n.actions and #n.actions > 0 then
-    -- Create action buttons
-    local actions = wibox.widget({
-      notification = n,
-      widget = naughty.list.actions,
-    })
-    
-    -- Custom widget template with actions
-    n.widget_template = {
+    actions_widget = {
       {
+        notification = n,
+        base_layout = wibox.widget({
+          spacing = 8,
+          layout = wibox.layout.flex.horizontal,
+        }),
+        widget = naughty.list.actions,
+      },
+      margins = { left = 8, right = 8, bottom = 8 },
+      widget = wibox.container.margin,
+    }
+  end
+
+  -- Always use custom widget template for consistent styling
+  n.widget_template = {
+    {
+      {
+        -- Icon
+        {
+          {
+            naughty.widget.icon,
+            forced_width = beautiful.notification_icon_size or 48,
+            forced_height = beautiful.notification_icon_size or 48,
+            widget = wibox.container.constraint,
+          },
+          margins = 8,
+          widget = wibox.container.margin,
+        },
+        -- Title + Message
         {
           {
             {
-              {
-                naughty.widget.icon,
-                forced_width = 48,
-                forced_height = 48,
-                widget = wibox.container.constraint,
-              },
-              margins = 5,
-              widget = wibox.container.margin,
+              naughty.widget.title,
+              font = (beautiful.font and beautiful.font:gsub("%d+$", "11") or "sans 11") .. " Bold",
+              widget = wibox.container.background,
             },
             {
-              {
-                naughty.widget.title,
-                font = (beautiful.font and beautiful.font:match("^[^,]+") or "sans") .. " Bold 11",
-                widget = wibox.container.scroll.horizontal,
-                step_function = wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth,
-                speed = 50,
-              },
-              {
-                naughty.widget.message,
-                widget = wibox.container.scroll.horizontal,
-                step_function = wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth,
-                speed = 50,
-              },
-              layout = wibox.layout.fixed.vertical,
+              naughty.widget.message,
+              widget = wibox.container.background,
             },
-            layout = wibox.layout.fixed.horizontal,
+            spacing = 4,
+            layout = wibox.layout.fixed.vertical,
           },
-          actions,
-          layout = wibox.layout.fixed.vertical,
+          margins = { top = 8, bottom = 8, right = 8 },
+          widget = wibox.container.margin,
         },
-        margins = 10,
-        widget = wibox.container.margin,
+        layout = wibox.layout.fixed.horizontal,
       },
-      widget = wibox.container.background,
-      shape = beautiful.shape,
-      bg = n.bg or beautiful.bg_normal,
-      fg = n.fg or beautiful.fg_normal,
-      border_width = beautiful.notification_border_width or 2,
-      border_color = n.border_color or beautiful.border_normal,
-    }
-  end
-  
+      -- Actions (if present)
+      actions_widget,
+      spacing = 4,
+      layout = wibox.layout.fixed.vertical,
+    },
+    -- Container with semi-transparent bg and orange border
+    bg = n.bg or beautiful.notification_bg or beautiful.bg_normal,
+    fg = n.fg or beautiful.notification_fg or beautiful.fg_normal,
+    shape = beautiful.notification_shape or beautiful.shape,
+    border_width = beautiful.notification_border_width or 1,
+    border_color = beautiful.notification_border_color or beautiful.primary_color,
+    widget = wibox.container.background,
+  }
+
   -- Display the notification
   naughty.layout.box({ notification = n })
 end)

@@ -134,6 +134,27 @@ theme.border_color_marked = color.red
 -- notification_[width|height|margin]
 -- notification_[border_color|border_width|shape|opacity]
 
+-- Notification popup styling (matching dashboard/launcher)
+theme.notification_bg = theme.bg_normal .. "F8"  -- Semi-transparent
+theme.notification_fg = theme.fg_normal
+theme.notification_border_color = theme.primary_color
+theme.notification_border_width = dpi(1)
+theme.notification_shape = theme.shape
+theme.notification_margin = dpi(12)
+theme.notification_max_width = dpi(400)
+theme.notification_icon_size = dpi(48)
+theme.notification_spacing = dpi(8)
+
+-- Action button styling
+theme.notification_action_bg_normal = theme.bg_minimize
+theme.notification_action_bg_selected = theme.primary_color
+theme.notification_action_fg_normal = theme.fg_normal
+theme.notification_action_fg_selected = theme.bg_normal
+theme.notification_action_shape_normal = theme.shape_small
+theme.notification_action_shape_selected = theme.shape_small
+theme.notification_action_shape_border_width_normal = dpi(1)
+theme.notification_action_shape_border_color_normal = theme.border_color
+
 -- Variables set for theming the menu:
 -- menu_[bg|fg]_[normal|focus]
 -- menu_[border_color|border_width]
