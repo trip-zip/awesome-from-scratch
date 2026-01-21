@@ -69,7 +69,6 @@ modkey = "Mod4"
 
 local wibar = require("wibar")
 local mymainmenu = require("widgets.mainmenu")
-local titlebar = require("widgets.titlebar")
 
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
@@ -286,8 +285,39 @@ end)
 
 -- {{{ Titlebars
 -- @DOC_TITLEBARS@
--- Custom titlebar with traffic light buttons and hover effects
-titlebar.init()
+-- Add a titlebar if titlebars_enabled is set to true in the rules.
+client.connect_signal("request::titlebars", function(c)
+  -- buttons for the titlebar
+  local buttons = {
+    awful.button({}, 1, function()
+      c:activate({ context = "titlebar", action = "mouse_move" })
+    end),
+    awful.button({}, 3, function()
+      c:activate({ context = "titlebar", action = "mouse_resize" })
+    end),
+  }
+
+  awful.titlebar(c).widget = {
+    { -- Left
+      layout = wibox.layout.fixed.horizontal,
+      awful.titlebar.widget.closebutton(c),
+      awful.titlebar.widget.floatingbutton(c),
+      awful.titlebar.widget.maximizedbutton(c),
+    },
+    { -- Middle
+      { -- Title
+        halign = "center",
+        widget = awful.titlebar.widget.titlewidget(c),
+      },
+      buttons = buttons,
+      layout = wibox.layout.flex.horizontal,
+    },
+    { -- Right
+      layout = wibox.layout.fixed.horizontal(),
+    },
+    layout = wibox.layout.align.horizontal,
+  }
+end)
 -- }}}
 
 -- Enable sloppy focus, so that focus follows mouse.

@@ -147,8 +147,13 @@ theme.menu_width = dpi(100)
 --theme.bg_widget = "#cc0000"
 
 --Titlebars
-theme.titlebar_close_button_normal = recolor(theme_path .. "/titlebar/square.svg", color.soft_red)
-theme.titlebar_close_button_focus = recolor(theme_path .. "/titlebar/square.svg", color.soft_red)
+-- Button icon switches based on shape_style
+local titlebar_icon = theme.shape_style == "rounded"
+    and theme_path .. "/titlebar/rounded_square.svg"
+    or theme_path .. "/titlebar/square.svg"
+
+theme.titlebar_close_button_normal = recolor(titlebar_icon, color.soft_red)
+theme.titlebar_close_button_focus = recolor(titlebar_icon, color.soft_red)
 
 theme.titlebar_minimize_button_normal = nil
 theme.titlebar_minimize_button_focus = nil
@@ -163,15 +168,15 @@ theme.titlebar_sticky_button_focus_inactive = nil
 theme.titlebar_sticky_button_normal_active = nil
 theme.titlebar_sticky_button_focus_active = nil
 
-theme.titlebar_floating_button_normal_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_yellow)
-theme.titlebar_floating_button_focus_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_yellow)
-theme.titlebar_floating_button_normal_active = recolor(theme_path .. "/titlebar/square.svg", color.soft_orange)
-theme.titlebar_floating_button_focus_active = recolor(theme_path .. "/titlebar/square.svg", color.soft_orange)
+theme.titlebar_floating_button_normal_inactive = recolor(titlebar_icon, color.soft_yellow)
+theme.titlebar_floating_button_focus_inactive = recolor(titlebar_icon, color.soft_yellow)
+theme.titlebar_floating_button_normal_active = recolor(titlebar_icon, color.soft_orange)
+theme.titlebar_floating_button_focus_active = recolor(titlebar_icon, color.soft_orange)
 
-theme.titlebar_maximized_button_normal_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
-theme.titlebar_maximized_button_focus_inactive = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
-theme.titlebar_maximized_button_normal_active = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
-theme.titlebar_maximized_button_focus_active = recolor(theme_path .. "/titlebar/square.svg", color.soft_green)
+theme.titlebar_maximized_button_normal_inactive = recolor(titlebar_icon, color.soft_green)
+theme.titlebar_maximized_button_focus_inactive = recolor(titlebar_icon, color.soft_green)
+theme.titlebar_maximized_button_normal_active = recolor(titlebar_icon, color.soft_green)
+theme.titlebar_maximized_button_focus_active = recolor(titlebar_icon, color.soft_green)
 
 -- theme.wallpaper = theme_path .. "/spaceman.jpg"
 
