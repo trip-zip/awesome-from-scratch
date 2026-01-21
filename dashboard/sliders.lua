@@ -1,12 +1,3 @@
----------------------------------------------------------------------------
---- Dashboard Sliders Section
---
--- Volume and brightness sliders with icons.
---
--- @author awesome-from-scratch
--- @copyright 2025
----------------------------------------------------------------------------
-
 local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")

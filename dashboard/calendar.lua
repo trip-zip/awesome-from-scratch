@@ -1,12 +1,3 @@
----------------------------------------------------------------------------
---- Dashboard Calendar Section
---
--- A clean calendar widget with today highlighted.
---
--- @author awesome-from-scratch
--- @copyright 2025
----------------------------------------------------------------------------
-
 local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")

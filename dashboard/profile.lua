@@ -1,12 +1,3 @@
----------------------------------------------------------------------------
---- Dashboard Profile Section
---
--- Displays user info, time, and date with a greeting.
---
--- @author awesome-from-scratch
--- @copyright 2025
----------------------------------------------------------------------------
-
 local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")

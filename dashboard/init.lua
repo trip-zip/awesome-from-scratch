@@ -1,13 +1,3 @@
----------------------------------------------------------------------------
---- Dashboard / Control Center
---
--- A comprehensive control center showcasing the power of AwesomeWM's widget system.
--- Features: user info, clock, volume/brightness sliders, quick toggles, calendar.
---
--- @author awesome-from-scratch
--- @copyright 2025
----------------------------------------------------------------------------
-
 local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")

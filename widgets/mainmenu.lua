@@ -1,13 +1,3 @@
----------------------------------------------------------------------------
---- Custom Main Menu
---
--- A polished right-click menu with Gruvbox styling.
--- Built as a custom popup widget for full control over appearance.
---
--- @author awesome-from-scratch
--- @copyright 2025
----------------------------------------------------------------------------
-
 local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")
