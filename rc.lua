@@ -285,6 +285,20 @@ end)
 
 -- {{{ Titlebars
 -- @DOC_TITLEBARS@
+-- Wrap a titlebar button with hover effects
+local function with_hover(button, hover_opacity)
+  hover_opacity = hover_opacity or 1.0
+  local normal_opacity = 0.7
+  button.opacity = normal_opacity
+  button:connect_signal("mouse::enter", function()
+    button.opacity = hover_opacity
+  end)
+  button:connect_signal("mouse::leave", function()
+    button.opacity = normal_opacity
+  end)
+  return button
+end
+
 -- Add a titlebar if titlebars_enabled is set to true in the rules.
 client.connect_signal("request::titlebars", function(c)
   -- buttons for the titlebar
@@ -300,9 +314,9 @@ client.connect_signal("request::titlebars", function(c)
   awful.titlebar(c).widget = {
     { -- Left
       layout = wibox.layout.fixed.horizontal,
-      awful.titlebar.widget.closebutton(c),
-      awful.titlebar.widget.floatingbutton(c),
-      awful.titlebar.widget.maximizedbutton(c),
+      with_hover(awful.titlebar.widget.closebutton(c)),
+      with_hover(awful.titlebar.widget.floatingbutton(c)),
+      with_hover(awful.titlebar.widget.maximizedbutton(c)),
     },
     { -- Middle
       { -- Title
