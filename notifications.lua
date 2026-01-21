@@ -178,18 +178,28 @@ local function show_snooze_picker(notif_data, anchor_geometry)
   buttons_layout.spacing = 4
 
   for _, duration in ipairs(M.snooze_durations) do
+    local fg_color = beautiful.fg_normal or "#ebdbb2"
     local btn = wibox.widget({
       {
         {
-          text = "⏰  " .. duration.label,
-          widget = wibox.widget.textbox,
+          {
+            text = "󰥔",  -- nf-md-clock_outline
+            font = "JetBrainsMono Nerd Font 12",
+            forced_width = 20,
+            widget = wibox.widget.textbox,
+          },
+          {
+            text = " " .. duration.label,
+            widget = wibox.widget.textbox,
+          },
+          layout = wibox.layout.fixed.horizontal,
         },
         margins = 10,
         widget = wibox.container.margin,
       },
       bg = beautiful.bg_normal or "#282828",
-      fg = beautiful.fg_normal or "#ebdbb2",
-      shape = beautiful.shape_small or gears.shape.rounded_rect,
+      fg = fg_color,
+      shape = beautiful.shape_small or gears.shape.rectangle,
       widget = wibox.container.background,
     })
 
@@ -230,7 +240,7 @@ local function show_snooze_picker(notif_data, anchor_geometry)
       widget = wibox.container.margin,
     },
     bg = (beautiful.bg_normal or "#282828") .. "F8",
-    shape = beautiful.shape or gears.shape.rounded_rect,
+    shape = beautiful.shape or gears.shape.rectangle,
     widget = wibox.container.background,
   })
 
@@ -242,7 +252,7 @@ local function show_snooze_picker(notif_data, anchor_geometry)
     bg = "#00000000",
     border_width = beautiful.border_width or 1,
     border_color = beautiful.primary_color or "#d65d0e",
-    shape = beautiful.shape or gears.shape.rounded_rect,
+    shape = beautiful.shape or gears.shape.rectangle,
   })
 
   -- Position near mouse
@@ -403,22 +413,24 @@ local function create_notification_item(notif, index)
   end
 
   -- Snooze button
+  local fg_color = beautiful.fg_normal or "#ebdbb2"
   local snooze_btn = wibox.widget({
     {
       {
-        text = "⏰",
-        align = "center",
+        text = "󰥔",  -- nf-md-clock_outline
+        font = "JetBrainsMono Nerd Font 14",
+        halign = "center",
         valign = "center",
         widget = wibox.widget.textbox,
       },
-      margins = 4,
+      margins = 6,
       widget = wibox.container.margin,
     },
-    bg = "transparent",
-    fg = beautiful.fg_normal or "#ebdbb2",
-    shape = gears.shape.circle,
-    forced_width = 28,
-    forced_height = 28,
+    bg = beautiful.bg_focus or "#3c3836",
+    fg = fg_color,
+    shape = gears.shape.rectangle,
+    forced_width = 32,
+    forced_height = 32,
     widget = wibox.container.background,
   })
 
@@ -789,8 +801,8 @@ ruled.notification.connect_signal("request::rules", function()
   
   -- Browser notifications
   ruled.notification.append_rule({
-    rule_any = { 
-      app_name = { "Firefox", "Chrome", "Chromium", "Brave" },
+    rule_any = {
+      app_name = { "Firefox", "Chrome", "Chromium", "Brave", "firefox", "chrome", "chromium", "brave" },
     },
     properties = {
       position = M.config.positions.bottom_right,
@@ -802,40 +814,37 @@ ruled.notification.connect_signal("request::rules", function()
         n.fg = "#000000"
         n.urgency = "critical"
         n.timeout = 0 -- Don't auto-dismiss
-        
-        -- Add quick reply action
-        n:append_actions(naughty.action({
-          name = "Reply",
-          icon = beautiful.awesome_icon,
-        }))
+
+        n:append_actions(naughty.action({ name = "Reply" }))
+        n:append_actions(naughty.action({ name = "Snooze" }))
+      else
+        -- Standard browser notification actions
+        n:append_actions(naughty.action({ name = "Open" }))
+        n:append_actions(naughty.action({ name = "Snooze" }))
       end
     end,
   })
-  
-  -- Discord/Slack notifications
+
+  -- Discord/Slack/Teams notifications
   ruled.notification.append_rule({
     rule_any = {
-      app_name = { "discord", "Discord", "slack", "Slack" },
+      app_name = { "discord", "Discord", "slack", "Slack", "teams", "Teams", "Microsoft Teams" },
     },
     properties = {
-      position = M.config.positions.top_left,
+      position = M.config.positions.top_right,
       timeout = 10,
     },
     callback = function(n)
-      -- Add actions for messaging apps
-      n:append_actions(naughty.action({
-        name = "Open",
-      }))
-      n:append_actions(naughty.action({
-        name = "Mark Read",
-      }))
+      n:append_actions(naughty.action({ name = "Open" }))
+      n:append_actions(naughty.action({ name = "Mark Read" }))
+      n:append_actions(naughty.action({ name = "Snooze" }))
     end,
   })
-  
+
   -- Email notifications
   ruled.notification.append_rule({
     rule_any = {
-      app_name = { "Thunderbird", "Evolution", "Geary" },
+      app_name = { "Thunderbird", "Evolution", "Geary", "thunderbird", "evolution", "geary", "Mail", "mail" },
       category = { "email", "email.arrived" },
     },
     properties = {
@@ -843,38 +852,56 @@ ruled.notification.connect_signal("request::rules", function()
       timeout = 8,
     },
     callback = function(n)
-      n:append_actions(naughty.action({
-        name = "Read",
-      }))
-      n:append_actions(naughty.action({
-        name = "Archive",
-      }))
+      n:append_actions(naughty.action({ name = "Read" }))
+      n:append_actions(naughty.action({ name = "Archive" }))
+      n:append_actions(naughty.action({ name = "Snooze" }))
     end,
   })
-  
+
+  -- Calendar/Reminder notifications
+  ruled.notification.append_rule({
+    rule_any = {
+      app_name = { "Calendar", "calendar", "gnome-calendar", "Reminders", "reminders" },
+      category = { "calendar", "reminder" },
+    },
+    properties = {
+      position = M.config.positions.top_middle,
+      timeout = 0, -- Don't auto-dismiss reminders
+    },
+    callback = function(n)
+      n:append_actions(naughty.action({ name = "Snooze" }))
+      n:append_actions(naughty.action({ name = "Dismiss" }))
+    end,
+  })
+
   -- Media player notifications
   ruled.notification.append_rule({
     rule_any = {
-      app_name = { "Spotify", "spotify", "vlc", "mpv" },
+      app_name = { "Spotify", "spotify", "vlc", "mpv", "rhythmbox", "Rhythmbox" },
       category = { "media", "music" },
     },
     properties = {
       position = M.config.positions.bottom_middle,
       timeout = 4,
     },
+    -- No actions for media - they're just informational
   })
-  
-  -- System notifications
+
+  -- System/Device notifications
   ruled.notification.append_rule({
     rule_any = {
-      category = { "device", "device.added", "device.removed" },
+      app_name = { "System", "system", "udiskie", "NetworkManager" },
+      category = { "device", "device.added", "device.removed", "network" },
     },
     properties = {
       position = M.config.positions.top_middle,
       timeout = 5,
     },
+    callback = function(n)
+      n:append_actions(naughty.action({ name = "Dismiss" }))
+    end,
   })
-  
+
   -- Battery notifications
   ruled.notification.append_rule({
     rule_any = {
@@ -886,6 +913,24 @@ ruled.notification.connect_signal("request::rules", function()
       bg = "#ffa500",
       fg = "#000000",
     },
+    callback = function(n)
+      n:append_actions(naughty.action({ name = "Dismiss" }))
+    end,
+  })
+
+  -- Download notifications
+  ruled.notification.append_rule({
+    rule_any = {
+      category = { "transfer", "transfer.complete" },
+    },
+    properties = {
+      position = M.config.positions.bottom_right,
+      timeout = 6,
+    },
+    callback = function(n)
+      n:append_actions(naughty.action({ name = "Open Folder" }))
+      n:append_actions(naughty.action({ name = "Dismiss" }))
+    end,
   })
 end)
 
@@ -918,6 +963,29 @@ naughty.connect_signal("request::display", function(n)
   -- Play sound
   play_sound(n.urgency or "normal")
 
+  -- Add context-aware actions based on app_name
+  local app = (n.app_name or ""):lower()
+  if not n.actions or #n.actions == 0 then
+    local actions = {}
+    if app:match("discord") or app:match("slack") or app:match("teams") then
+      table.insert(actions, naughty.action({ name = "Open" }))
+      table.insert(actions, naughty.action({ name = "Mark Read" }))
+      table.insert(actions, naughty.action({ name = "Snooze" }))
+    elseif app:match("firefox") or app:match("chrome") or app:match("chromium") or app:match("brave") then
+      table.insert(actions, naughty.action({ name = "Open" }))
+      table.insert(actions, naughty.action({ name = "Snooze" }))
+    elseif app:match("thunderbird") or app:match("evolution") or app:match("mail") then
+      table.insert(actions, naughty.action({ name = "Read" }))
+      table.insert(actions, naughty.action({ name = "Snooze" }))
+    elseif app:match("calendar") or app:match("reminder") then
+      table.insert(actions, naughty.action({ name = "Snooze" }))
+      table.insert(actions, naughty.action({ name = "Dismiss" }))
+    end
+    if #actions > 0 then
+      n.actions = actions
+    end
+  end
+
   -- Build actions widget if notification has actions
   local actions_widget = nil
   if n.actions and #n.actions > 0 then
@@ -928,6 +996,24 @@ naughty.connect_signal("request::display", function(n)
           spacing = 8,
           layout = wibox.layout.flex.horizontal,
         }),
+        widget_template = {
+          {
+            {
+              id = "text_role",
+              halign = "center",
+              valign = "center",
+              widget = wibox.widget.textbox,
+            },
+            margins = { left = 12, right = 12, top = 6, bottom = 6 },
+            widget = wibox.container.margin,
+          },
+          bg = beautiful.notification_action_bg_normal or "#3c3836",
+          fg = beautiful.notification_action_fg_normal or "#ebdbb2",
+          shape = gears.shape.rectangle,
+          shape_border_width = beautiful.notification_action_border_width or 1,
+          shape_border_color = beautiful.notification_action_border_color or "#928374",
+          widget = wibox.container.background,
+        },
         widget = naughty.list.actions,
       },
       margins = { left = 8, right = 8, bottom = 8 },
@@ -1006,7 +1092,33 @@ naughty.connect_signal("invoked", function(n, a)
         break
       end
     end
-  elseif a.name == "Mark Read" then
+
+  elseif a.name == "Snooze" then
+    -- Show snooze picker with notification data
+    local notif_data = {
+      title = n.title,
+      message = n.message,
+      app_name = n.app_name,
+      urgency = n.urgency,
+      icon = n.icon,
+    }
+    show_snooze_picker(notif_data)
+
+  elseif a.name == "Dismiss" then
+    -- Just dismiss - notification will close automatically
+    -- Mark as read in history
+    for _, h in ipairs(M.history) do
+      if h.title == n.title and h.message == n.message then
+        if not h.is_read then
+          h.is_read = true
+          M.unread_count = math.max(0, M.unread_count - 1)
+          awesome.emit_signal("notification::unread_count", M.unread_count)
+        end
+        break
+      end
+    end
+
+  elseif a.name == "Mark Read" or a.name == "Read" then
     -- Mark notification as read in history
     for _, h in ipairs(M.history) do
       if h.title == n.title and h.message == n.message then
@@ -1018,8 +1130,9 @@ naughty.connect_signal("invoked", function(n, a)
         break
       end
     end
-  elseif a.name == "Read" then
-    -- For email "Read" action - similar to Mark Read
+
+  elseif a.name == "Archive" then
+    -- Mark as read (archive is app-specific, we just acknowledge it)
     for _, h in ipairs(M.history) do
       if h.title == n.title and h.message == n.message then
         if not h.is_read then
@@ -1030,9 +1143,11 @@ naughty.connect_signal("invoked", function(n, a)
         break
       end
     end
+
+  elseif a.name == "Open Folder" then
+    -- Open file manager to Downloads folder
+    awful.spawn(filemanager or "xdg-open " .. os.getenv("HOME") .. "/Downloads")
   end
-  -- Note: "Archive", "Accept", "Decline" etc. are app-specific
-  -- and would need custom handling per-app
 end)
 
 -- Toggle functions

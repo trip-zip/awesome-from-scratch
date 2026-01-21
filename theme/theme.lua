@@ -146,14 +146,14 @@ theme.notification_icon_size = dpi(48)
 theme.notification_spacing = dpi(8)
 
 -- Action button styling
-theme.notification_action_bg_normal = theme.bg_minimize
+theme.notification_action_bg_normal = color.grey2  -- #3c3836 - darker, subtler
 theme.notification_action_bg_selected = theme.primary_color
 theme.notification_action_fg_normal = theme.fg_normal
 theme.notification_action_fg_selected = theme.bg_normal
 theme.notification_action_shape_normal = theme.shape_small
 theme.notification_action_shape_selected = theme.shape_small
-theme.notification_action_shape_border_width_normal = dpi(1)
-theme.notification_action_shape_border_color_normal = theme.border_color
+theme.notification_action_border_width = dpi(1)
+theme.notification_action_border_color = color.grey1  -- subtle border
 
 -- Variables set for theming the menu:
 -- menu_[bg|fg]_[normal|focus]
