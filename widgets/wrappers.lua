@@ -2,7 +2,6 @@ local beautiful = require("beautiful")
 local wibox = require("wibox")
 local gears = require("gears")
 local recolor = gears.color.recolor_image
-local utils = require("utils")
 
 local M = {}
 
