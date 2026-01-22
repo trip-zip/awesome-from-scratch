@@ -288,11 +288,85 @@ ruled.client.connect_signal("request::rules", function()
     properties = { titlebars_enabled = true },
   })
 
-  -- Set Firefox to always map on the tag named "2" on screen 1.
-  -- ruled.client.append_rule {
-  --     rule       = { class = "Firefox"     },
-  --     properties = { screen = 1, tag = "2" }
-  -- }
+  -- ==========================================
+  -- DEMO RULES: Showcasing AwesomeWM capabilities
+  -- ==========================================
+
+  -- Tag assignment: Browsers always open on "web" tag
+  ruled.client.append_rule({
+    id = "browsers",
+    rule_any = {
+      class = { "firefox", "Firefox", "chromium", "Chromium", "Google-chrome" },
+    },
+    properties = { tag = "web" },
+  })
+
+  -- Tag assignment: Chat/communication apps on "chat" tag
+  ruled.client.append_rule({
+    id = "chat",
+    rule_any = {
+      class = { "discord", "Discord", "Slack", "TelegramDesktop", "Signal" },
+    },
+    properties = { tag = "chat" },
+  })
+
+  -- Picture-in-Picture: Always floating, ontop, sticky, positioned top-right
+  ruled.client.append_rule({
+    id = "pip",
+    rule_any = {
+      name = { "Picture-in-Picture", "Picture in picture" },
+    },
+    properties = {
+      floating = true,
+      ontop = true,
+      sticky = true,
+      skip_taskbar = true,
+    },
+    callback = function(c)
+      -- Position at top-right with margin
+      awful.placement.top_right(c, { margins = { top = 50, right = 20 } })
+      -- Make it smaller (good for video)
+      c:geometry({ width = 480, height = 270 })
+    end,
+  })
+
+  -- Spotify: Force to "db" tag (closest to media)
+  ruled.client.append_rule({
+    id = "spotify",
+    rule = { class = "Spotify" },
+    properties = { tag = "db" },
+  })
+
+  -- File manager: Slightly larger default size
+  ruled.client.append_rule({
+    id = "filemanager",
+    rule_any = {
+      class = { "Thunar", "Nautilus", "Pcmanfm", "Nemo" },
+    },
+    callback = function(c)
+      c:geometry({ width = 1000, height = 700 })
+      awful.placement.centered(c)
+    end,
+  })
+
+  -- Steam: Handle various Steam windows properly
+  ruled.client.append_rule({
+    id = "steam",
+    rule = { class = "Steam" },
+    properties = { tag = "games" },
+  })
+
+  -- Steam friends list and chat: floating
+  ruled.client.append_rule({
+    id = "steam-dialogs",
+    rule_any = {
+      name = { "Friends List", "Steam - News" },
+      class = { "Steam" },
+      type = { "dialog" },
+    },
+    except = { name = "Steam" }, -- Main window excluded
+    properties = { floating = true },
+  })
 end)
 -- }}}
 

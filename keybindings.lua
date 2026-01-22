@@ -10,6 +10,7 @@ local dashboard = require("dashboard")
 local launcher = require("launcher")
 local exitscreen = require("exitscreen")
 local notifications = require("notifications")
+local windowswitcher = require("widgets.windowswitcher")
 
 local function table_to_keybinding(bindings)
   local key_bindings = {}
@@ -112,7 +113,7 @@ local global_keys = {
   {{ modkey }, "Left",                  awful.tag.viewprev,                                       "view previous",                         "tag"      },
   {{ modkey }, "Return",                function () awful.spawn(terminal) end,                    "open a terminal",                       "launcher" },
   {{ modkey }, "Right",                 awful.tag.viewnext,                                       "view next",                             "tag"      },
-  {{ modkey }, "Tab",                   global_helpers.client_go_back,                            "go back",                               "client"   },
+  {{ modkey }, "Tab",                   windowswitcher.show,                                      "window switcher",                       "client"   },
   {{ modkey }, "space",                 function () awful.layout.inc( 1)       end,               "select next",                           "layout"   },
   -- modkey + ctrl modifier
   {{ modkey, "Control" }, "h",          function () awful.tag.incncol( 1, nil, true) end,         "increase the number of columns",        "layout"   },

@@ -45,6 +45,8 @@ return function(s)
         widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         widgets.battery,
         widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
+        s.mylayoutbox,
+        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         widgets.power,
         layout = wibox.layout.fixed.horizontal,
       },
