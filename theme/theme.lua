@@ -238,7 +238,7 @@ theme.awesome_icon = theme_assets.awesome_icon(theme.menu_height, theme.bg_focus
 
 -- Define the icon theme for application icons. If not set then the icons
 -- from /usr/share/icons and /usr/share/icons/hicolor will be used.
-theme.icon_theme = nil
+theme.icon_theme = "Papirus"
 
 --[[
 INFO: EVERYTHING BELOW THIS IS USING THE DEFAULT AWESOME THEME VALUES (https://awesomewm.org/apidoc/documentation/06-appearance.md.html)
@@ -368,13 +368,13 @@ theme.menu_fg_normal = nil
 theme.menu_font = nil
 theme.menu_submenu = nil
 
-theme.menubar_bg_focus = nil
-theme.menubar_bg_normal = nil
-theme.menubar_border_color = nil
-theme.menubar_border_width = nil
-theme.menubar_fg_focus = nil
-theme.menubar_fg_normal = nil
-theme.menubar_font = nil
+theme.menubar_bg_focus = theme.primary_color
+theme.menubar_bg_normal = theme.bg_normal .. "F8"
+theme.menubar_border_color = theme.primary_color
+theme.menubar_border_width = dpi(1)
+theme.menubar_fg_focus = theme.bg_normal
+theme.menubar_fg_normal = theme.fg_normal
+theme.menubar_font = theme.font
 
 theme.notification_action_bg_normal = nil
 theme.notification_action_bg_selected = nil

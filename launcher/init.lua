@@ -5,6 +5,53 @@ local wibox = require("wibox")
 
 local launcher = {}
 
+-- Performance logging helpers
+local function log_time(label, start_time)
+    local elapsed = (os.clock() - start_time) * 1000
+    io.stderr:write(string.format("[LAUNCHER] %s: %.2fms\n", label, elapsed))
+    return elapsed
+end
+
+-- Icon cache for fast lookups across sessions
+local icon_cache = {}
+local icon_cache_path = os.getenv("HOME") .. "/.cache/somewm-launcher-icons.json"
+local icon_cache_dirty = false
+
+local function load_icon_cache()
+    local file = io.open(icon_cache_path, "r")
+    if file then
+        local content = file:read("*all")
+        file:close()
+        local count = 0
+        -- Simple JSON parsing (icons are just key-value strings)
+        for name, path in content:gmatch('"([^"]+)":"([^"]*)"') do
+            icon_cache[name] = path ~= "" and path or false  -- false = known missing
+            count = count + 1
+        end
+        io.stderr:write(string.format("[LAUNCHER] Loaded icon cache: %d entries\n", count))
+        return true
+    end
+    return false
+end
+
+local function save_icon_cache()
+    if not icon_cache_dirty then return end
+    local file = io.open(icon_cache_path, "w")
+    if file then
+        file:write("{\n")
+        local first = true
+        for name, path in pairs(icon_cache) do
+            if not first then file:write(",\n") end
+            first = false
+            file:write(string.format('  "%s":"%s"', name, path or ""))
+        end
+        file:write("\n}\n")
+        file:close()
+        icon_cache_dirty = false
+        io.stderr:write("[LAUNCHER] Saved icon cache\n")
+    end
+end
+
 -- State
 local launcher_popup = nil
 local launcher_visible = false
@@ -117,43 +164,101 @@ local function parse_desktop_file(path)
     return nil
 end
 
---- Find icon path from icon name
+-- Known icon overrides for apps with non-standard icon names
+local icon_overrides = {
+    ["code"] = "visual-studio-code",
+    ["code-oss"] = "visual-studio-code",
+    ["codium"] = "vscodium",
+    ["blueman-device"] = "blueman",
+    ["blueman-adapters"] = "blueman",
+}
+
+--- Find icon path from icon name (with persistent cache)
 local function find_icon(icon_name)
     if not icon_name then return nil end
 
-    -- If it's already a path, return it
-    if icon_name:match("^/") and gears.filesystem.file_readable(icon_name) then
-        return icon_name
+    -- Check for overrides first
+    local lower_name = icon_name:lower()
+    icon_name = icon_overrides[lower_name] or icon_name
+
+    -- If it's already an absolute path, return it if readable
+    if icon_name:match("^/") then
+        if gears.filesystem.file_readable(icon_name) then
+            return icon_name
+        end
+        return nil
     end
 
-    -- Common icon directories and sizes to search
-    local icon_dirs = {
-        "/usr/share/icons/hicolor/48x48/apps",
-        "/usr/share/icons/hicolor/64x64/apps",
-        "/usr/share/icons/hicolor/128x128/apps",
-        "/usr/share/icons/hicolor/scalable/apps",
-        "/usr/share/pixmaps",
-        "/usr/share/icons/Adwaita/48x48/apps",
-        "/usr/share/icons/Adwaita/scalable/apps",
+    -- Check cache first
+    if icon_cache[icon_name] ~= nil then
+        local cached = icon_cache[icon_name]
+        return cached ~= false and cached or nil  -- false means known missing
+    end
+
+    -- Brute-force search (only on cache miss)
+    local icon_theme = beautiful.icon_theme or "hicolor"
+    local sizes = { "scalable", "256x256", "128x128", "96x96", "64x64", "48x48", "32x32", "24x24", "22x22" }
+    local base_dirs = {
+        os.getenv("HOME") .. "/.local/share/icons",
+        os.getenv("HOME") .. "/.icons",
+        "/usr/share/icons",
+        "/usr/local/share/icons",
     }
+    local themes = { icon_theme, "Papirus", "Adwaita", "hicolor", "breeze", "gnome" }
+    local subdirs = { "apps", "applications", "devices", "categories", "status", "mimetypes" }
+    local extensions = { ".svg", ".png", ".xpm", "" }
 
-    local extensions = { ".png", ".svg", ".xpm", "" }
+    -- Search through theme directories
+    for _, base in ipairs(base_dirs) do
+        for _, theme_name in ipairs(themes) do
+            for _, size in ipairs(sizes) do
+                for _, subdir in ipairs(subdirs) do
+                    for _, ext in ipairs(extensions) do
+                        local path = base .. "/" .. theme_name .. "/" .. size .. "/" .. subdir .. "/" .. icon_name .. ext
+                        if gears.filesystem.file_readable(path) then
+                            icon_cache[icon_name] = path
+                            icon_cache_dirty = true
+                            return path
+                        end
+                    end
+                end
+            end
+        end
+    end
 
-    for _, dir in ipairs(icon_dirs) do
+    -- Fallback to pixmaps
+    local pixmap_dirs = { "/usr/share/pixmaps", "/usr/local/share/pixmaps" }
+    for _, dir in ipairs(pixmap_dirs) do
         for _, ext in ipairs(extensions) do
             local path = dir .. "/" .. icon_name .. ext
             if gears.filesystem.file_readable(path) then
+                icon_cache[icon_name] = path
+                icon_cache_dirty = true
                 return path
             end
         end
     end
 
+    -- Cache the miss
+    icon_cache[icon_name] = false
+    icon_cache_dirty = true
     return nil
 end
 
 --- Load applications from .desktop files
 local function load_apps()
+    local load_start = os.clock()
+    io.stderr:write("[LAUNCHER] load_apps() START\n")
+
+    -- Load icon cache from disk
+    local cache_loaded = load_icon_cache()
+    if cache_loaded then
+        io.stderr:write("[LAUNCHER] Using cached icons\n")
+    end
+
     all_apps = {}
+    local icons_found = 0
+    local icons_missing = 0
 
     -- Desktop file directories
     local desktop_dirs = {
@@ -163,29 +268,56 @@ local function load_apps()
     }
 
     local seen = {} -- Avoid duplicates
+    local desktop_files = {}
 
+    -- Phase 1: Find all desktop files
+    local find_start = os.clock()
     for _, dir in ipairs(desktop_dirs) do
         local handle = io.popen('find "' .. dir .. '" -name "*.desktop" 2>/dev/null')
         if handle then
             for path in handle:lines() do
-                local basename = path:match("([^/]+)$")
-                if not seen[basename] then
-                    seen[basename] = true
-                    local app = parse_desktop_file(path)
-                    if app then
-                        app.icon = find_icon(app.icon)
-                        table.insert(all_apps, app)
-                    end
-                end
+                table.insert(desktop_files, path)
             end
             handle:close()
         end
     end
+    log_time("  find command", find_start)
+    io.stderr:write(string.format("[LAUNCHER]   - found %d .desktop files\n", #desktop_files))
+
+    -- Phase 2: Parse files and resolve icons
+    local parse_start = os.clock()
+    for _, path in ipairs(desktop_files) do
+        local basename = path:match("([^/]+)$")
+        if not seen[basename] then
+            seen[basename] = true
+            local app = parse_desktop_file(path)
+            if app then
+                local resolved_icon = find_icon(app.icon)
+                if resolved_icon then
+                    icons_found = icons_found + 1
+                else
+                    icons_missing = icons_missing + 1
+                end
+                app.icon = resolved_icon
+                table.insert(all_apps, app)
+            end
+        end
+    end
+    log_time("  parse + icons", parse_start)
+    io.stderr:write(string.format("[LAUNCHER]   - icons found: %d, missing: %d\n", icons_found, icons_missing))
 
     -- Sort alphabetically by default
+    local sort_start = os.clock()
     table.sort(all_apps, function(a, b)
         return a.name:lower() < b.name:lower()
     end)
+    log_time("  sort", sort_start)
+
+    log_time("load_apps() TOTAL", load_start)
+    io.stderr:write(string.format("[LAUNCHER]   - loaded %d apps\n", #all_apps))
+
+    -- Save icon cache if modified
+    save_icon_cache()
 end
 
 --- Filter apps based on search text
@@ -223,6 +355,26 @@ local function filter_apps()
     selected_index = math.min(selected_index, math.max(1, #filtered_apps))
 end
 
+-- Gruvbox accent colors for initial-based icons
+local initial_colors = {
+    "#d65d0e", -- orange
+    "#458588", -- blue
+    "#98971a", -- green
+    "#b16286", -- purple
+    "#689d6a", -- aqua
+    "#d79921", -- yellow
+    "#cc241d", -- red
+}
+
+-- Get a consistent color for an app based on its name
+local function get_initial_color(name)
+    local sum = 0
+    for i = 1, #name do
+        sum = sum + string.byte(name, i)
+    end
+    return initial_colors[(sum % #initial_colors) + 1]
+end
+
 --- Create an app item widget
 local function create_app_item(app, index)
     local is_selected = index == selected_index
@@ -237,17 +389,26 @@ local function create_app_item(app, index)
             widget = wibox.widget.imagebox,
         })
     else
+        -- Fallback: styled initial (first letter of app name)
+        local initial = app.name:sub(1, 1):upper()
+        local bg_color = get_initial_color(app.name)
+
         icon_widget = wibox.widget({
             {
-                text = "",
-                font = "JetBrainsMono Nerd Font 24",
-                halign = "center",
-                valign = "center",
-                widget = wibox.widget.textbox,
+                {
+                    text = initial,
+                    font = "JetBrainsMono Nerd Font Bold 18",
+                    halign = "center",
+                    valign = "center",
+                    widget = wibox.widget.textbox,
+                },
+                fg = "#282828",  -- Dark text on colored background
+                widget = wibox.container.background,
             },
+            bg = bg_color,
+            shape = gears.shape.rectangle,
             forced_width = config.icon_size,
             forced_height = config.icon_size,
-            fg = beautiful.fg_normal,
             widget = wibox.container.background,
         })
     end
@@ -383,13 +544,15 @@ end
 
 --- Create the main launcher widget
 local function create_launcher_widget()
+    local widget_start = os.clock()
+
     -- Calculate max height based on max_results
     local max_height = config.margin * 2  -- top + bottom margin
         + 40  -- search input area
         + 16  -- spacing
         + (config.item_height + 4) * config.max_results  -- items + spacing
 
-    return wibox.widget({
+    local widget = wibox.widget({
         {
             {
                 create_search_input(),
@@ -409,6 +572,9 @@ local function create_launcher_widget()
         forced_height = max_height,
         widget = wibox.container.background,
     })
+
+    log_time("  create_launcher_widget()", widget_start)
+    return widget
 end
 
 --- Refresh the launcher display
@@ -478,23 +644,33 @@ end
 
 --- Show the launcher
 function launcher.show()
+    local show_start = os.clock()
+    io.stderr:write("[LAUNCHER] === show() called ===\n")
+
     if launcher_visible then
+        io.stderr:write("[LAUNCHER] Already visible, returning\n")
         return
     end
 
     -- Load apps if not already loaded
     if #all_apps == 0 then
         load_apps()
+    else
+        io.stderr:write(string.format("[LAUNCHER] Using cached apps (%d apps)\n", #all_apps))
     end
 
     -- Reset state
     search_text = ""
     selected_index = 1
+
+    local filter_start = os.clock()
     filter_apps()
+    log_time("  filter_apps()", filter_start)
 
     local s = awful.screen.focused()
 
     if not launcher_popup then
+        local popup_start = os.clock()
         launcher_popup = awful.popup({
             widget = create_launcher_widget(),
             screen = s,
@@ -506,6 +682,7 @@ function launcher.show()
             border_color = beautiful.primary_color or "#d65d0e",
             shape = beautiful.shape,
         })
+        log_time("  create popup", popup_start)
     end
 
     launcher_popup.screen = s
@@ -517,6 +694,8 @@ function launcher.show()
     start_keygrabber()
 
     awesome.emit_signal("launcher::visible", true)
+
+    log_time("=== show() TOTAL", show_start)
 end
 
 --- Hide the launcher

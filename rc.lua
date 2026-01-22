@@ -48,6 +48,19 @@ else
   io.stderr:write("[RC.LUA] Notifications module loaded successfully\n")
 end
 
+-- Load and initialize lockscreen module (somewm built-in lock support)
+local lockscreen_ok, lockscreen = pcall(require, "lockscreen")
+if not lockscreen_ok then
+  io.stderr:write("[RC.LUA] Failed to load lockscreen: " .. tostring(lockscreen) .. "\n")
+else
+  local init_ok, init_err = pcall(lockscreen.init)
+  if not init_ok then
+    io.stderr:write("[RC.LUA] Failed to init lockscreen: " .. tostring(init_err) .. "\n")
+  else
+    io.stderr:write("[RC.LUA] Lockscreen initialized successfully\n")
+  end
+end
+
 -- @DOC_DEFAULT_APPLICATIONS@
 -- This is used later as the default terminal and editor to run.
 terminal = "ghostty"

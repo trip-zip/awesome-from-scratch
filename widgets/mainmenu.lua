@@ -27,13 +27,13 @@ local menu_items = {
     { type = "item", icon = "󰀻", label = "Apps", action = "submenu", submenu = "apps" },
     { type = "separator" },
     { type = "item", icon = "󰙀", label = "File Manager", command = "thunar" },
-    { type = "item", icon = "", label = "Terminal", command = "ghostty" },
+    { type = "item", icon = "", label = "Terminal", command = "ghostty" },
     { type = "item", icon = "󰒓", label = "Settings", command = "gnome-control-center" },
     { type = "item", icon = "󰋜", label = "Hotkeys", action = "hotkeys" },
     { type = "separator" },
-    { type = "item", icon = "󰌾", label = "Lock", command = "loginctl lock-session" },
+    { type = "item", icon = "󰌾", label = "Lock", action = "lock" },
     { type = "item", icon = "󰗼", label = "Logout", action = "logout" },
-    { type = "item", icon = "", label = "Restart", action = "restart" },
+    { type = "item", icon = "", label = "Restart", action = "restart" },
     { type = "item", icon = "󰐥", label = "Shutdown", command = "systemctl poweroff" },
 }
 
@@ -56,6 +56,8 @@ local function execute_item(item)
         awful.spawn(item.command)
     elseif item.action == "hotkeys" then
         hotkeys_popup.show_help(nil, awful.screen.focused())
+    elseif item.action == "lock" then
+        awesome:lock()
     elseif item.action == "logout" then
         awesome.quit()
     elseif item.action == "restart" then
