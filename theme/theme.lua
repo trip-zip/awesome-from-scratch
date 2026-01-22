@@ -155,6 +155,16 @@ theme.notification_action_shape_selected = theme.shape_small
 theme.notification_action_border_width = dpi(1)
 theme.notification_action_border_color = color.grey1  -- subtle border
 
+-- Lockscreen styling
+theme.lockscreen_bg = color.bg
+theme.lockscreen_fg = color.fg
+theme.lockscreen_clock_fg = color.fg
+theme.lockscreen_date_fg = color.grey1
+theme.lockscreen_input_bg = color.grey2
+theme.lockscreen_input_fg = color.fg
+theme.lockscreen_input_border = theme.primary_color
+theme.lockscreen_error_fg = color.soft_red
+
 -- Variables set for theming the menu:
 -- menu_[bg|fg]_[normal|focus]
 -- menu_[border_color|border_width]
@@ -490,42 +500,132 @@ theme.snap_border_width = nil
 theme.snap_shape = nil
 theme.snapper_gap = nil
 
-theme.systray_icon_spacing = dpi(4)
+-- =============================================================================
+-- SYSTRAY - somewm's per-icon customization (D-Bus StatusNotifierItem)
+-- =============================================================================
+
+-- Layout
+theme.systray_icon_spacing = dpi(8)
 theme.systray_max_rows = 1
 
--- Systray hover effects (default for all icons)
+-- Hover effects
 theme.systray_hover_scale = 1.1
-theme.systray_hover_bg = color.grey2 .. "88"  -- subtle background on hover
+theme.systray_hover_bg = color.grey2 .. "66"
 
--- Systray urgent styling (when app needs attention)
-theme.systray_urgent_style = "dot"
-theme.systray_urgent_color = color.soft_red
+-- Urgent styling (when app needs attention)
+theme.systray_urgent_style = "dot"           -- "none", "dot", "ring", "glow"
+theme.systray_urgent_color = theme.primary_color
 theme.systray_urgent_outline_color = color.bg
+theme.systray_urgent_position = "top_right"
+theme.systray_urgent_size = 0.25             -- ratio of icon size
 
--- Per-app systray styling
-theme.systray_icon_style = {
+-- Overlay badges
+theme.systray_show_overlay = true
+theme.systray_overlay_position = "bottom_right"
+theme.systray_overlay_size = 0.33
+
+-- Per-app styling (function-based with debug logging)
+-- Using gruvbox colors throughout for visual harmony
+local systray_styles = {
+    -- Communication apps (gruvbox colors, not brand colors)
     Discord = {
-        hover_scale = 1.3,
-        hover_bg = "#5865F266",        -- Discord blurple
-        urgent_bg = "#ED424522",       -- Discord red tint
-        urgent_color = "#ED4245",      -- Discord red
-        urgent_style = "ring",
-        -- icon_override = "/usr/share/pixmaps/archlinux-logo.png",  -- Replace with Arch logo for fun
+        hover_scale = 1.15,
+        hover_bg = color.grey2 .. "66",
+        urgent_style = "dot",
+        urgent_color = color.soft_orange,
+        icon_change_triggers_urgent = true,
     },
     Slack = {
-        -- icon_override = "/home/jimmy/.config/somewm/icons/slack.svg",
-        -- icon_change_triggers_urgent = false,
-        hover_scale = 1.2,
-        hover_bg = "#4a154b44",        -- Slack aubergine
-        urgent_bg = "#E0115522",       -- Slack magenta tint
-        urgent_color = "#E01155",      -- Slack magenta
-        urgent_style = "dot",          -- try "dot", "ring", or "glow"
-        urgent_position = "bottom_right",
-        urgent_shape = function(cr, w, h)
-            gears.shape.rounded_rect(cr, w, h, 4)
-        end,
+        hover_scale = 1.15,
+        hover_bg = color.grey2 .. "66",
+        urgent_style = "dot",
+        urgent_color = color.soft_orange,
+        urgent_position = "top_right",
+        icon_change_triggers_urgent = true,
+        icon_override = "/usr/share/icons/Papirus/22x22/panel/slack-indicator.svg",
+    },
+    Telegram = {
+        hover_bg = color.grey2 .. "66",
+        urgent_style = "dot",
+        urgent_color = color.soft_orange,
+        icon_change_triggers_urgent = true,
+    },
+    Signal = {
+        hover_bg = color.grey2 .. "66",
+        urgent_style = "dot",
+        urgent_color = color.soft_orange,
+        icon_change_triggers_urgent = true,
+    },
+
+    -- Media apps (no urgent indicators)
+    Spotify = {
+        hover_scale = 1.15,
+        hover_bg = color.grey2 .. "66",
+        urgent_style = "none",
+    },
+
+    -- System applets (gruvbox colors + symbolic icon for bluetooth)
+    ["nm-applet"] = {
+        hover_bg = color.grey2 .. "66",
+        urgent_style = "dot",
+        urgent_color = color.soft_yellow,
+    },
+    pasystray = {
+        hover_bg = color.grey2 .. "66",
+        urgent_style = "dot",
+        urgent_color = color.soft_red,
     },
 }
+
+-- Bluetooth style (used for any bluetooth app)
+-- Custom gruvbox-colored bluetooth icon
+local bluetooth_style = {
+    hover_bg = color.grey2 .. "66",
+    urgent_style = "dot",
+    urgent_color = color.soft_blue,
+    icon_override = os.getenv("HOME") .. "/.config/somewm/icons/bluetooth-gruvbox.svg",
+}
+
+-- Function-based style lookup with debug logging
+theme.systray_icon_style = function(item)
+    local id = item.id or ""
+    local app_name = item.app_name or ""
+
+    -- Debug: log all systray items (check ~/.cache/somewm/stdout)
+    print(string.format("[systray] id=%q app_name=%q", id, app_name))
+
+    -- Look up by id first
+    if systray_styles[id] then
+        return systray_styles[id]
+    end
+
+    -- Then by app_name
+    if systray_styles[app_name] then
+        return systray_styles[app_name]
+    end
+
+    -- Special case for Slack (case-insensitive match)
+    if app_name:lower():find("slack") or id:lower():find("slack") then
+        return systray_styles.Slack
+    end
+
+    -- Special case for bluetooth (any variation)
+    if app_name:lower():find("blue") or id:lower():find("blue") then
+        return bluetooth_style
+    end
+
+    -- Write unmatched items to a file for debugging
+    local f = io.open("/tmp/systray-debug.log", "a")
+    if f then
+        f:write(string.format("[systray] UNMATCHED id=%q app_name=%q\n", id, app_name))
+        f:close()
+    end
+
+    -- Default: apply subtle hover for any unmatched items
+    return {
+        hover_bg = color.grey2 .. "66",
+    }
+end
 
 theme.taglist_bg_empty = color.bg
 theme.taglist_bg_focus = color.grey1

@@ -2,6 +2,7 @@ local awful = require("awful")
 local beautiful = require("beautiful")
 local wibox = require("wibox")
 local widgets = require("widgets")
+local dpi = require("beautiful.xresources").apply_dpi
 
 return function(s)
   local wibar = awful.wibar({
@@ -23,11 +24,24 @@ return function(s)
         layout = wibox.layout.align.horizontal,
       },
       {
-        wibox.widget.systray(),
-        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
-        widgets.volume,
-        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
-        widgets.wifi,
+        -- Styled systray container with subtle inset appearance
+        {
+          {
+            {
+              wibox.widget.systray(),
+              margins = dpi(4),
+              widget = wibox.container.margin,
+            },
+            bg = beautiful.bg_focus,
+            shape = beautiful.shape_small,
+            widget = wibox.container.background,
+          },
+          left = dpi(8),
+          right = dpi(8),
+          top = dpi(4),
+          bottom = dpi(4),
+          widget = wibox.container.margin,
+        },
         widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         widgets.battery,
         widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
