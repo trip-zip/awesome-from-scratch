@@ -2,12 +2,14 @@
 
 A comprehensive AwesomeWM/somewm configuration built from scratch, designed as both a fully-functional rice and a learning resource. **100% native** - no rofi, no polybar, no conky.
 
+### Dashboard, Launcher & Tiling
 ![Dashboard and Launcher](screenshots/gruvbox-dashboard-launcher.png)
 
-<p align="center">
-  <img src="screenshots/gruvbox-notifications-menu.png" width="49%" alt="Notifications and Menu"/>
-  <img src="screenshots/gruvbox-lockscreen.png" width="49%" alt="Lockscreen"/>
-</p>
+### Notification Center & Power Menu
+![Notifications and Menu](screenshots/gruvbox-notifications-menu.png)
+
+### Native Lockscreen
+![Lockscreen](screenshots/gruvbox-lockscreen.png)
 
 ## Features
 
