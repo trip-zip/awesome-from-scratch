@@ -131,20 +131,22 @@ cp -r awesome-from-scratch ~/.config/awesome
 
 ## Learning Path
 
+> **🚧 Work in Progress:** The tutorial branches are still being written. Star/watch this repo to get notified when they're ready!
+
 This config is structured as a tutorial series. Each branch builds on the previous:
 
-| Branch | Topic |
-|--------|-------|
-| `main` | Complete config (you are here) |
-| `01-theme` | Theme system fundamentals |
-| `02-widgets` | Widget system deep dive |
-| `03-dashboard` | Building the control center |
-| `04-wibar` | Status bar with custom widgets |
-| `05-notifications` | Notification system |
-| `06-launcher` | Native app launcher |
-| `07-titlebars` | Window decorations |
-| `08-keybindings` | Organized bindings |
-| `09-exit-screen` | Modal UI patterns |
+| Branch | Topic | Status |
+|--------|-------|--------|
+| `main` | Complete config (you are here) | ✅ |
+| `01-theme` | Theme system fundamentals | 🚧 |
+| `02-widgets` | Widget system deep dive | 🚧 |
+| `03-dashboard` | Building the control center | 🚧 |
+| `04-wibar` | Status bar with custom widgets | 🚧 |
+| `05-notifications` | Notification system | 🚧 |
+| `06-launcher` | Native app launcher | 🚧 |
+| `07-titlebars` | Window decorations | 🚧 |
+| `08-keybindings` | Organized bindings | 🚧 |
+| `09-exit-screen` | Modal UI patterns | 🚧 |
 
 ## Customization
 
