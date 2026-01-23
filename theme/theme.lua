@@ -113,7 +113,7 @@ theme.fg_minimize = color.white
 theme.useless_gap = dpi(8)
 theme.border_width = dpi(1)
 theme.border_color_normal = color.bg
-theme.border_color_active = color.soft_green
+theme.border_color_active = color.soft_orange
 theme.border_color_marked = color.red
 
 -- There are other variable sets

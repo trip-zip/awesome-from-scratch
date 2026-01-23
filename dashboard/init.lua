@@ -22,7 +22,7 @@ local config = {
     spacing = 16,
     bg = (beautiful.bg_normal or "#282828") .. "F2", -- Slightly transparent
     border_width = beautiful.border_width or 1,
-    border_color = beautiful.border_color_active or beautiful.primary_color or "#d65d0e",
+    border_color = beautiful.primary_color or "#d65d0e",
 }
 
 --- Create the main dashboard widget

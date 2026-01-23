@@ -565,7 +565,7 @@ local function create_header()
       margins = 4,
       widget = wibox.container.margin,
     },
-    bg = beautiful.bg_urgent or "#cc241d",
+    bg = "#cc241d",
     fg = beautiful.fg_urgent or "#ffffff",
     shape = beautiful.shape_small or gears.shape.rounded_rect,
     forced_width = 80,
