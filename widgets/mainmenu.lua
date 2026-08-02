@@ -24,6 +24,7 @@ local config = {
 -- Menu items definition
 -- type: "item" | "separator" | "submenu"
 local menu_items = {
+  { type = "item", icon = "󰀻", label = "Apps", action = "submenu", submenu = "apps" },
   { type = "separator" },
   { type = "item", icon = "󰙀", label = "File Manager", command = "thunar" },
   { type = "item", icon = "", label = "Terminal", command = "ghostty" },
@@ -61,6 +62,11 @@ local function execute_item(item)
     awesome.quit()
   elseif item.action == "restart" then
     awesome.restart()
+  elseif item.action == "submenu" then
+    -- TODO: implement submenus
+    -- For now, open the launcher as "Apps"
+    local launcher = require("launcher")
+    launcher.show()
   end
 end
 
@@ -91,6 +97,16 @@ local function create_menu_item(item, index)
     widget = wibox.widget.textbox,
   })
 
+  -- Arrow for submenus
+  local arrow_widget = nil
+  if item.action == "submenu" then
+    arrow_widget = wibox.widget({
+      text = "󰅂",
+      font = "JetBrainsMono Nerd Font 12",
+      halign = "right",
+      widget = wibox.widget.textbox,
+    })
+  end
 
   local item_widget = wibox.widget({
     {
