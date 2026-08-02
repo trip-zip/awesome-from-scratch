@@ -1,17 +1,17 @@
-# 01-theme
+# 02-keybindings
 
-Checkpoint 1 of *Awesome From Scratch*: **theme: palettes, shapes, and recolored assets**.
+Checkpoint 2 of *Awesome From Scratch*: **keybindings: a table you can read and search**.
 
-Read the chapter: <https://somewm.org/from-scratch/chapters/01-theme>
+Read the chapter: <https://somewm.org/from-scratch/chapters/02-keybindings>
 
 ## Run this checkpoint
 
 ```bash
-git checkout 01-theme
+git checkout 02-keybindings
 somewm-client test start --config "$PWD/rc.lua" --name afs
 ```
 
 That opens a nested SomeWM in a window. Your real session is untouched.
 
-Previous: [`00-default`](../../tree/00-default)  
-Next: [`02-keybindings`](../../tree/02-keybindings)
+Previous: [`01-theme`](../../tree/01-theme)  
+Next: [`03-widgets`](../../tree/03-widgets)
