@@ -1,17 +1,17 @@
-# 08-mainmenu
+# 09-switcher
 
-Checkpoint 8 of *Awesome From Scratch*: **main menu, and the launcher button that opens it**.
+Checkpoint 9 of *Awesome From Scratch*: **window switcher**.
 
-Read the chapter: <https://somewm.org/from-scratch/chapters/08-mainmenu>
+Read the chapter: <https://somewm.org/from-scratch/chapters/09-switcher>
 
 ## Run this checkpoint
 
 ```bash
-git checkout 08-mainmenu
+git checkout 09-switcher
 somewm-client test start --config "$PWD/rc.lua" --name afs
 ```
 
 That opens a nested SomeWM in a window. Your real session is untouched.
 
-Previous: [`07-exitscreen`](../../tree/07-exitscreen)  
-Next: [`09-switcher`](../../tree/09-switcher)
+Previous: [`08-mainmenu`](../../tree/08-mainmenu)  
+Next: [`10-launcher`](../../tree/10-launcher)
