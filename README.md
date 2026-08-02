@@ -1,17 +1,17 @@
-# 10-launcher
+# 11-dashboard
 
-Checkpoint 10 of *Awesome From Scratch*: **launcher: a menubar replacement from scratch**.
+Checkpoint 11 of *Awesome From Scratch*: **dashboard: the control center**.
 
-Read the chapter: <https://somewm.org/from-scratch/chapters/10-launcher>
+Read the chapter: <https://somewm.org/from-scratch/chapters/11-dashboard>
 
 ## Run this checkpoint
 
 ```bash
-git checkout 10-launcher
+git checkout 11-dashboard
 somewm-client test start --config "$PWD/rc.lua" --name afs
 ```
 
 That opens a nested SomeWM in a window. Your real session is untouched.
 
-Previous: [`09-switcher`](../../tree/09-switcher)  
-Next: [`11-dashboard`](../../tree/11-dashboard)
+Previous: [`10-launcher`](../../tree/10-launcher)  
+Next: [`12-lockscreen`](../../tree/12-lockscreen)

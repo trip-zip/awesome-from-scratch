@@ -6,6 +6,7 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 require("awful.hotkeys_popup.keys")
 
 -- Load our custom modules
+local dashboard = require("dashboard")
 local launcher = require("launcher")
 local exitscreen = require("exitscreen")
 local notifications = require("notifications")
@@ -100,6 +101,7 @@ local global_keys = {
   {{ modkey }, "j",                     function () awful.client.focus.byidx( 1) end,             "focus next by index",                   "client"   },
   {{ modkey }, "k",                     function () awful.client.focus.byidx(-1) end,             "focus previous by index",               "client"   },
   {{ modkey }, "l",                     function () awful.tag.incmwfact( 0.05) end,               "increase master width factor",          "layout"   },
+  {{ modkey }, "d",                     function() dashboard.toggle() end,                        "toggle dashboard",                      "awesome"  },
   {{ modkey, "Shift" }, "n",            function() notifications.toggle_notification_center() end, "toggle notifications",                  "awesome"  },
   {{ modkey }, "p",                     function() launcher.toggle() end,                         "app launcher",                          "launcher" },
   {{ modkey }, "r",                     function () awful.screen.focused().mypromptbox:run() end, "run prompt",                            "launcher" },
