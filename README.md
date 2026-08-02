@@ -1,16 +1,17 @@
-# 00-default
+# 01-theme
 
-Checkpoint 0 of *Awesome From Scratch*: **the stock somewm config**.
+Checkpoint 1 of *Awesome From Scratch*: **theme: palettes, shapes, and recolored assets**.
 
-Read the chapter: <https://somewm.org/from-scratch/chapters/00-default>
+Read the chapter: <https://somewm.org/from-scratch/chapters/01-theme>
 
 ## Run this checkpoint
 
 ```bash
-git checkout 00-default
+git checkout 01-theme
 somewm-client test start --config "$PWD/rc.lua" --name afs
 ```
 
 That opens a nested SomeWM in a window. Your real session is untouched.
 
-Next: [`01-theme`](../../tree/01-theme)
+Previous: [`00-default`](../../tree/00-default)  
+Next: [`02-keybindings`](../../tree/02-keybindings)

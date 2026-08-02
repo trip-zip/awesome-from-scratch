@@ -1,11 +1,21 @@
 -- awesome_mode: api-level=4:screen=on
+
+-- Add this config's own directory to the Lua search path, so that `require("wibar")`
+-- and `require("widgets.clock")` resolve to the files sitting next to this rc.lua.
+--
+-- `get_configuration_dir()` reads `awesome.conffile`, which is the rc.lua the running
+-- compositor actually loaded. Both somewm and AwesomeWM implement it identically, so
+-- this one line covers ~/.config/somewm, ~/.config/awesome, and a git checkout you
+-- pointed a nested compositor at. It always ends in a slash.
+local config_dir = require("gears.filesystem").get_configuration_dir()
+package.path = config_dir .. "?.lua;" .. config_dir .. "?/init.lua;" .. package.path
+
 -- If LuaRocks is installed, make sure that packages installed through it are
 -- found (e.g. lgi). If LuaRocks is not installed, do nothing.
 pcall(require, "luarocks.loader")
 
 -- @DOC_REQUIRE_SECTION@
 -- Standard awesome library
-local gears = require("gears")
 local awful = require("awful")
 require("awful.autofocus")
 -- Widget and layout library
@@ -18,64 +28,47 @@ local naughty = require("naughty")
 local ruled = require("ruled")
 local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup")
--- Enable hotkeys help widget for VIM and other apps
--- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
+local gears = require("gears")
 
--- {{{ Error handling
--- Check if awesome encountered an error during startup and fell back to
--- another config (This code will only ever execute for the fallback config)
--- @DOC_ERROR_HANDLING@
 naughty.connect_signal("request::display_error", function(message, startup)
-    naughty.notification {
-        urgency = "critical",
-        title   = "Oops, an error happened"..(startup and " during startup!" or "!"),
-        message = message
+  naughty.notification({
+    urgency = "critical",
+    title = "Oops, an error happened" .. (startup and " during startup!" or "!"),
+    message = message,
+  })
+end)
+
+-- {{{ Notifications
+
+ruled.notification.connect_signal('request::rules', function()
+    -- All notifications will match this rule.
+    ruled.notification.append_rule {
+        rule       = { },
+        properties = {
+            screen           = awful.screen.preferred,
+            implicit_timeout = 5,
+        }
     }
 end)
 
--- Show notification if we fell back due to X11-specific patterns in user config
-if awesome.x11_fallback_info then
-    -- Defer notification until after startup (naughty needs event loop running)
-    gears.timer.delayed_call(function()
-        local info = awesome.x11_fallback_info
-        local msg = string.format(
-            "Your config was skipped because it contains X11-specific code that " ..
-            "won't work on Wayland.\n\n" ..
-            "File: %s:%d\n" ..
-            "Pattern: %s\n" ..
-            "Code: %s\n\n" ..
-            "Suggestion: %s\n\n" ..
-            "Edit your rc.lua to remove X11 dependencies, then restart somewm.",
-            info.config_path or "unknown",
-            info.line_number or 0,
-            info.pattern or "unknown",
-            info.line_content or "",
-            info.suggestion or "See somewm migration guide"
-        )
-        naughty.notification {
-            urgency = "critical",
-            title   = "Config contains X11 patterns - using fallback",
-            message = msg,
-            timeout = 0  -- Don't auto-dismiss
-        }
-    end)
-end
+naughty.connect_signal("request::display", function(n)
+    naughty.layout.box { notification = n }
+end)
+
 -- }}}
 
 -- {{{ Variable definitions
 -- @DOC_LOAD_THEME@
 -- Themes define colours, icons, font and wallpapers.
-beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
-
--- Initialize lockscreen (must be after beautiful.init)
-require("lockscreen").init()
+beautiful.init(config_dir .. "theme/theme.lua")
 
 -- @DOC_DEFAULT_APPLICATIONS@
 -- This is used later as the default terminal and editor to run.
-terminal = "xterm"
-editor = os.getenv("EDITOR") or "nano"
-editor_cmd = terminal .. " -e " .. editor
+terminal = "ghostty"
+editor = os.getenv("EDITOR") or "nvim"
+editor_cmd = "ghostty -e " .. editor
+filemanager = "thunar" --While I'm in here, may as well make this a variable
 
 -- Default modkey.
 -- Usually, Mod4 is the key with a logo between Control and Alt.
@@ -112,50 +105,78 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 -- @DOC_LAYOUT@
 -- Table of layouts to cover with awful.layout.inc, order matters.
 tag.connect_signal("request::default_layouts", function()
-    awful.layout.append_default_layouts({
-        awful.layout.suit.floating,
-        awful.layout.suit.tile,
-        awful.layout.suit.tile.left,
-        awful.layout.suit.tile.bottom,
-        awful.layout.suit.tile.top,
-        awful.layout.suit.fair,
-        awful.layout.suit.fair.horizontal,
-        awful.layout.suit.spiral,
-        awful.layout.suit.spiral.dwindle,
-        awful.layout.suit.max,
-        awful.layout.suit.max.fullscreen,
-        awful.layout.suit.magnifier,
-        awful.layout.suit.corner.nw,
-    })
+  awful.layout.append_default_layouts({
+    awful.layout.suit.tile,
+    awful.layout.suit.floating,
+    awful.layout.suit.tile.left,
+    awful.layout.suit.tile.bottom,
+    awful.layout.suit.tile.top,
+    awful.layout.suit.fair,
+    awful.layout.suit.fair.horizontal,
+    awful.layout.suit.spiral,
+    awful.layout.suit.spiral.dwindle,
+    awful.layout.suit.max,
+    awful.layout.suit.max.fullscreen,
+    awful.layout.suit.magnifier,
+    awful.layout.suit.corner.nw,
+  })
 end)
 -- }}}
+--
+-- Wallpaper configuration.
+-- One entry per screen, indexed by screen number. These paths are relative to this
+-- config so a fresh clone has something to show. Point them anywhere you like.
+local wallpapers = {
+  config_dir .. "wallpapers/penguin.jpg",
+  config_dir .. "theme/spaceman.jpg",
+}
+
+local function set_wallpaper(s)
+  local wp = wallpapers[s.index] or wallpapers[1]
+  if wp and gears.filesystem.file_readable(wp) then
+    gears.wallpaper.maximized(wp, s, true)
+  else
+    -- Fallback to gruvbox dark color
+    gears.wallpaper.set("#282828")
+  end
+end
 
 -- {{{ Wallpaper
 -- @DOC_WALLPAPER@
 screen.connect_signal("request::wallpaper", function(s)
-    awful.wallpaper {
-        screen = s,
-        widget = {
-            {
-                image     = beautiful.wallpaper,
-                upscale   = true,
-                downscale = true,
-                widget    = wibox.widget.imagebox,
-            },
-            valign = "center",
-            halign = "center",
-            tiled  = false,
-            widget = wibox.container.tile,
-        }
-    }
+  -- awful.wallpaper({
+  --   screen = s,
+  --   widget = {
+  --     {
+  --       image = beautiful.wallpaper,
+  --       upscale = true,
+  --       downscale = true,
+  --       widget = wibox.widget.imagebox,
+  --     },
+  --     valign = "center",
+  --     halign = "center",
+  --     tiled = false,
+  --     widget = wibox.container.tile,
+  --   },
+  -- })
+  set_wallpaper(s)
 end)
 -- }}}
 
--- {{{ Tag persistence across monitor hotplug
--- The save handler lives in awful.permissions.tag_screen and stores tag
--- metadata into awful.permissions.saved_tags keyed by connector name.
--- To disable or replace it:
---   tag.disconnect_signal("request::screen", awful.permissions.tag_screen)
+-- {{{ Screen scaling
+-- `screen.scale` is a somewm addition: fractional output scaling, which X11 has no
+-- equivalent for. This is a personal tweak for a HiDPI laptop panel. Set it to the
+-- screens you actually want scaled, or delete this block entirely.
+local screen_scales = {
+  -- [1] = 1.5,
+}
+
+awful.screen.connect_for_each_screen(function(s)
+  local scale = screen_scales[s.index]
+  if scale then
+    s.scale = scale
+  end
+end)
 -- }}}
 
 -- {{{ Wibar
@@ -282,7 +303,6 @@ screen.connect_signal("request::desktop_decoration", function(s)
 end)
 
 -- }}}
-
 -- {{{ Mouse bindings
 -- @DOC_ROOT_BUTTONS@
 awful.mouse.append_global_mousebindings({
@@ -533,6 +553,7 @@ end)
 
 -- }}}
 
+
 -- {{{ Rules
 -- Rules to apply to new clients.
 -- @DOC_RULES@
@@ -632,26 +653,7 @@ client.connect_signal("request::titlebars", function(c)
 end)
 -- }}}
 
--- {{{ Notifications
-
-ruled.notification.connect_signal('request::rules', function()
-    -- All notifications will match this rule.
-    ruled.notification.append_rule {
-        rule       = { },
-        properties = {
-            screen           = awful.screen.preferred,
-            implicit_timeout = 5,
-        }
-    }
-end)
-
-naughty.connect_signal("request::display", function(n)
-    naughty.layout.box { notification = n }
-end)
-
--- }}}
-
 -- Enable sloppy focus, so that focus follows mouse.
-client.connect_signal("mouse::enter", function(c)
-    c:activate { context = "mouse_enter", raise = false }
-end)
+-- client.connect_signal("mouse::enter", function(c)
+--     c:activate { context = "mouse_enter", raise = false }
+-- end)
