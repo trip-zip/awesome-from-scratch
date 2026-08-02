@@ -180,6 +180,8 @@ end)
 -- }}}
 
 -- {{{ Wibar
+local widgets = require("widgets")
+
 
 -- Keyboard map indicator and switcher
 mykeyboardlayout = awful.widget.keyboardlayout()
@@ -295,7 +297,10 @@ screen.connect_signal("request::desktop_decoration", function(s)
                 layout = wibox.layout.fixed.horizontal,
                 mykeyboardlayout,
                 wibox.widget.systray(),
-                mytextclock,
+                widgets.volume,
+                widgets.wifi,
+                widgets.battery,
+                widgets.clock,
                 s.mylayoutbox,
             },
         }
