@@ -1,17 +1,17 @@
-# 07-exitscreen
+# 08-mainmenu
 
-Checkpoint 7 of *Awesome From Scratch*: **exit screen: the modal pattern**.
+Checkpoint 8 of *Awesome From Scratch*: **main menu, and the launcher button that opens it**.
 
-Read the chapter: <https://somewm.org/from-scratch/chapters/07-exitscreen>
+Read the chapter: <https://somewm.org/from-scratch/chapters/08-mainmenu>
 
 ## Run this checkpoint
 
 ```bash
-git checkout 07-exitscreen
+git checkout 08-mainmenu
 somewm-client test start --config "$PWD/rc.lua" --name afs
 ```
 
 That opens a nested SomeWM in a window. Your real session is untouched.
 
-Previous: [`06-notifications`](../../tree/06-notifications)  
-Next: [`08-mainmenu`](../../tree/08-mainmenu)
+Previous: [`07-exitscreen`](../../tree/07-exitscreen)  
+Next: [`09-switcher`](../../tree/09-switcher)

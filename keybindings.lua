@@ -102,6 +102,7 @@ local global_keys = {
   {{ modkey }, "r",                     function () awful.screen.focused().mypromptbox:run() end, "run prompt",                            "launcher" },
   {{ modkey }, "s",                     hotkeys_popup.show_help,                                  "show help",                             "awesome"  },
   {{ modkey }, "u",                     awful.client.urgent.jumpto,                               "jump to urgent client",                 "client"   },
+  {{ modkey }, "w",                     function () mymainmenu:show() end,                        "show main menu",                        "awesome"  },
   {{ modkey }, "x",                     global_helpers.launch_lua_prompt,                         "lua execute prompt",                    "awesome"  },
   {{ modkey }, "Escape",                awful.tag.history.restore,                                "go back",                               "tag"      },
   {{ modkey }, "Left",                  awful.tag.viewprev,                                       "view previous",                         "tag"      },
