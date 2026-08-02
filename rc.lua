@@ -68,6 +68,11 @@ try("notifications", function()
   require("notifications")
 end)
 
+-- Lockscreen: somewm's built-in session lock support.
+try("lockscreen", function()
+  require("lockscreen").init()
+end)
+
 -- @DOC_DEFAULT_APPLICATIONS@
 -- This is used later as the default terminal and editor to run.
 terminal = "ghostty"

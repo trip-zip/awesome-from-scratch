@@ -66,6 +66,7 @@ return function(s)
           widget = wibox.container.place,
         },
         widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
+        widgets.power,
         layout = wibox.layout.fixed.horizontal,
       },
       layout = wibox.layout.align.horizontal,

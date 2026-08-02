@@ -1,17 +1,18 @@
-# 11-dashboard
+# 12-lockscreen
 
-Checkpoint 11 of *Awesome From Scratch*: **dashboard: the control center**.
+Checkpoint 12 of *Awesome From Scratch*: **lock screen**.
 
-Read the chapter: <https://somewm.org/from-scratch/chapters/11-dashboard>
+Read the chapter: <https://somewm.org/from-scratch/chapters/12-lockscreen>
 
 ## Run this checkpoint
 
 ```bash
-git checkout 11-dashboard
+git checkout 12-lockscreen
 somewm-client test start --config "$PWD/rc.lua" --name afs
 ```
 
 That opens a nested SomeWM in a window. Your real session is untouched.
 
-Previous: [`10-launcher`](../../tree/10-launcher)  
-Next: [`12-lockscreen`](../../tree/12-lockscreen)
+Previous: [`11-dashboard`](../../tree/11-dashboard)  
+
+This is the last checkpoint. Its tree is identical to `main`.
