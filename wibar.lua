@@ -11,7 +11,7 @@ return function(s)
     screen = s,
     widget = {
       {
-        widgets.launcher,
+        widgets.menubutton,
         widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         widgets.taglist(s),
         layout = wibox.layout.fixed.horizontal,
