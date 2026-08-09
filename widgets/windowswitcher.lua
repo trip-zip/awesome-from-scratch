@@ -181,15 +181,24 @@ end
 -- Collect all clients
 local function collect_clients()
   clients = {}
-  for _, c in ipairs(client.get()) do
-    if c:isvisible() or c.minimized then
+  local seen = {}
+
+  -- awful keeps a most-recent-first stack of focused clients; walking it
+  -- first gives real Alt-Tab ordering, with the current window at index 1.
+  for _, c in ipairs(awful.client.focus.history.list) do
+    if (c:isvisible() or c.minimized) and not seen[c] then
+      seen[c] = true
       table.insert(clients, c)
     end
   end
-  -- Sort by focus history (most recently focused first)
-  table.sort(clients, function(a, b)
-    return (a.focus_order or 0) > (b.focus_order or 0)
-  end)
+
+  -- Clients that were never focused (e.g. spawned in the background) go last.
+  for _, c in ipairs(client.get()) do
+    if (c:isvisible() or c.minimized) and not seen[c] then
+      seen[c] = true
+      table.insert(clients, c)
+    end
+  end
 end
 
 -- Show the window switcher
