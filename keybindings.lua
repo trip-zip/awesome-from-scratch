@@ -5,6 +5,7 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 require("awful.hotkeys_popup.keys")
 
 -- Load our custom modules
+local exitscreen = require("exitscreen")
 local notifications = require("notifications")
 
 local function table_to_keybinding(bindings)
@@ -120,6 +121,7 @@ local global_keys = {
   {{ modkey, "Shift"   }, "j",          function () awful.client.swap.byidx(  1) end,             "swap with next client by index",        "client"   },
   {{ modkey, "Shift"   }, "k",          function () awful.client.swap.byidx( -1) end,             "swap with previous client by index",    "client"   },
   {{ modkey, "Shift"   }, "l",          function () awful.tag.incnmaster(-1, nil, true) end,      "decrease the number of master clients", "layout"   },
+  {{ modkey, "Shift"   }, "e",          function() exitscreen.toggle() end,                       "exit screen",                           "awesome"  },
   {{ modkey, "Shift"   }, "q",          awesome.quit,                                             "quit somewm",                           "awesome"  },
   {{ modkey, "Shift"   }, "s",          function () awful.spawn("systemctl suspend") end,         "suspend system",                        "awesome"  },
   {{ modkey, "Shift"   }, "space",      function () awful.layout.inc(-1) end,                     "select previous",                       "layout"   },
