@@ -17,6 +17,14 @@ local selected_index = 1
 -- Power options
 local options = {
   {
+    name = "Lock",
+    icon = "󰌾",
+    key = "l",
+    command = function()
+      awesome.lock()
+    end,
+  },
+  {
     name = "Logout",
     icon = "󰗼",
     key = "e",
