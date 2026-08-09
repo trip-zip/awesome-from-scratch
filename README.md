@@ -16,5 +16,6 @@ checkpoints or with `main` - it exists so the ladder can always be rebuilt.
 - `README-template.md` - the checkpoint README stub (chapter 12 ships main's
   README, which is what makes its tree identical to main).
 
-After changing code on main: update any affected variants, run `./build.sh`,
+After changing code on main: run ./derive.py to regenerate the derived
+variants (hand-edit only the static ones it lists), run `./build.sh`,
 run `./verify.sh`, boot-test the checkpoints, then push the branches.

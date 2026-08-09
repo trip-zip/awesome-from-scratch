@@ -1,5 +1,4 @@
 local awful = require("awful")
-local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup")
 -- Enable hotkeys help widget for VIM and other apps
 -- when client with a matching name is opened:
@@ -26,12 +25,6 @@ local global_helpers = {
       exe_callback = awful.util.eval,
       history_path = awful.util.get_cache_dir() .. "/history_eval",
     })
-  end,
-  client_go_back = function()
-    awful.client.focus.history.previous()
-    if client.focus then
-      client.focus:raise()
-    end
   end,
   client_restore_minimized = function()
     local c = awful.client.restore()
@@ -94,7 +87,7 @@ local global_keys = {
   {{},         "XF86AudioPlay",         function() awful.spawn("playerctl play-pause") end,       "play/pause track",                      "media"    },
   {{},         "XF86AudioPrev",         function() awful.spawn("playerctl previous") end,         "previous track",                        "media"    },
   -- modkey only modifier
-  {{ modkey }, "f",                     function () awful.spawn(filemanager) end,                 "open file browser",                     "launcher" },
+  {{ modkey }, "e",                     function () awful.spawn(filemanager) end,                 "open file browser",                     "launcher" },
   {{ modkey }, "h",                     function () awful.tag.incmwfact(-0.05) end,               "decrease master width factor",          "layout"   },
   {{ modkey }, "j",                     function () awful.client.focus.byidx( 1) end,             "focus next by index",                   "client"   },
   {{ modkey }, "k",                     function () awful.client.focus.byidx(-1) end,             "focus previous by index",               "client"   },
@@ -103,7 +96,7 @@ local global_keys = {
   {{ modkey }, "r",                     function () awful.screen.focused().mypromptbox:run() end, "run prompt",                            "launcher" },
   {{ modkey }, "s",                     hotkeys_popup.show_help,                                  "show help",                             "awesome"  },
   {{ modkey }, "u",                     awful.client.urgent.jumpto,                               "jump to urgent client",                 "client"   },
-  {{ modkey }, "w",                     function () mainmenu.show() end,                        "show main menu",                        "awesome"  },
+  {{ modkey }, "w",                     function () mainmenu.toggle() end,                        "show main menu",                        "awesome"  },
   {{ modkey }, "x",                     global_helpers.launch_lua_prompt,                         "lua execute prompt",                    "awesome"  },
   {{ modkey }, "Escape",                awful.tag.history.restore,                                "go back",                               "tag"      },
   {{ modkey }, "Left",                  awful.tag.viewprev,                                       "view previous",                         "tag"      },
