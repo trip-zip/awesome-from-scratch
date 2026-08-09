@@ -67,7 +67,7 @@ function profile.create()
   -- Time display
   local time_widget = wibox.widget({
     format = "%H:%M",
-    font = "JetBrainsMono Nerd Font Bold 48",
+    font = beautiful.font_size(48, "Bold"),
     halign = "center",
     widget = wibox.widget.textclock,
   })
@@ -75,7 +75,7 @@ function profile.create()
   -- Date display
   local date_widget = wibox.widget({
     format = "%A, %B %d",
-    font = "JetBrainsMono Nerd Font 14",
+    font = beautiful.font_size(14),
     halign = "center",
     widget = wibox.widget.textclock,
   })
@@ -83,7 +83,7 @@ function profile.create()
   -- Greeting
   local greeting_widget = wibox.widget({
     text = get_greeting(),
-    font = "JetBrainsMono Nerd Font 12",
+    font = beautiful.font_size(12),
     halign = "center",
     widget = wibox.widget.textbox,
   })
@@ -140,13 +140,13 @@ function profile.create()
 
   local battery_icon = wibox.widget({
     text = get_battery_icon(),
-    font = "JetBrainsMono Nerd Font 14",
+    font = beautiful.font_size(14),
     widget = wibox.widget.textbox,
   })
 
   local battery_text = wibox.widget({
     text = get_battery_text(),
-    font = "JetBrainsMono Nerd Font 11",
+    font = beautiful.font_size(11),
     widget = wibox.widget.textbox,
   })
 
@@ -176,7 +176,7 @@ function profile.create()
   local user_icon = wibox.widget({
     {
       text = "",
-      font = "JetBrainsMono Nerd Font 36",
+      font = beautiful.font_size(36),
       halign = "center",
       valign = "center",
       widget = wibox.widget.textbox,

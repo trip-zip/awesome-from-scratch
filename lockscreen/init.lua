@@ -128,7 +128,7 @@ function M.init()
   -- Greeting widget (time-based)
   greeting = wibox.widget({
     text = get_greeting(),
-    font = "JetBrainsMono Nerd Font 16",
+    font = beautiful.font_size(16),
     halign = "center",
     widget = wibox.widget.textbox,
   })
@@ -136,7 +136,7 @@ function M.init()
   -- Create clock widget (large, prominent)
   clock = wibox.widget({
     format = "%H:%M",
-    font = "JetBrainsMono Nerd Font Bold 96",
+    font = beautiful.font_size(96, "Bold"),
     halign = "center",
     widget = wibox.widget.textclock,
   })
@@ -144,7 +144,7 @@ function M.init()
   -- Create date widget (subdued gray)
   date_widget = wibox.widget({
     format = "%A, %B %d",
-    font = "JetBrainsMono Nerd Font 16",
+    font = beautiful.font_size(16),
     halign = "center",
     widget = wibox.widget.textclock,
   })
@@ -152,7 +152,7 @@ function M.init()
   -- Password dots display
   password_dots = wibox.widget({
     text = "",
-    font = "JetBrainsMono Nerd Font 20",
+    font = beautiful.font_size(20),
     halign = "center",
     valign = "center",
     widget = wibox.widget.textbox,
@@ -161,7 +161,7 @@ function M.init()
   -- Caps Lock warning (orange when active)
   caps_warning = wibox.widget({
     markup = "",
-    font = "JetBrainsMono Nerd Font 11",
+    font = beautiful.font_size(11),
     halign = "center",
     widget = wibox.widget.textbox,
   })
@@ -169,7 +169,7 @@ function M.init()
   -- Status text (shows failed attempts when applicable)
   status_text = wibox.widget({
     text = "Enter password to unlock",
-    font = "JetBrainsMono Nerd Font 11",
+    font = beautiful.font_size(11),
     halign = "center",
     widget = wibox.widget.textbox,
   })
@@ -177,7 +177,7 @@ function M.init()
   -- Battery indicator
   battery_widget = wibox.widget({
     markup = "󰁿 ---%",
-    font = "JetBrainsMono Nerd Font 11",
+    font = beautiful.font_size(11),
     halign = "center",
     widget = wibox.widget.textbox,
   })

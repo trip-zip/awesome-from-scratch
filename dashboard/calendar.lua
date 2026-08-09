@@ -12,17 +12,17 @@ function calendar_widget.create()
     -- Style the original widget based on cell type
     if flag == "header" then
       -- Month/Year header
-      widget.font = "JetBrainsMono Nerd Font Bold 12"
+      widget.font = beautiful.font_size(12, "Bold")
       widget.markup = '<span color="' .. beautiful.primary_color .. '">' .. (widget.text or "") .. "</span>"
       return widget
     elseif flag == "weekday" then
       -- Day names
-      widget.font = "JetBrainsMono Nerd Font Bold 10"
+      widget.font = beautiful.font_size(10, "Bold")
       widget.markup = '<span color="' .. beautiful.fg_normal .. '88">' .. (widget.text or "") .. "</span>"
       return widget
     elseif flag == "focus" then
       -- Today - orange background (no forced size, let it match other cells)
-      widget.font = "JetBrainsMono Nerd Font Bold 10"
+      widget.font = beautiful.font_size(10, "Bold")
       return wibox.widget({
         widget,
         bg = beautiful.primary_color,
@@ -35,7 +35,7 @@ function calendar_widget.create()
       return widget
     else
       -- Normal days and other month days
-      widget.font = "JetBrainsMono Nerd Font 10"
+      widget.font = beautiful.font_size(10)
       if flag ~= "normal" then
         -- Other month days - dimmed
         widget.markup = '<span color="' .. beautiful.fg_normal .. '44">' .. (widget.text or "") .. "</span>"
@@ -47,7 +47,7 @@ function calendar_widget.create()
   -- Create the calendar
   local cal = wibox.widget({
     date = os.date("*t"),
-    font = "JetBrainsMono Nerd Font 10",
+    font = beautiful.font_size(10),
     spacing = 4,
     start_sunday = false,
     long_weekdays = false,
@@ -59,7 +59,7 @@ function calendar_widget.create()
   local prev_button = wibox.widget({
     {
       text = "󰅁",
-      font = "JetBrainsMono Nerd Font 14",
+      font = beautiful.font_size(14),
       halign = "center",
       widget = wibox.widget.textbox,
     },
@@ -69,7 +69,7 @@ function calendar_widget.create()
   local next_button = wibox.widget({
     {
       text = "󰅂",
-      font = "JetBrainsMono Nerd Font 14",
+      font = beautiful.font_size(14),
       halign = "center",
       widget = wibox.widget.textbox,
     },
@@ -79,7 +79,7 @@ function calendar_widget.create()
   local today_button = wibox.widget({
     {
       text = "Today",
-      font = "JetBrainsMono Nerd Font 10",
+      font = beautiful.font_size(10),
       halign = "center",
       widget = wibox.widget.textbox,
     },
@@ -137,7 +137,7 @@ function calendar_widget.create()
     {
       {
         text = "Calendar",
-        font = "JetBrainsMono Nerd Font Bold 11",
+        font = beautiful.font_size(11, "Bold"),
         widget = wibox.widget.textbox,
       },
       nil,

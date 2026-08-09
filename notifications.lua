@@ -194,7 +194,7 @@ local function show_snooze_picker(notif_data, anchor_geometry)
         {
           {
             text = "󰥔", -- nf-md-clock_outline
-            font = "JetBrainsMono Nerd Font 12",
+            font = beautiful.font_size(12),
             forced_width = 20,
             widget = wibox.widget.textbox,
           },
@@ -384,7 +384,7 @@ local function create_group_header(group)
         nil,
         {
           text = format_time_ago(group.latest_timestamp),
-          font = (beautiful.font and beautiful.font:gsub("%d+$", "9") or "sans 9"),
+          font = beautiful.font_size(9),
           widget = wibox.widget.textbox,
         },
         layout = wibox.layout.align.horizontal,
@@ -432,7 +432,7 @@ local function create_notification_item(notif, index)
     {
       {
         text = "󰥔", -- nf-md-clock_outline
-        font = "JetBrainsMono Nerd Font 14",
+        font = beautiful.font_size(14),
         halign = "center",
         valign = "center",
         widget = wibox.widget.textbox,
@@ -475,7 +475,7 @@ local function create_notification_item(notif, index)
             nil,
             {
               text = time_ago,
-              font = (beautiful.font and beautiful.font:gsub("%d+$", "9") or "sans 9"),
+              font = beautiful.font_size(9),
               widget = wibox.widget.textbox,
             },
             layout = wibox.layout.align.horizontal,
@@ -594,7 +594,7 @@ local function create_header()
   return wibox.widget({
     {
       markup = "<b>Notifications</b>" .. unread_text,
-      font = (beautiful.font and beautiful.font:gsub("%d+$", "14") or "sans 14"),
+      font = beautiful.font_size(14),
       widget = wibox.widget.textbox,
     },
     nil,
@@ -1056,7 +1056,7 @@ naughty.connect_signal("request::display", function(n)
           {
             {
               naughty.widget.title,
-              font = (beautiful.font and beautiful.font:gsub("%d+$", "11") or "sans 11") .. " Bold",
+              font = beautiful.font_size(11, "Bold"),
               widget = wibox.container.background,
             },
             {

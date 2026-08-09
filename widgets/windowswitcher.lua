@@ -50,7 +50,7 @@ local function create_client_item(c, index)
       {
         {
           text = initial,
-          font = "JetBrainsMono Nerd Font Bold 14",
+          font = beautiful.font_size(14, "Bold"),
           halign = "center",
           valign = "center",
           widget = wibox.widget.textbox,
@@ -79,13 +79,13 @@ local function create_client_item(c, index)
         {
           {
             text = title,
-            font = "JetBrainsMono Nerd Font 11",
+            font = beautiful.font_size(11),
             ellipsize = "end",
             widget = wibox.widget.textbox,
           },
           {
             text = c.class or "",
-            font = "JetBrainsMono Nerd Font 9",
+            font = beautiful.font_size(9),
             widget = wibox.widget.textbox,
           },
           spacing = 2,
@@ -127,7 +127,7 @@ local function create_popup_widget()
     return wibox.widget({
       {
         text = "No windows",
-        font = "JetBrainsMono Nerd Font 12",
+        font = beautiful.font_size(12),
         halign = "center",
         widget = wibox.widget.textbox,
       },
@@ -142,7 +142,7 @@ local function create_popup_widget()
         -- Header
         {
           text = "Switch Window",
-          font = "JetBrainsMono Nerd Font Bold 12",
+          font = beautiful.font_size(12, "Bold"),
           halign = "center",
           widget = wibox.widget.textbox,
         },

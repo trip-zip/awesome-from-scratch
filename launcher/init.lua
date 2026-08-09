@@ -420,7 +420,7 @@ local function create_app_item(app, index)
       {
         {
           text = initial,
-          font = "JetBrainsMono Nerd Font Bold 18",
+          font = beautiful.font_size(18, "Bold"),
           halign = "center",
           valign = "center",
           widget = wibox.widget.textbox,
@@ -443,12 +443,12 @@ local function create_app_item(app, index)
         {
           {
             text = app.name,
-            font = "JetBrainsMono Nerd Font 12",
+            font = beautiful.font_size(12),
             widget = wibox.widget.textbox,
           },
           {
             text = app.comment ~= "" and app.comment or app.exec:match("^%S+"),
-            font = "JetBrainsMono Nerd Font 10",
+            font = beautiful.font_size(10),
             widget = wibox.widget.textbox,
           },
           spacing = 2,
@@ -490,7 +490,7 @@ local function create_search_input()
       {
         {
           text = "",
-          font = "JetBrainsMono Nerd Font 18",
+          font = beautiful.font_size(18),
           widget = wibox.widget.textbox,
         },
         fg = beautiful.primary_color,
@@ -499,7 +499,7 @@ local function create_search_input()
       {
         id = "search_text",
         text = search_text == "" and "Search applications..." or search_text,
-        font = "JetBrainsMono Nerd Font 14",
+        font = beautiful.font_size(14),
         widget = wibox.widget.textbox,
       },
       spacing = 12,
@@ -525,7 +525,7 @@ local function create_results_list()
     return wibox.widget({
       {
         text = "No applications found",
-        font = "JetBrainsMono Nerd Font 12",
+        font = beautiful.font_size(12),
         halign = "center",
         widget = wibox.widget.textbox,
       },

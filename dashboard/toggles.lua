@@ -27,7 +27,7 @@ local function create_toggle(icon, label, key, on_toggle, check_cmd)
 
   local icon_widget = wibox.widget({
     text = icon,
-    font = "JetBrainsMono Nerd Font 20",
+    font = beautiful.font_size(20),
     halign = "center",
     valign = "center",
     widget = wibox.widget.textbox,
@@ -35,7 +35,7 @@ local function create_toggle(icon, label, key, on_toggle, check_cmd)
 
   local label_widget = wibox.widget({
     text = label,
-    font = "JetBrainsMono Nerd Font 10",
+    font = beautiful.font_size(10),
     halign = "center",
     widget = wibox.widget.textbox,
   })
@@ -155,7 +155,7 @@ function toggles.create()
   return wibox.widget({
     {
       text = "Quick Settings",
-      font = "JetBrainsMono Nerd Font Bold 11",
+      font = beautiful.font_size(11, "Bold"),
       widget = wibox.widget.textbox,
     },
     {

@@ -85,7 +85,7 @@ local function create_menu_item(item, index)
 
   local icon_widget = wibox.widget({
     text = item.icon or "",
-    font = "JetBrainsMono Nerd Font 16",
+    font = beautiful.font_size(16),
     halign = "center",
     forced_width = config.icon_width,
     widget = wibox.widget.textbox,
@@ -93,7 +93,7 @@ local function create_menu_item(item, index)
 
   local label_widget = wibox.widget({
     text = item.label,
-    font = "JetBrainsMono Nerd Font 11",
+    font = beautiful.font_size(11),
     widget = wibox.widget.textbox,
   })
 
@@ -102,7 +102,7 @@ local function create_menu_item(item, index)
   if item.action == "submenu" then
     arrow_widget = wibox.widget({
       text = "󰅂",
-      font = "JetBrainsMono Nerd Font 12",
+      font = beautiful.font_size(12),
       halign = "right",
       widget = wibox.widget.textbox,
     })

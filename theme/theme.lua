@@ -67,7 +67,14 @@ local colors = {
 local color_scheme = "gruvbox"
 local color = colors[color_scheme]
 
-theme.font = "JetBrainsMono Nerd Font, 10"
+-- One font family for the whole config. Widgets that need another size or
+-- weight build the string with beautiful.font_size() instead of repeating the
+-- family name, so changing the font means editing exactly one line.
+theme.font_family = "JetBrainsMono Nerd Font"
+function theme.font_size(size, style)
+  return theme.font_family .. " " .. (style and (style .. " ") or "") .. size
+end
+theme.font = theme.font_size(10)
 theme.primary_color = color.orange
 theme.primary_color_hover = color.soft_orange
 theme.active = color.green

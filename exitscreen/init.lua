@@ -76,20 +76,20 @@ local function create_button(option, index)
       {
         {
           text = option.icon,
-          font = "JetBrainsMono Nerd Font " .. config.icon_size,
+          font = beautiful.font_size(config.icon_size),
           halign = "center",
           valign = "center",
           widget = wibox.widget.textbox,
         },
         {
           text = option.name,
-          font = "JetBrainsMono Nerd Font 12",
+          font = beautiful.font_size(12),
           halign = "center",
           widget = wibox.widget.textbox,
         },
         {
           text = "[" .. option.key .. "]",
-          font = "JetBrainsMono Nerd Font 10",
+          font = beautiful.font_size(10),
           halign = "center",
           widget = wibox.widget.textbox,
         },
@@ -135,7 +135,7 @@ local function create_exitscreen_widget()
         -- Title
         {
           text = "What would you like to do?",
-          font = "JetBrainsMono Nerd Font Bold 18",
+          font = beautiful.font_size(18, "Bold"),
           halign = "center",
           widget = wibox.widget.textbox,
         },
@@ -148,7 +148,7 @@ local function create_exitscreen_widget()
         -- Hint
         {
           text = "Press Escape to cancel",
-          font = "JetBrainsMono Nerd Font 11",
+          font = beautiful.font_size(11),
           halign = "center",
           widget = wibox.widget.textbox,
         },

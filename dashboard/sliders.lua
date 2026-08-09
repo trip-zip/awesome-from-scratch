@@ -37,7 +37,7 @@ local function create_slider(icon, color, get_cmd, set_cmd, signal)
 
   local icon_widget = wibox.widget({
     text = icon,
-    font = "JetBrainsMono Nerd Font 18",
+    font = beautiful.font_size(18),
     halign = "center",
     valign = "center",
     forced_width = 28,
@@ -46,7 +46,7 @@ local function create_slider(icon, color, get_cmd, set_cmd, signal)
 
   local value_widget = wibox.widget({
     text = "50%",
-    font = "JetBrainsMono Nerd Font 11",
+    font = beautiful.font_size(11),
     halign = "right",
     forced_width = 40,
     widget = wibox.widget.textbox,
@@ -125,7 +125,7 @@ function sliders.create()
   return wibox.widget({
     {
       text = "Controls",
-      font = "JetBrainsMono Nerd Font Bold 11",
+      font = beautiful.font_size(11, "Bold"),
       widget = wibox.widget.textbox,
     },
     {
