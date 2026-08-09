@@ -38,29 +38,35 @@ naughty.connect_signal("request::display_error", function(message, startup)
   })
 end)
 
--- {{{ Notifications
-
-ruled.notification.connect_signal("request::rules", function()
-  -- All notifications will match this rule.
-  ruled.notification.append_rule({
-    rule = {},
-    properties = {
-      screen = awful.screen.preferred,
-      implicit_timeout = 5,
-    },
-  })
-end)
-
-naughty.connect_signal("request::display", function(n)
-  naughty.layout.box({ notification = n })
-end)
-
--- }}}
-
 -- {{{ Variable definitions
 -- @DOC_LOAD_THEME@
 -- Themes define colours, icons, font and wallpapers.
 beautiful.init(config_dir .. "theme/theme.lua")
+
+-- These two modules are the ones most likely to break a config badly enough that you
+-- cannot log in. Load them behind pcall and report the failure as a notification, so a
+-- typo costs you one missing feature instead of a session.
+--
+-- Report failures on both channels on purpose. If the module that failed is
+-- `notifications`, then nothing ever registered a `request::display` handler and the
+-- notification below paints nowhere, so stderr is the only thing you will actually see.
+local function try(name, fn)
+  local ok, err = pcall(fn)
+  if not ok then
+    io.stderr:write(("[rc.lua] %s failed to load: %s\n"):format(name, tostring(err)))
+    naughty.notification({
+      urgency = "critical",
+      title = name .. " failed to load",
+      message = tostring(err),
+    })
+  end
+  return ok
+end
+
+-- Notification system: after theme init, before anything can fire a notification.
+try("notifications", function()
+  require("notifications")
+end)
 
 -- @DOC_DEFAULT_APPLICATIONS@
 -- This is used later as the default terminal and editor to run.
