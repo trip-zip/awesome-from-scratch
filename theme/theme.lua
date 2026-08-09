@@ -221,7 +221,6 @@ theme.titlebar_maximized_button_focus_inactive = recolor(titlebar_icon, color.so
 theme.titlebar_maximized_button_normal_active = recolor(titlebar_icon, color.grey1)
 theme.titlebar_maximized_button_focus_active = recolor(titlebar_icon, color.soft_green)
 
--- theme.wallpaper = theme_path .. "/spaceman.jpg"
 
 -- Layouts
 theme.layout_fairh = recolor(theme_path .. "/layouts/fairhw.png", color.fg)

@@ -137,7 +137,7 @@ end)
 -- config so a fresh clone has something to show. Point them anywhere you like.
 local wallpapers = {
   config_dir .. "wallpapers/penguin.jpg",
-  config_dir .. "theme/spaceman.jpg",
+  config_dir .. "wallpapers/spaceman.jpg",
 }
 
 local function set_wallpaper(s)
@@ -153,21 +153,6 @@ end
 -- {{{ Wallpaper
 -- @DOC_WALLPAPER@
 screen.connect_signal("request::wallpaper", function(s)
-  -- awful.wallpaper({
-  --   screen = s,
-  --   widget = {
-  --     {
-  --       image = beautiful.wallpaper,
-  --       upscale = true,
-  --       downscale = true,
-  --       widget = wibox.widget.imagebox,
-  --     },
-  --     valign = "center",
-  --     halign = "center",
-  --     tiled = false,
-  --     widget = wibox.container.tile,
-  --   },
-  -- })
   set_wallpaper(s)
 end)
 -- }}}
@@ -277,7 +262,6 @@ ruled.client.connect_signal("request::rules", function()
       -- Uncomment to fade every window slightly. It looks nice over a wallpaper and it
       -- is confusing the first time a screenshot comes out washed out, so it is off by
       -- default.
-      -- opacity = 0.85,
     },
     callback = function(c)
       c:grant("autoactivate", "switch_tag")
@@ -328,8 +312,8 @@ ruled.client.connect_signal("request::rules", function()
   })
 
   -- ==========================================
-  -- DEMO RULES: Showcasing AwesomeWM capabilities
-  -- ==========================================
+  -- Example rules: routing and shaping specific apps. Each one demonstrates a
+  -- different piece of ruled.client - swap the class names for your own apps.
 
   -- Tag assignment: Browsers always open on "web" tag
   ruled.client.append_rule({
@@ -367,13 +351,6 @@ ruled.client.connect_signal("request::rules", function()
       -- Make it smaller (good for video)
       c:geometry({ width = 480, height = 270 })
     end,
-  })
-
-  -- Spotify: Force to "db" tag (closest to media)
-  ruled.client.append_rule({
-    id = "spotify",
-    rule = { class = "Spotify" },
-    properties = { tag = "db" },
   })
 
   -- File manager: Slightly larger default size
