@@ -2,6 +2,7 @@ local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")
 local wibox = require("wibox")
+local modal = require("modal")
 
 -- somewm and AwesomeWM both run on LuaJIT, which is Lua 5.1, where `unpack` is a global
 -- and `table.unpack` does not exist. Write it this way round so the config also works
@@ -11,10 +12,7 @@ local unpack = unpack or table.unpack
 local exitscreen = {}
 
 -- State
-local exitscreen_visible = false
-local exitscreen_grabber = nil
 local selected_index = 1
-local exitscreen_popup = nil
 
 -- Power options
 local options = {
@@ -165,13 +163,6 @@ local function create_exitscreen_widget()
   })
 end
 
---- Refresh the exit screen
-function exitscreen.refresh()
-  if exitscreen_popup then
-    exitscreen_popup.widget = create_exitscreen_widget()
-  end
-end
-
 --- Execute the selected option
 local function execute_selected()
   if options[selected_index] then
@@ -180,112 +171,64 @@ local function execute_selected()
   end
 end
 
---- Start the key grabber
-local function start_grabber()
-  exitscreen_grabber = awful.keygrabber({
-    autostart = true,
-    stop_key = "Escape",
-    stop_callback = function()
-      exitscreen.hide()
-    end,
-    keypressed_callback = function(_, _, key, _)
-      if key == "Return" then
-        execute_selected()
-      elseif key == "Left" or key == "h" then
-        selected_index = math.max(1, selected_index - 1)
-        exitscreen.refresh()
-      elseif key == "Right" or key == "l" then
-        selected_index = math.min(#options, selected_index + 1)
-        exitscreen.refresh()
-      else
-        -- Check for shortcut keys
-        for i, option in ipairs(options) do
-          if key == option.key then
-            selected_index = i
-            exitscreen.refresh()
-            -- Small delay for visual feedback
-            gears.timer.start_new(0.15, function()
-              execute_selected()
-              return false
-            end)
-            return
-          end
-        end
-      end
-    end,
-  })
-end
-
---- Show the exit screen
-function exitscreen.show()
-  if exitscreen_visible then
-    return
-  end
-
-  selected_index = 1
-
-  local s = awful.screen.focused()
-
-  if not exitscreen_popup then
-    exitscreen_popup = awful.popup({
+-- The modal controller owns visibility, the keygrabber, Escape, and the
+-- exitscreen::visible signal; this module only describes content and keys.
+local controller = modal.new({
+  name = "exitscreen",
+  build_popup = function()
+    return awful.popup({
       widget = create_exitscreen_widget(),
-      screen = s,
+      screen = awful.screen.focused(),
       placement = awful.placement.maximize,
       ontop = true,
       visible = false,
       bg = "#00000000",
     })
-  end
+  end,
+  on_show = function(popup)
+    selected_index = 1
+    local s = awful.screen.focused()
+    popup.screen = s
+    awful.placement.maximize(popup)
+    popup.widget = create_exitscreen_widget()
+  end,
+  keypressed = function(_, key)
+    if key == "Return" then
+      execute_selected()
+    elseif key == "Left" or key == "h" then
+      selected_index = math.max(1, selected_index - 1)
+      exitscreen.refresh()
+    elseif key == "Right" or key == "l" then
+      selected_index = math.min(#options, selected_index + 1)
+      exitscreen.refresh()
+    else
+      -- Check for shortcut keys
+      for i, option in ipairs(options) do
+        if key == option.key then
+          selected_index = i
+          exitscreen.refresh()
+          -- Small delay for visual feedback
+          gears.timer.start_new(0.15, function()
+            execute_selected()
+            return false
+          end)
+          return
+        end
+      end
+    end
+  end,
+})
 
-  exitscreen_popup.screen = s
-  awful.placement.maximize(exitscreen_popup)
-  exitscreen_popup.widget = create_exitscreen_widget()
-  exitscreen_popup.visible = true
-  exitscreen_visible = true
-
-  start_grabber()
-
-  awesome.emit_signal("exitscreen::visible", true)
-end
-
---- Hide the exit screen
-function exitscreen.hide()
-  if not exitscreen_visible then
-    return
-  end
-
-  -- Clear the guard FIRST, before anything that can re-enter this function.
-  --
-  -- `grabber:stop()` below synchronously fires the grabber's `stop_callback`, and that
-  -- callback calls `exitscreen.hide()`. If this flag were still true at that moment, the
-  -- guard above would let the nested call through, it would call `stop()` again, and the
-  -- whole thing recurses until the Lua stack blows up.
-  exitscreen_visible = false
-
-  if exitscreen_grabber then
-    exitscreen_grabber:stop()
-    exitscreen_grabber = nil
-  end
-
-  if exitscreen_popup then
-    exitscreen_popup.visible = false
-  end
-
-  awesome.emit_signal("exitscreen::visible", false)
-end
-
---- Toggle the exit screen
-function exitscreen.toggle()
-  if exitscreen_visible then
-    exitscreen.hide()
-  else
-    exitscreen.show()
+--- Refresh the exit screen
+function exitscreen.refresh()
+  if controller.popup then
+    controller.popup.widget = create_exitscreen_widget()
   end
 end
 
---- Check if exit screen is visible
-function exitscreen.is_visible()
-  return exitscreen_visible
-end
+exitscreen.show = controller.show
+exitscreen.hide = controller.hide
+exitscreen.toggle = controller.toggle
+exitscreen.is_visible = controller.is_visible
 
 return exitscreen

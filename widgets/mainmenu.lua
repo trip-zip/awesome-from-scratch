@@ -3,14 +3,12 @@ local beautiful = require("beautiful")
 local gears = require("gears")
 local wibox = require("wibox")
 local hotkeys_popup = require("awful.hotkeys_popup")
+local modal = require("modal")
 
 local mainmenu = {}
 
 -- State
-local menu_popup = nil
-local menu_visible = false
 local selected_index = 1
-local keygrabber = nil
 
 -- Configuration
 local config = {
@@ -181,63 +179,14 @@ local function create_menu_widget()
   })
 end
 
--- Refresh menu display
-function mainmenu.refresh()
-  if menu_popup then
-    menu_popup.widget = create_menu_widget()
-  end
-end
-
--- Start keyboard grabber
-local function start_keygrabber()
-  keygrabber = awful.keygrabber({
-    autostart = true,
-    stop_key = "Escape",
-    stop_callback = function()
-      -- Already stopped when this runs; route through hide(), whose
-      -- visibility guard makes the re-entry a no-op
-      keygrabber = nil
-      mainmenu.hide()
-    end,
-    keypressed_callback = function(_, _, key, _)
-      if key == "Return" then
-        local item = selectable_items[selected_index]
-        if item then
-          execute_item(item)
-        end
-      elseif key == "Up" or key == "k" then
-        selected_index = selected_index - 1
-        if selected_index < 1 then
-          selected_index = #selectable_items
-        end
-        mainmenu.refresh()
-      elseif key == "Down" or key == "j" then
-        selected_index = selected_index + 1
-        if selected_index > #selectable_items then
-          selected_index = 1
-        end
-        mainmenu.refresh()
-      end
-    end,
-  })
-end
-
--- Show the menu
-function mainmenu.show()
-  if menu_visible then
-    return
-  end
-
-  -- Reset selection
-  selected_index = 1
-
-  local coords = mouse.coords()
-  local s = awful.screen.focused()
-
-  if not menu_popup then
-    menu_popup = awful.popup({
+-- The modal controller owns visibility, the keygrabber, and Escape; this
+-- module only describes content, cursor placement, and navigation keys.
+local controller = modal.new({
+  name = "mainmenu",
+  build_popup = function()
+    return awful.popup({
       widget = create_menu_widget(),
-      screen = s,
+      screen = awful.screen.focused(),
       ontop = true,
       visible = false,
       bg = "#00000000",
@@ -245,57 +194,61 @@ function mainmenu.show()
       border_width = beautiful.border_width or 1,
       border_color = beautiful.primary_color,
     })
+  end,
+  on_show = function(popup)
+    selected_index = 1
+
+    -- Position at mouse cursor
+    local coords = mouse.coords()
+    local s = awful.screen.focused()
+    popup.x = coords.x
+    popup.y = coords.y
+    popup.screen = s
+
+    -- Keep on screen
+    local geo = popup:geometry()
+    local screen_geo = s.geometry
+    if geo.x + geo.width > screen_geo.x + screen_geo.width then
+      popup.x = screen_geo.x + screen_geo.width - geo.width - 10
+    end
+    if geo.y + geo.height > screen_geo.y + screen_geo.height then
+      popup.y = screen_geo.y + screen_geo.height - geo.height - 10
+    end
+
+    popup.widget = create_menu_widget()
+  end,
+  keypressed = function(_, key)
+    if key == "Return" then
+      local item = selectable_items[selected_index]
+      if item then
+        execute_item(item)
+      end
+    elseif key == "Up" or key == "k" then
+      selected_index = selected_index - 1
+      if selected_index < 1 then
+        selected_index = #selectable_items
+      end
+      mainmenu.refresh()
+    elseif key == "Down" or key == "j" then
+      selected_index = selected_index + 1
+      if selected_index > #selectable_items then
+        selected_index = 1
+      end
+      mainmenu.refresh()
+    end
+  end,
+})
+
+-- Refresh menu display
+function mainmenu.refresh()
+  if controller.popup then
+    controller.popup.widget = create_menu_widget()
   end
-
-  -- Position at mouse cursor
-  menu_popup.x = coords.x
-  menu_popup.y = coords.y
-  menu_popup.screen = s
-
-  -- Keep on screen
-  local geo = menu_popup:geometry()
-  local screen_geo = s.geometry
-
-  if geo.x + geo.width > screen_geo.x + screen_geo.width then
-    menu_popup.x = screen_geo.x + screen_geo.width - geo.width - 10
-  end
-  if geo.y + geo.height > screen_geo.y + screen_geo.height then
-    menu_popup.y = screen_geo.y + screen_geo.height - geo.height - 10
-  end
-
-  menu_popup.widget = create_menu_widget()
-  menu_popup.visible = true
-  menu_visible = true
-
-  start_keygrabber()
 end
 
--- Hide the menu
-function mainmenu.hide()
-  if not menu_visible then
-    return
-  end
-
-  menu_visible = false
-
-  local kg = keygrabber
-  keygrabber = nil
-  if kg then
-    kg:stop()
-  end
-
-  if menu_popup then
-    menu_popup.visible = false
-  end
-end
-
--- Toggle the menu
-function mainmenu.toggle()
-  if menu_visible then
-    mainmenu.hide()
-  else
-    mainmenu.show()
-  end
-end
+mainmenu.show = controller.show
+mainmenu.hide = controller.hide
+mainmenu.toggle = controller.toggle
+mainmenu.is_visible = controller.is_visible
 
 return mainmenu

@@ -2,12 +2,9 @@ local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")
 local wibox = require("wibox")
+local modal = require("modal")
 
 local dashboard = {}
-
--- Dashboard state
-local dashboard_visible = false
-local dashboard_popup = nil
 
 -- Load submodules
 local profile = require("dashboard.profile")
@@ -51,29 +48,16 @@ local function create_dashboard_widget()
   })
 end
 
---- Toggle dashboard visibility
-function dashboard.toggle()
-  if dashboard_visible then
-    dashboard.hide()
-  else
-    dashboard.show()
-  end
-end
-
---- Show the dashboard
-function dashboard.show()
-  if dashboard_visible then
-    return
-  end
-
-  local s = awful.screen.focused()
-
-  -- Build the widget tree once. Rebuilding it on every open would also
-  -- re-create each section's timers and signal connections — a leak.
-  if not dashboard_popup then
-    dashboard_popup = awful.popup({
+-- The modal controller owns visibility, click-outside/tag-change dismissal,
+-- Escape, and the dashboard::visible signal. The widget tree is built once
+-- (build_popup runs on first show); rebuilding it per open would also
+-- re-create each section's timers and signal connections — a leak.
+local controller = modal.new({
+  name = "dashboard",
+  build_popup = function()
+    return awful.popup({
       widget = create_dashboard_widget(),
-      screen = s,
+      screen = awful.screen.focused(),
       ontop = true,
       visible = false,
       bg = "#00000000", -- Fully transparent (widget has its own bg)
@@ -81,60 +65,27 @@ function dashboard.show()
       border_width = config.border_width,
       border_color = config.border_color,
     })
-  end
+  end,
+  on_show = function(popup)
+    local s = awful.screen.focused()
+    popup.screen = s
+    awful.placement.top_right(popup, {
+      margins = {
+        top = beautiful.wibar_height + beautiful.useless_gap * 3,
+        right = beautiful.useless_gap * 2,
+      },
+      parent = s,
+    })
 
-  -- Update screen placement
-  dashboard_popup.screen = s
-  awful.placement.top_right(dashboard_popup, {
-    margins = {
-      top = beautiful.wibar_height + beautiful.useless_gap * 3,
-      right = beautiful.useless_gap * 2,
-    },
-    parent = s,
-  })
+    -- Sync sections that mirror system state (volume, brightness, radios)
+    sliders.refresh()
+    toggles.refresh()
+  end,
+})
 
-  -- Sync sections that mirror system state (volume, brightness, radios)
-  sliders.refresh()
-  toggles.refresh()
-
-  dashboard_popup.visible = true
-  dashboard_visible = true
-
-  -- Emit signal for other widgets to react
-  awesome.emit_signal("dashboard::visible", true)
-end
-
---- Hide the dashboard
-function dashboard.hide()
-  if not dashboard_visible then
-    return
-  end
-
-  if dashboard_popup then
-    dashboard_popup.visible = false
-  end
-
-  dashboard_visible = false
-  awesome.emit_signal("dashboard::visible", false)
-end
-
---- Check if dashboard is visible
-function dashboard.is_visible()
-  return dashboard_visible
-end
-
--- Close dashboard when clicking outside
-client.connect_signal("button::press", function()
-  if dashboard_visible then
-    dashboard.hide()
-  end
-end)
-
--- Close on tag change
-tag.connect_signal("property::selected", function()
-  if dashboard_visible then
-    dashboard.hide()
-  end
-end)
+dashboard.show = controller.show
+dashboard.hide = controller.hide
+dashboard.toggle = controller.toggle
+dashboard.is_visible = controller.is_visible
 
 return dashboard

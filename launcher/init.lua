@@ -2,6 +2,7 @@ local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")
 local wibox = require("wibox")
+local modal = require("modal")
 
 local launcher = {}
 
@@ -72,8 +73,6 @@ local function save_icon_cache()
 end
 
 -- State
-local launcher_popup = nil
-local launcher_visible = false
 local search_text = ""
 local selected_index = 1
 local filtered_apps = {}
@@ -625,14 +624,6 @@ local function create_launcher_widget()
   return widget
 end
 
---- Refresh the launcher display
-function launcher.refresh()
-  if launcher_popup then
-    filter_apps()
-    launcher_popup.widget = create_launcher_widget()
-  end
-end
-
 --- Launch selected app
 local function launch_selected()
   log("launch_selected called, filtered_apps=" .. #filtered_apps .. " selected=" .. selected_index .. "")
@@ -646,85 +637,14 @@ local function launch_selected()
   end
 end
 
---- Key grabber for launcher input
-local keygrabber = nil
-
-local function start_keygrabber()
-  keygrabber = awful.keygrabber({
-    autostart = true,
-    stop_key = "Escape",
-    stop_callback = function()
-      -- The grabber is already stopped when this runs (Escape, or an
-      -- explicit stop from hide()). Clearing the reference first and
-      -- routing through hide() means both paths share one cleanup, and
-      -- hide()'s visibility guard stops the second entry.
-      keygrabber = nil
-      launcher.hide()
-    end,
-    keypressed_callback = function(_, _, key, _)
-      if key == "Return" then
-        launch_selected()
-      elseif key == "Up" then
-        selected_index = math.max(1, selected_index - 1)
-        launcher.refresh()
-      elseif key == "Down" then
-        selected_index = math.min(#filtered_apps, selected_index + 1)
-        launcher.refresh()
-      elseif key == "BackSpace" then
-        search_text = search_text:sub(1, -2)
-        launcher.refresh()
-      elseif key == "Tab" then
-        -- Tab completion - fill in selected app name
-        if #filtered_apps > 0 then
-          search_text = filtered_apps[selected_index].name
-          launcher.refresh()
-        end
-      elseif #key == 1 then
-        -- Single character - add to search
-        search_text = search_text .. key
-        launcher.refresh()
-      end
-    end,
-  })
-end
-
---- Show the launcher
-function launcher.show()
-  local show_start = os.clock()
-  log("=== show() called ===")
-
-  if launcher_visible then
-    log("Already visible, returning")
-    return
-  end
-
-  -- Load apps if not already loaded; the list fills in when the async scan
-  -- finishes (the popup shows "Loading applications..." until then)
-  if #all_apps == 0 then
-    load_apps(function()
-      if launcher_visible then
-        launcher.refresh()
-      end
-    end)
-  else
-    log("Using cached apps (%d apps)", #all_apps)
-  end
-
-  -- Reset state
-  search_text = ""
-  selected_index = 1
-
-  local filter_start = os.clock()
-  filter_apps()
-  log_time("  filter_apps()", filter_start)
-
-  local s = awful.screen.focused()
-
-  if not launcher_popup then
-    local popup_start = os.clock()
-    launcher_popup = awful.popup({
+-- The modal controller owns visibility, the keygrabber, Escape, and the
+-- launcher::visible signal; this module supplies content and typing keys.
+local controller = modal.new({
+  name = "launcher",
+  build_popup = function()
+    return awful.popup({
       widget = create_launcher_widget(),
-      screen = s,
+      screen = awful.screen.focused(),
       placement = awful.placement.centered,
       ontop = true,
       visible = false,
@@ -733,58 +653,68 @@ function launcher.show()
       border_color = beautiful.primary_color,
       shape = beautiful.shape,
     })
-    log_time("  create popup", popup_start)
+  end,
+  on_show = function(popup)
+    -- Load apps if not already loaded; the list fills in when the async scan
+    -- finishes (the popup shows "Loading applications..." until then)
+    if #all_apps == 0 then
+      load_apps(function()
+        if launcher.is_visible() then
+          launcher.refresh()
+        end
+      end)
+    else
+      log("Using cached apps (%d apps)", #all_apps)
+    end
+
+    -- Reset state
+    search_text = ""
+    selected_index = 1
+    filter_apps()
+
+    local s = awful.screen.focused()
+    popup.screen = s
+    awful.placement.centered(popup, { parent = s })
+    popup.widget = create_launcher_widget()
+  end,
+  keypressed = function(_, key)
+    if key == "Return" then
+      launch_selected()
+    elseif key == "Up" then
+      selected_index = math.max(1, selected_index - 1)
+      launcher.refresh()
+    elseif key == "Down" then
+      selected_index = math.min(#filtered_apps, selected_index + 1)
+      launcher.refresh()
+    elseif key == "BackSpace" then
+      search_text = search_text:sub(1, -2)
+      launcher.refresh()
+    elseif key == "Tab" then
+      -- Tab completion - fill in selected app name
+      if #filtered_apps > 0 then
+        search_text = filtered_apps[selected_index].name
+        launcher.refresh()
+      end
+    elseif #key == 1 then
+      -- Single character - add to search
+      search_text = search_text .. key
+      launcher.refresh()
+    end
+  end,
+})
+
+--- Refresh the launcher display
+function launcher.refresh()
+  if controller.popup then
+    filter_apps()
+    controller.popup.widget = create_launcher_widget()
   end
-
-  launcher_popup.screen = s
-  awful.placement.centered(launcher_popup, { parent = s })
-  launcher_popup.widget = create_launcher_widget()
-  launcher_popup.visible = true
-  launcher_visible = true
-
-  start_keygrabber()
-
-  awesome.emit_signal("launcher::visible", true)
-
-  log_time("=== show() TOTAL", show_start)
 end
 
---- Hide the launcher
-function launcher.hide()
-  if not launcher_visible then
-    return
-  end
-
-  -- Flip the flag before stopping the grabber: stopping re-enters hide()
-  -- via stop_callback, and this guard ends that second call immediately
-  launcher_visible = false
-
-  local kg = keygrabber
-  keygrabber = nil
-  if kg then
-    kg:stop()
-  end
-
-  if launcher_popup then
-    launcher_popup.visible = false
-  end
-
-  awesome.emit_signal("launcher::visible", false)
-end
-
---- Toggle the launcher
-function launcher.toggle()
-  if launcher_visible then
-    launcher.hide()
-  else
-    launcher.show()
-  end
-end
-
---- Check if launcher is visible
-function launcher.is_visible()
-  return launcher_visible
-end
+launcher.show = controller.show
+launcher.hide = controller.hide
+launcher.toggle = controller.toggle
+launcher.is_visible = controller.is_visible
 
 --- Reload applications
 function launcher.reload()
