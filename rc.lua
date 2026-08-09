@@ -252,6 +252,12 @@ ruled.client.connect_signal("request::rules", function()
       screen = awful.screen.preferred,
       placement = awful.placement.no_overlap + awful.placement.no_offscreen,
     },
+    callback = function(c)
+      c:grant("autoactivate", "switch_tag")
+      c:grant("autoactivate", "history")
+      c:deny("autoactivate", "mouse_enter")
+      c:to_secondary_section()
+    end,
   })
 
   -- @DOC_FLOATING_RULE@
@@ -294,16 +300,97 @@ ruled.client.connect_signal("request::rules", function()
     properties = { titlebars_enabled = true },
   })
 
-  -- Set Firefox to always map on the tag named "2" on screen 1.
-  -- ruled.client.append_rule {
-  --     rule       = { class = "Firefox"     },
-  --     properties = { screen = 1, tag = "2" }
-  -- }
+  -- ==========================================
+  -- Example rules: routing and shaping specific apps. Each one demonstrates a
+  -- different piece of ruled.client - swap the class names for your own apps.
+
+  -- Tag assignment: Browsers always open on "web" tag
+  ruled.client.append_rule({
+    id = "browsers",
+    rule_any = {
+      class = { "firefox", "Firefox", "chromium", "Chromium", "Google-chrome" },
+    },
+    properties = { tag = "web" },
+  })
+
+  -- Tag assignment: Chat/communication apps on "chat" tag
+  ruled.client.append_rule({
+    id = "chat",
+    rule_any = {
+      class = { "discord", "Discord", "Slack", "TelegramDesktop", "Signal" },
+    },
+    properties = { tag = "chat" },
+  })
+
+  -- Picture-in-Picture: Always floating, ontop, sticky, positioned top-right
+  ruled.client.append_rule({
+    id = "pip",
+    rule_any = {
+      name = { "Picture-in-Picture", "Picture in picture" },
+    },
+    properties = {
+      floating = true,
+      ontop = true,
+      sticky = true,
+      skip_taskbar = true,
+    },
+    callback = function(c)
+      -- Position at top-right with margin
+      awful.placement.top_right(c, { margins = { top = 50, right = 20 } })
+      -- Make it smaller (good for video)
+      c:geometry({ width = 480, height = 270 })
+    end,
+  })
+
+  -- File manager: Slightly larger default size
+  ruled.client.append_rule({
+    id = "filemanager",
+    rule_any = {
+      class = { "Thunar", "Nautilus", "Pcmanfm", "Nemo" },
+    },
+    callback = function(c)
+      c:geometry({ width = 1000, height = 700 })
+      awful.placement.centered(c)
+    end,
+  })
+
+  -- Steam: Handle various Steam windows properly
+  ruled.client.append_rule({
+    id = "steam",
+    rule = { class = "Steam" },
+    properties = { tag = "games" },
+  })
+
+  -- Steam friends list and chat: floating
+  ruled.client.append_rule({
+    id = "steam-dialogs",
+    rule_any = {
+      name = { "Friends List", "Steam - News" },
+      class = { "Steam" },
+      type = { "dialog" },
+    },
+    except = { name = "Steam" }, -- Main window excluded
+    properties = { floating = true },
+  })
 end)
 -- }}}
 
 -- {{{ Titlebars
 -- @DOC_TITLEBARS@
+-- Wrap a titlebar button with hover effects
+local function with_hover(button, hover_opacity)
+  hover_opacity = hover_opacity or 1.0
+  local normal_opacity = 0.7
+  button.opacity = normal_opacity
+  button:connect_signal("mouse::enter", function()
+    button.opacity = hover_opacity
+  end)
+  button:connect_signal("mouse::leave", function()
+    button.opacity = normal_opacity
+  end)
+  return button
+end
+
 -- Add a titlebar if titlebars_enabled is set to true in the rules.
 client.connect_signal("request::titlebars", function(c)
   -- buttons for the titlebar
@@ -318,9 +405,10 @@ client.connect_signal("request::titlebars", function(c)
 
   awful.titlebar(c).widget = {
     { -- Left
-      awful.titlebar.widget.iconwidget(c),
-      buttons = buttons,
       layout = wibox.layout.fixed.horizontal,
+      with_hover(awful.titlebar.widget.closebutton(c)),
+      with_hover(awful.titlebar.widget.floatingbutton(c)),
+      with_hover(awful.titlebar.widget.maximizedbutton(c)),
     },
     { -- Middle
       { -- Title
@@ -331,11 +419,6 @@ client.connect_signal("request::titlebars", function(c)
       layout = wibox.layout.flex.horizontal,
     },
     { -- Right
-      awful.titlebar.widget.floatingbutton(c),
-      awful.titlebar.widget.maximizedbutton(c),
-      awful.titlebar.widget.stickybutton(c),
-      awful.titlebar.widget.ontopbutton(c),
-      awful.titlebar.widget.closebutton(c),
       layout = wibox.layout.fixed.horizontal(),
     },
     layout = wibox.layout.align.horizontal,
