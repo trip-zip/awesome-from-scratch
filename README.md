@@ -1,17 +1,17 @@
-# 06-notifications
+# 07-exitscreen
 
-Checkpoint 6 of *Awesome From Scratch*: **routing, history, center**.
+Checkpoint 7 of *Awesome From Scratch*: **the modal pattern**.
 
-Read the chapter: <https://somewm.org/docs/tutorials/from-scratch/06-notifications>
+Read the chapter: <https://somewm.org/docs/tutorials/from-scratch/07-exitscreen>
 
 ## Run this checkpoint
 
 ```bash
-git checkout 06-notifications
+git checkout 07-exitscreen
 somewm-client test start --config "$PWD/rc.lua" --name afs
 ```
 
 That opens a nested SomeWM in a window. Your real session is untouched.
 
-Previous: [`05-rules-titlebars`](../../tree/05-rules-titlebars)  
-Next: [`07-exitscreen`](../../tree/07-exitscreen)
+Previous: [`06-notifications`](../../tree/06-notifications)  
+Next: [`08-mainmenu`](../../tree/08-mainmenu)
