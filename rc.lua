@@ -86,6 +86,17 @@ filemanager = "thunar" --While I'm in here, may as well make this a variable
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
 modkey = "Mod4"
+
+-- The workspaces, defined once. Each tag carries the icon the taglist renders
+-- for it (files in icons/); the demo rules further down route apps to tags by
+-- these names, so rename in both places or a rule will quietly stop matching.
+local tags = {
+  { name = "code", icon = "terminal.svg" },
+  { name = "web", icon = "chrome.svg" },
+  { name = "chat", icon = "slack.svg" },
+  { name = "db", icon = "server.svg" },
+  { name = "games", icon = "play.svg" },
+}
 -- }}}
 
 -- {{{ Menu
@@ -180,6 +191,16 @@ end)
 -- {{{ Wibar
 -- @DOC_FOR_EACH_SCREEN@
 screen.connect_signal("request::desktop_decoration", function(s)
+  -- Create this screen's tags from the table defined at the top
+  for i, t in ipairs(tags) do
+    awful.tag.add(t.name, {
+      screen = s,
+      layout = awful.layout.layouts[1],
+      selected = i == 1,
+      icon_name = t.icon,
+    })
+  end
+
   -- Create a promptbox for each screen
   s.mypromptbox = awful.widget.prompt()
 
