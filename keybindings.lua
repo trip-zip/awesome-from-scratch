@@ -10,6 +10,7 @@ local dashboard = require("dashboard")
 local launcher = require("launcher")
 local exitscreen = require("exitscreen")
 local notifications = require("notifications")
+local mainmenu = require("widgets.mainmenu")
 local windowswitcher = require("widgets.windowswitcher")
 
 local function table_to_keybinding(bindings)
@@ -107,7 +108,7 @@ local global_keys = {
   {{ modkey }, "r",                     function () awful.screen.focused().mypromptbox:run() end, "run prompt",                            "launcher" },
   {{ modkey }, "s",                     hotkeys_popup.show_help,                                  "show help",                             "awesome"  },
   {{ modkey }, "u",                     awful.client.urgent.jumpto,                               "jump to urgent client",                 "client"   },
-  {{ modkey }, "w",                     function () mymainmenu:show() end,                        "show main menu",                        "awesome"  },
+  {{ modkey }, "w",                     function () mainmenu.show() end,                        "show main menu",                        "awesome"  },
   {{ modkey }, "x",                     global_helpers.launch_lua_prompt,                         "lua execute prompt",                    "awesome"  },
   {{ modkey }, "Escape",                awful.tag.history.restore,                                "go back",                               "tag"      },
   {{ modkey }, "Left",                  awful.tag.viewprev,                                       "view previous",                         "tag"      },

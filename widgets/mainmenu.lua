@@ -21,14 +21,21 @@ local config = {
   icon_width = 28,
 }
 
+-- The applications the menu launches - one obvious place to change them
+local apps = {
+  file_manager = "thunar",
+  terminal = "ghostty",
+  settings = "gnome-control-center",
+}
+
 -- Menu items definition
--- type: "item" | "separator" | "submenu"
+-- type: "item" | "separator"
 local menu_items = {
-  { type = "item", icon = "󰀻", label = "Apps", action = "submenu", submenu = "apps" },
+  { type = "item", icon = "󰀻", label = "Apps", action = "launcher" },
   { type = "separator" },
-  { type = "item", icon = "󰙀", label = "File Manager", command = "thunar" },
-  { type = "item", icon = "", label = "Terminal", command = "ghostty" },
-  { type = "item", icon = "󰒓", label = "Settings", command = "gnome-control-center" },
+  { type = "item", icon = "󰙀", label = "File Manager", command = apps.file_manager },
+  { type = "item", icon = "", label = "Terminal", command = apps.terminal },
+  { type = "item", icon = "󰒓", label = "Settings", command = apps.settings },
   { type = "item", icon = "󰋜", label = "Hotkeys", action = "hotkeys" },
   { type = "separator" },
   { type = "item", icon = "󰌾", label = "Lock", action = "lock" },
@@ -37,15 +44,15 @@ local menu_items = {
   { type = "item", icon = "󰐥", label = "Shutdown", command = "systemctl poweroff" },
 }
 
--- Get selectable items (exclude separators)
-local function get_selectable_items()
-  local items = {}
-  for i, item in ipairs(menu_items) do
-    if item.type == "item" then
-      table.insert(items, { index = i, item = item })
-    end
+-- Selectable items (everything except separators), computed once. Each item
+-- learns its own ordinal, so selection checks are a direct comparison instead
+-- of a scan per widget.
+local selectable_items = {}
+for _, item in ipairs(menu_items) do
+  if item.type == "item" then
+    table.insert(selectable_items, item)
+    item.selectable_index = #selectable_items
   end
-  return items
 end
 
 -- Execute menu item action
@@ -57,31 +64,19 @@ local function execute_item(item)
   elseif item.action == "hotkeys" then
     hotkeys_popup.show_help(nil, awful.screen.focused())
   elseif item.action == "lock" then
-    awesome:lock()
+    awesome.lock()
   elseif item.action == "logout" then
     awesome.quit()
   elseif item.action == "restart" then
     awesome.restart()
-  elseif item.action == "submenu" then
-    -- TODO: implement submenus
-    -- For now, open the launcher as "Apps"
-    local launcher = require("launcher")
-    launcher.show()
+  elseif item.action == "launcher" then
+    require("launcher").show()
   end
 end
 
 -- Create a menu item widget
-local function create_menu_item(item, index)
-  local selectable_items = get_selectable_items()
-  local is_selected = false
-
-  -- Find if this index matches the selected selectable item
-  for si, sel in ipairs(selectable_items) do
-    if sel.index == index and si == selected_index then
-      is_selected = true
-      break
-    end
-  end
+local function create_menu_item(item)
+  local is_selected = item.selectable_index == selected_index
 
   local icon_widget = wibox.widget({
     text = item.icon or "",
@@ -97,27 +92,11 @@ local function create_menu_item(item, index)
     widget = wibox.widget.textbox,
   })
 
-  -- Arrow for submenus
-  local arrow_widget = nil
-  if item.action == "submenu" then
-    arrow_widget = wibox.widget({
-      text = "󰅂",
-      font = beautiful.font_size(12),
-      halign = "right",
-      widget = wibox.widget.textbox,
-    })
-  end
-
   local item_widget = wibox.widget({
     {
       {
         icon_widget,
-        {
-          label_widget,
-          nil,
-          arrow_widget,
-          layout = wibox.layout.align.horizontal,
-        },
+        label_widget,
         spacing = 8,
         layout = wibox.layout.fixed.horizontal,
       },
@@ -138,14 +117,8 @@ local function create_menu_item(item, index)
   end))
 
   item_widget:connect_signal("mouse::enter", function()
-    -- Update selection to this item
-    for si, sel in ipairs(selectable_items) do
-      if sel.index == index then
-        selected_index = si
-        mainmenu.refresh()
-        break
-      end
-    end
+    selected_index = item.selectable_index
+    mainmenu.refresh()
   end)
 
   return item_widget
@@ -176,11 +149,11 @@ end
 local function create_menu_widget()
   local layout = wibox.layout.fixed.vertical()
 
-  for i, item in ipairs(menu_items) do
+  for _, item in ipairs(menu_items) do
     if item.type == "separator" then
       layout:add(create_separator())
     else
-      layout:add(create_menu_item(item, i))
+      layout:add(create_menu_item(item))
     end
   end
 
@@ -217,23 +190,20 @@ end
 
 -- Start keyboard grabber
 local function start_keygrabber()
-  local selectable_items = get_selectable_items()
-
   keygrabber = awful.keygrabber({
     autostart = true,
     stop_key = "Escape",
     stop_callback = function()
-      if menu_popup then
-        menu_popup.visible = false
-      end
-      menu_visible = false
+      -- Already stopped when this runs; route through hide(), whose
+      -- visibility guard makes the re-entry a no-op
       keygrabber = nil
+      mainmenu.hide()
     end,
     keypressed_callback = function(_, _, key, _)
       if key == "Return" then
-        local sel = selectable_items[selected_index]
-        if sel then
-          execute_item(sel.item)
+        local item = selectable_items[selected_index]
+        if item then
+          execute_item(item)
         end
       elseif key == "Up" or key == "k" then
         selected_index = selected_index - 1
@@ -327,15 +297,5 @@ function mainmenu.toggle()
     mainmenu.show()
   end
 end
-
--- For backwards compatibility, return a table that can be used with :toggle()
--- This makes it work with the existing rc.lua that calls mymainmenu:toggle()
-local mt = {}
-mt.__index = mainmenu
-mt.__call = function(_, ...)
-  return mainmenu.toggle(...)
-end
-
-setmetatable(mainmenu, mt)
 
 return mainmenu
