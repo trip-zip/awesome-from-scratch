@@ -28,6 +28,8 @@ local apps = {
 -- Menu items definition
 -- type: "item" | "separator"
 local menu_items = {
+  { type = "item", icon = "󰀻", label = "Apps", action = "launcher" },
+  { type = "separator" },
   { type = "item", icon = "󰙀", label = "File Manager", command = apps.file_manager },
   { type = "item", icon = "", label = "Terminal", command = apps.terminal },
   { type = "item", icon = "󰒓", label = "Settings", command = apps.settings },
@@ -61,6 +63,8 @@ local function execute_item(item)
     awesome.quit()
   elseif item.action == "restart" then
     awesome.restart()
+  elseif item.action == "launcher" then
+    require("launcher").show()
   end
 end
 
