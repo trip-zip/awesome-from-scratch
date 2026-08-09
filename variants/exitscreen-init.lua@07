@@ -52,7 +52,7 @@ local options = {
 
 -- Configuration
 local config = {
-  button_size = 100,
+  button_size = 120,
   icon_size = 36,
   spacing = 40,
 }
