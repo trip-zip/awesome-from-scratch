@@ -121,7 +121,7 @@ local global_keys = {
   {{ modkey, "Control" }, "k",          function () awful.screen.focus_relative(-1) end,          "focus the previous screen",             "screen"   },
   {{ modkey, "Control" }, "l",          function () awful.tag.incncol(-1, nil, true) end,         "decrease the number of columns",        "layout"   },
   {{ modkey, "Control" }, "n",          global_helpers.client_restore_minimized,                  "restore minimized",                     "client"   },
-  {{ modkey, "Control" }, "p",          function() awful.spawn("flameshot gui") end,              "take screenshot",                       "client"   },
+  {{ modkey, "Control" }, "p",          function() local s = awful.screenshot({ interactive = true }); s:connect_signal("snipping::start", function(self) if self._private.frame then self._private.imagebox.visible = false; self._private.frame.bg = "#00000040"; self._private.frame.surface_scale = 1.0 end end); s:refresh() end, "take screenshot", "client" },
   {{ modkey, "Control" }, "r",          awesome.restart,                                          "reload awesome",                        "awesome"  },
   -- modkey + shift modifier
   {{ modkey, "Shift"   }, "h",          function () awful.tag.incnmaster( 1, nil, true) end,      "increase the number of master clients", "layout"   },

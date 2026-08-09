@@ -43,6 +43,17 @@ return function(s)
           widget = wibox.container.margin,
         },
         widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
+        -- The status readouts. `icon_with_text` puts no gap after its label, so three of
+        -- them in a row collide. Give the group its own spacing rather than changing the
+        -- wrapper, which every other widget in the bar also uses.
+        {
+          widgets.volume,
+          widgets.wifi,
+          widgets.battery,
+          spacing = dpi(10),
+          layout = wibox.layout.fixed.horizontal,
+        },
+        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         {
           {
             s.mylayoutbox,

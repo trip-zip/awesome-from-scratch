@@ -1,8 +1,14 @@
 -- awesome_mode: api-level=4:screen=on
 
--- Add config directory to Lua search path for somewm compatibility
-local config_dir = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config") .. "/somewm"
-package.path = config_dir .. "/?.lua;" .. config_dir .. "/?/init.lua;" .. package.path
+-- Add this config's own directory to the Lua search path, so that `require("wibar")`
+-- and `require("widgets.clock")` resolve to the files sitting next to this rc.lua.
+--
+-- `get_configuration_dir()` reads `awesome.conffile`, which is the rc.lua the running
+-- compositor actually loaded. Both somewm and AwesomeWM implement it identically, so
+-- this one line covers ~/.config/somewm, ~/.config/awesome, and a git checkout you
+-- pointed a nested compositor at. It always ends in a slash.
+local config_dir = require("gears.filesystem").get_configuration_dir()
+package.path = config_dir .. "?.lua;" .. config_dir .. "?/init.lua;" .. package.path
 
 -- If LuaRocks is installed, make sure that packages installed through it are
 -- found (e.g. lgi). If LuaRocks is not installed, do nothing.
@@ -24,7 +30,6 @@ local menubar = require("menubar")
 require("awful.hotkeys_popup.keys")
 local gears = require("gears")
 
-
 naughty.connect_signal("request::display_error", function(message, startup)
   naughty.notification({
     urgency = "critical",
@@ -36,30 +41,37 @@ end)
 -- {{{ Variable definitions
 -- @DOC_LOAD_THEME@
 -- Themes define colours, icons, font and wallpapers.
-local config_dir = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config") .. "/somewm"
-local theme_path = config_dir .. "/theme/"
-beautiful.init(theme_path .. "theme.lua")
+beautiful.init(config_dir .. "theme/theme.lua")
 
--- Load notification system (after theme init, before any notifications can fire)
-local notifications_ok, notifications_err = pcall(require, "notifications")
-if not notifications_ok then
-  io.stderr:write("[RC.LUA] Failed to load notifications: " .. tostring(notifications_err) .. "\n")
-else
-  io.stderr:write("[RC.LUA] Notifications module loaded successfully\n")
-end
-
--- Load and initialize lockscreen module (somewm built-in lock support)
-local lockscreen_ok, lockscreen = pcall(require, "lockscreen")
-if not lockscreen_ok then
-  io.stderr:write("[RC.LUA] Failed to load lockscreen: " .. tostring(lockscreen) .. "\n")
-else
-  local init_ok, init_err = pcall(lockscreen.init)
-  if not init_ok then
-    io.stderr:write("[RC.LUA] Failed to init lockscreen: " .. tostring(init_err) .. "\n")
-  else
-    io.stderr:write("[RC.LUA] Lockscreen initialized successfully\n")
+-- These two modules are the ones most likely to break a config badly enough that you
+-- cannot log in. Load them behind pcall and report the failure as a notification, so a
+-- typo costs you one missing feature instead of a session.
+--
+-- Report failures on both channels on purpose. If the module that failed is
+-- `notifications`, then nothing ever registered a `request::display` handler and the
+-- notification below paints nowhere, so stderr is the only thing you will actually see.
+local function try(name, fn)
+  local ok, err = pcall(fn)
+  if not ok then
+    io.stderr:write(("[rc.lua] %s failed to load: %s\n"):format(name, tostring(err)))
+    naughty.notification({
+      urgency = "critical",
+      title = name .. " failed to load",
+      message = tostring(err),
+    })
   end
+  return ok
 end
+
+-- Notification system: after theme init, before anything can fire a notification.
+try("notifications", function()
+  require("notifications")
+end)
+
+-- Lockscreen: somewm's built-in session lock support.
+try("lockscreen", function()
+  require("lockscreen").init()
+end)
 
 -- @DOC_DEFAULT_APPLICATIONS@
 -- This is used later as the default terminal and editor to run.
@@ -109,12 +121,12 @@ tag.connect_signal("request::default_layouts", function()
 end)
 -- }}}
 --
--- Wallpaper configuration
--- Set your wallpaper paths here, or use a solid color
-local wallpaper_path = os.getenv("HOME") .. "/wallpapers/gruvbox"
+-- Wallpaper configuration.
+-- One entry per screen, indexed by screen number. These paths are relative to this
+-- config so a fresh clone has something to show. Point them anywhere you like.
 local wallpapers = {
-  wallpaper_path .. "/penguin.jpg",
-  wallpaper_path .. "/spaceman.jpg",
+  config_dir .. "wallpapers/penguin.jpg",
+  config_dir .. "theme/spaceman.jpg",
 }
 
 local function set_wallpaper(s)
@@ -150,19 +162,22 @@ end)
 -- }}}
 
 -- {{{ Screen scaling
--- Scale up the laptop monitor (screen 1) for better readability
+-- `screen.scale` is a somewm addition: fractional output scaling, which X11 has no
+-- equivalent for. This is a personal tweak for a HiDPI laptop panel. Set it to the
+-- screens you actually want scaled, or delete this block entirely.
+local screen_scales = {
+  -- [1] = 1.5,
+}
+
 awful.screen.connect_for_each_screen(function(s)
-  if s.index == 1 then
-    s.scale = 1.5
+  local scale = screen_scales[s.index]
+  if scale then
+    s.scale = scale
   end
 end)
 -- }}}
 
 -- {{{ Wibar
-
--- Create a textclock widget
-mytextclock = wibox.widget.textclock()
-
 -- @DOC_FOR_EACH_SCREEN@
 screen.connect_signal("request::desktop_decoration", function(s)
   -- Create a promptbox for each screen
@@ -238,7 +253,10 @@ ruled.client.connect_signal("request::rules", function()
       raise = true,
       screen = awful.screen.preferred,
       placement = awful.placement.no_overlap + awful.placement.no_offscreen,
-      opacity = 0.85,
+      -- Uncomment to fade every window slightly. It looks nice over a wallpaper and it
+      -- is confusing the first time a screenshot comes out washed out, so it is off by
+      -- default.
+      -- opacity = 0.85,
     },
     callback = function(c)
       c:grant("autoactivate", "switch_tag")
@@ -271,9 +289,9 @@ ruled.client.connect_signal("request::rules", function()
         "Event Tester", -- xev.
       },
       role = {
-        "AlarmWindow",   -- Thunderbird's calendar.
+        "AlarmWindow", -- Thunderbird's calendar.
         "ConfigManager", -- Thunderbird's about:config.
-        "pop-up",        -- e.g. Google Chrome's (detached) Developer Tools.
+        "pop-up", -- e.g. Google Chrome's (detached) Developer Tools.
       },
     },
     properties = { floating = true },

@@ -7,7 +7,7 @@ local power_widget = wrappers.square_icon(power, beautiful.primary_color, beauti
 
 -- Click to lock screen (somewm built-in lockscreen)
 power_widget:add_button(awful.button({}, 1, function()
-    awesome.lock()
+  awesome.lock()
 end))
 
 return power_widget

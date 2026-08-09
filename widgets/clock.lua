@@ -46,11 +46,11 @@ local set_clock = function()
   local time = " " .. os.date("%I:%M")
   local tbox = clock_widget_base:get_children_by_id("text")[1]
   tbox.text = time
-  
+
   -- Update unread badge
   local badge_container = clock_widget:get_children_by_id("badge_container")[1]
   local badge_text = clock_widget:get_children_by_id("badge")[1]
-  
+
   if badge_container and badge_text and notifications.unread_count and notifications.unread_count > 0 then
     badge_text.text = tostring(math.min(notifications.unread_count, 99))
     badge_container.visible = true

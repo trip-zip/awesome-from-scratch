@@ -20,7 +20,7 @@ local M = {}
 M.config = {
   -- Default timeout for notifications (seconds)
   default_timeout = 5,
-  
+
   -- Position presets
   positions = {
     top_right = "top_right",
@@ -30,16 +30,22 @@ M.config = {
     top_middle = "top_middle",
     bottom_middle = "bottom_middle",
   },
-  
-  -- Special contacts for custom styling
-  special_contacts = {
-    wife = { "Wife", "Honey", "Love" }, -- Add actual contact names
+
+  -- VIP contacts. A notification whose title or message mentions one of these names
+  -- gets the style below, is bumped to critical, and never times out. Matching is
+  -- plain text and case-insensitive, so punctuation in a name is safe.
+  --
+  -- Empty by default. Put the handful of people you must not miss in here.
+  vip_contacts = {},
+  vip_style = {
+    bg = "#ff69b4",
+    fg = "#000000",
   },
-  
+
   -- DND mode settings
   dnd_mode = false,
   focus_mode = false,
-  
+
   -- Sound settings
   enable_sounds = true,
   sound_files = {
@@ -64,13 +70,15 @@ M.snooze_durations = {
   { label = "3 hours", seconds = 3 * 60 * 60 },
 }
 
--- Helper function to check if notification matches special contact
-local function is_special_contact(notification, contact_group)
-  if not notification.message then return false end
-  
-  for _, name in ipairs(M.config.special_contacts[contact_group] or {}) do
-    if notification.message:match(name) or 
-       (notification.title and notification.title:match(name)) then
+-- Does this notification mention one of the VIP contacts?
+--
+-- Note the `1, true` on find: that is a plain-text search. Without it, a name
+-- containing a `-` or `.` would be read as a Lua pattern and match the wrong things.
+local function is_vip(notification)
+  local haystack = ((notification.title or "") .. " " .. (notification.message or "")):lower()
+
+  for _, name in ipairs(M.config.vip_contacts) do
+    if haystack:find(name:lower(), 1, true) then
       return true
     end
   end
@@ -89,15 +97,15 @@ local function add_to_history(notification)
     id = notification.id or tostring(os.time() .. math.random()),
     is_read = false,
   }
-  
+
   table.insert(M.history, 1, history_item)
   M.unread_count = M.unread_count + 1
-  
+
   -- Store reference to active notification
   if notification.resident then
     M.active_notifications[history_item.id] = notification
   end
-  
+
   -- Trim history if too long
   while #M.history > M.max_history do
     local removed = table.remove(M.history)
@@ -112,7 +120,9 @@ end
 
 -- Helper function to play notification sound
 local function play_sound(urgency)
-  if not M.config.enable_sounds then return end
+  if not M.config.enable_sounds then
+    return
+  end
 
   local sound_file = M.config.sound_files[urgency] or M.config.sound_files.normal
   if sound_file and gears.filesystem.file_readable(sound_file) then
@@ -155,7 +165,7 @@ local function snooze_notification(notif_data, duration_seconds, duration_label)
   -- Show confirmation
   naughty.notification({
     title = "Snoozed",
-    message = "\"" .. (notif_data.title or "Notification") .. "\" will remind you in " .. duration_label,
+    message = '"' .. (notif_data.title or "Notification") .. '" will remind you in ' .. duration_label,
     timeout = 2,
     urgency = "low",
   })
@@ -183,7 +193,7 @@ local function show_snooze_picker(notif_data, anchor_geometry)
       {
         {
           {
-            text = "󰥔",  -- nf-md-clock_outline
+            text = "󰥔", -- nf-md-clock_outline
             font = "JetBrainsMono Nerd Font 12",
             forced_width = 20,
             widget = wibox.widget.textbox,
@@ -203,13 +213,11 @@ local function show_snooze_picker(notif_data, anchor_geometry)
       widget = wibox.container.background,
     })
 
-    btn:buttons(gears.table.join(
-      awful.button({}, 1, function()
-        snooze_picker_popup.visible = false
-        snooze_picker_popup = nil
-        snooze_notification(notif_data, duration.seconds, duration.label)
-      end)
-    ))
+    btn:add_button(awful.button({}, 1, function()
+      snooze_picker_popup.visible = false
+      snooze_picker_popup = nil
+      snooze_notification(notif_data, duration.seconds, duration.label)
+    end))
 
     -- Hover effect
     btn:connect_signal("mouse::enter", function()
@@ -352,17 +360,25 @@ end
 local function create_group_header(group)
   local is_expanded = expanded_groups[group.app_name]
   local chevron = is_expanded and "▼" or "▶"
-  local unread_badge = group.unread_count > 0 and
-    " <span foreground='" .. (beautiful.primary_color or "#d65d0e") .. "'>(" .. group.unread_count .. ")</span>" or ""
+  local unread_badge = group.unread_count > 0
+      and " <span foreground='" .. (beautiful.primary_color or "#d65d0e") .. "'>(" .. group.unread_count .. ")</span>"
+    or ""
 
   local header = wibox.widget({
     {
       {
         -- Chevron + App name + count
         {
-          markup = chevron .. "  <b>" .. gears.string.xml_escape(group.app_name) .. "</b>" ..
-                   " <span foreground='" .. (beautiful.fg_normal or "#ebdbb2") .. "88'>" ..
-                   #group.notifications .. " notifications</span>" .. unread_badge,
+          markup = chevron
+            .. "  <b>"
+            .. gears.string.xml_escape(group.app_name)
+            .. "</b>"
+            .. " <span foreground='"
+            .. (beautiful.fg_normal or "#ebdbb2")
+            .. "88'>"
+            .. #group.notifications
+            .. " notifications</span>"
+            .. unread_badge,
           widget = wibox.widget.textbox,
         },
         nil,
@@ -383,12 +399,10 @@ local function create_group_header(group)
   })
 
   -- Click to toggle expand/collapse
-  header:buttons(gears.table.join(
-    awful.button({}, 1, function()
-      expanded_groups[group.app_name] = not expanded_groups[group.app_name]
-      refresh_popup()
-    end)
-  ))
+  header:add_button(awful.button({}, 1, function()
+    expanded_groups[group.app_name] = not expanded_groups[group.app_name]
+    refresh_popup()
+  end))
 
   -- Hover effect
   local default_bg = beautiful.bg_focus or "#504945"
@@ -417,7 +431,7 @@ local function create_notification_item(notif, index)
   local snooze_btn = wibox.widget({
     {
       {
-        text = "󰥔",  -- nf-md-clock_outline
+        text = "󰥔", -- nf-md-clock_outline
         font = "JetBrainsMono Nerd Font 14",
         halign = "center",
         valign = "center",
@@ -434,11 +448,9 @@ local function create_notification_item(notif, index)
     widget = wibox.container.background,
   })
 
-  snooze_btn:buttons(gears.table.join(
-    awful.button({}, 1, function()
-      show_snooze_picker(notif)
-    end)
-  ))
+  snooze_btn:add_button(awful.button({}, 1, function()
+    show_snooze_picker(notif)
+  end))
 
   snooze_btn:connect_signal("mouse::enter", function()
     snooze_btn.bg = beautiful.primary_color or "#d65d0e"
@@ -454,8 +466,12 @@ local function create_notification_item(notif, index)
           -- Row 1: Title + time
           {
             {
-              markup = (is_unread and "<span foreground='" .. (beautiful.primary_color or "#d65d0e") .. "'>● </span>" or "") ..
-                       "<b>" .. gears.string.xml_escape(notif.title or "Notification") .. "</b>",
+              markup = (
+                is_unread and "<span foreground='" .. (beautiful.primary_color or "#d65d0e") .. "'>● </span>" or ""
+              )
+                .. "<b>"
+                .. gears.string.xml_escape(notif.title or "Notification")
+                .. "</b>",
               widget = wibox.widget.textbox,
             },
             nil,
@@ -491,16 +507,14 @@ local function create_notification_item(notif, index)
   })
 
   -- Click to mark as read (but not when clicking snooze button)
-  item:buttons(gears.table.join(
-    awful.button({}, 1, function()
-      if not notif.is_read then
-        notif.is_read = true
-        M.unread_count = math.max(0, M.unread_count - 1)
-        awesome.emit_signal("notification::unread_count", M.unread_count)
-        refresh_popup()
-      end
-    end)
-  ))
+  item:add_button(awful.button({}, 1, function()
+    if not notif.is_read then
+      notif.is_read = true
+      M.unread_count = math.max(0, M.unread_count - 1)
+      awesome.emit_signal("notification::unread_count", M.unread_count)
+      refresh_popup()
+    end
+  end))
 
   -- Hover effect
   item:connect_signal("mouse::enter", function()
@@ -536,23 +550,21 @@ local function create_header()
     widget = wibox.container.background,
   })
 
-  clear_read_btn:buttons(gears.table.join(
-    awful.button({}, 1, function()
-      local new_history = {}
-      for _, notif in ipairs(M.history) do
-        if not notif.is_read then
-          table.insert(new_history, notif)
-        else
-          if M.active_notifications[notif.id] then
-            M.active_notifications[notif.id] = nil
-          end
+  clear_read_btn:add_button(awful.button({}, 1, function()
+    local new_history = {}
+    for _, notif in ipairs(M.history) do
+      if not notif.is_read then
+        table.insert(new_history, notif)
+      else
+        if M.active_notifications[notif.id] then
+          M.active_notifications[notif.id] = nil
         end
       end
-      M.history = new_history
-      awesome.emit_signal("notification::unread_count", M.unread_count)
-      refresh_popup()
-    end)
-  ))
+    end
+    M.history = new_history
+    awesome.emit_signal("notification::unread_count", M.unread_count)
+    refresh_popup()
+  end))
 
   -- Clear All button
   local clear_all_btn = wibox.widget({
@@ -573,15 +585,13 @@ local function create_header()
     widget = wibox.container.background,
   })
 
-  clear_all_btn:buttons(gears.table.join(
-    awful.button({}, 1, function()
-      M.history = {}
-      M.unread_count = 0
-      M.active_notifications = {}
-      awesome.emit_signal("notification::unread_count", M.unread_count)
-      refresh_popup()
-    end)
-  ))
+  clear_all_btn:add_button(awful.button({}, 1, function()
+    M.history = {}
+    M.unread_count = 0
+    M.active_notifications = {}
+    awesome.emit_signal("notification::unread_count", M.unread_count)
+    refresh_popup()
+  end))
 
   return wibox.widget({
     {
@@ -641,7 +651,9 @@ local function create_popup_widget()
 
     local total_items = 0
     for _, app_name in ipairs(group_order) do
-      if total_items >= nc_config.max_visible then break end
+      if total_items >= nc_config.max_visible then
+        break
+      end
 
       local group = groups[app_name]
 
@@ -652,7 +664,9 @@ local function create_popup_widget()
       -- Add notifications if group is expanded
       if expanded_groups[app_name] then
         for i, notif in ipairs(group.notifications) do
-          if total_items >= nc_config.max_visible then break end
+          if total_items >= nc_config.max_visible then
+            break
+          end
           list_layout:add(create_notification_item(notif, i))
           total_items = total_items + 1
         end
@@ -685,7 +699,9 @@ end
 
 -- Show the notification center
 function M.show_notification_center()
-  if popup_visible then return end
+  if popup_visible then
+    return
+  end
 
   local s = awful.screen.focused()
 
@@ -729,7 +745,9 @@ end
 
 -- Hide the notification center
 function M.hide_notification_center()
-  if not popup_visible then return end
+  if not popup_visible then
+    return
+  end
 
   if notification_popup then
     notification_popup.visible = false
@@ -772,7 +790,7 @@ ruled.notification.connect_signal("request::rules", function()
       position = M.config.positions.top_right,
     },
   })
-  
+
   -- Critical notifications
   ruled.notification.append_rule({
     rule = { urgency = "critical" },
@@ -787,7 +805,7 @@ ruled.notification.connect_signal("request::rules", function()
       play_sound("critical")
     end,
   })
-  
+
   -- Low priority notifications
   ruled.notification.append_rule({
     rule = { urgency = "low" },
@@ -798,7 +816,7 @@ ruled.notification.connect_signal("request::rules", function()
       opacity = 0.8,
     },
   })
-  
+
   -- Browser notifications
   ruled.notification.append_rule({
     rule_any = {
@@ -808,10 +826,9 @@ ruled.notification.connect_signal("request::rules", function()
       position = M.config.positions.bottom_right,
     },
     callback = function(n)
-      -- Check if it's from wife/special contact
-      if is_special_contact(n, "wife") then
-        n.bg = "#ff69b4" -- Pink background for wife's messages
-        n.fg = "#000000"
+      if is_vip(n) then
+        n.bg = M.config.vip_style.bg
+        n.fg = M.config.vip_style.fg
         n.urgency = "critical"
         n.timeout = 0 -- Don't auto-dismiss
 
@@ -940,18 +957,18 @@ naughty.connect_signal("request::display", function(n)
   if n.urgency == "critical" or n.app_name == "System" then
     n.resident = true
   end
-  
+
   -- Add to history
   add_to_history(n)
-  
+
   -- Emit signal for unread count change
   awesome.emit_signal("notification::unread_count", M.unread_count)
-  
+
   -- Check DND mode
   if M.config.dnd_mode and n.urgency ~= "critical" then
     return -- Don't display non-critical notifications in DND mode
   end
-  
+
   -- Check focus mode
   if M.config.focus_mode then
     local c = client.focus
@@ -959,7 +976,7 @@ naughty.connect_signal("request::display", function(n)
       return -- Don't show notifications over fullscreen apps
     end
   end
-  
+
   -- Play sound
   play_sound(n.urgency or "normal")
 
@@ -1086,13 +1103,11 @@ naughty.connect_signal("invoked", function(n, a)
   if a.name == "Open" or a.name == "Reply" then
     -- Find notification's app and activate it
     for _, c in ipairs(client.get()) do
-      if c.class and n.app_name and
-         c.class:lower():match(n.app_name:lower()) then
+      if c.class and n.app_name and c.class:lower():match(n.app_name:lower()) then
         c:activate({ context = "notification_action", raise = true })
         break
       end
     end
-
   elseif a.name == "Snooze" then
     -- Show snooze picker with notification data
     local notif_data = {
@@ -1103,7 +1118,6 @@ naughty.connect_signal("invoked", function(n, a)
       icon = n.icon,
     }
     show_snooze_picker(notif_data)
-
   elseif a.name == "Dismiss" then
     -- Just dismiss - notification will close automatically
     -- Mark as read in history
@@ -1117,7 +1131,6 @@ naughty.connect_signal("invoked", function(n, a)
         break
       end
     end
-
   elseif a.name == "Mark Read" or a.name == "Read" then
     -- Mark notification as read in history
     for _, h in ipairs(M.history) do
@@ -1130,7 +1143,6 @@ naughty.connect_signal("invoked", function(n, a)
         break
       end
     end
-
   elseif a.name == "Archive" then
     -- Mark as read (archive is app-specific, we just acknowledge it)
     for _, h in ipairs(M.history) do
@@ -1143,7 +1155,6 @@ naughty.connect_signal("invoked", function(n, a)
         break
       end
     end
-
   elseif a.name == "Open Folder" then
     -- Open file manager to Downloads folder
     awful.spawn(filemanager or "xdg-open " .. os.getenv("HOME") .. "/Downloads")
@@ -1192,7 +1203,7 @@ function M.generate_sample_notifications()
     { title = "Download Complete", message = "awesome-wm-config.tar.gz", app_name = "Firefox", urgency = "low" },
     { title = "Calendar Reminder", message = "Meeting in 15 minutes", app_name = "Calendar", urgency = "normal" },
   }
-  
+
   for i, sample in ipairs(samples) do
     gears.timer.start_new(i * 0.5, function()
       naughty.notification(sample)

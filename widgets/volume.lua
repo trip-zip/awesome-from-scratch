@@ -52,16 +52,21 @@ local function update_volume()
   awful.spawn.easy_async_with_shell(get_volume_cmd(), function(vol)
     -- INFO: This stdout contains a \n character that messes up how the tooltip looks.
     local vol_string = string.gsub(vol, "\n", "")
+
+    -- If there is no audio sink at all (a VM, a nested test instance, a machine with
+    -- PipeWire down) the command above prints nothing, and tonumber gives back nil.
+    -- Every comparison below would then throw, so pin it to a number here.
+    local volume_level = tonumber(vol_string) or 0
+
     local tbox = volume_widget:get_children_by_id("text")[1]
-    volume_widget.tooltip.text = " " .. vol_string .. "%"
-    tbox.text = " " .. vol_string .. "%"
+    volume_widget.tooltip.text = " " .. volume_level .. "%"
+    tbox.text = " " .. volume_level .. "%"
 
     --INFO: The way pamixer works, if you increase volume, it does not break `mute`.  So I want to update the tooltip, but not the icon, that's why I have it nested instead of a separate function.
     awful.spawn.easy_async_with_shell(get_mute_cmd(), function(mute)
       if string.find(mute, "true") then
         volume.image = recolor(beautiful.icon_dir .. "/volume-x.svg", icon_color)
       else
-        local volume_level = tonumber(vol)
         if volume_level == 0 then
           volume.image = recolor(beautiful.icon_dir .. "/volume-x.svg", icon_color)
         elseif volume_level <= 25 then

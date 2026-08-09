@@ -7,13 +7,15 @@ local xresources = require("beautiful.xresources")
 local dpi = xresources.apply_dpi
 local recolor = require("gears").color.recolor_image
 
-local config_dir = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config") .. "/somewm"
-local theme_path = config_dir .. "/theme"
+-- Same trick as rc.lua: ask the compositor where its config actually lives rather than
+-- guessing at ~/.config/somewm. Ends in a slash.
+local config_dir = gears.filesystem.get_configuration_dir()
+local theme_path = config_dir .. "theme"
 
 local theme = {}
 
 -- Just set this on theme so I'm not requring it everywhere...
-theme.icon_dir = config_dir .. "/icons"
+theme.icon_dir = config_dir .. "icons"
 
 local colors = {
   gruvbox = {
@@ -78,25 +80,25 @@ theme.highlight_hover = color.soft_blue
 -- Global shape setting: "rectangle" or "rounded"
 -- Change this single setting to switch all widget corners
 theme.shape_style = "rectangle"
-theme.corner_radius = 12  -- Only used when shape_style = "rounded"
+theme.corner_radius = 12 -- Only used when shape_style = "rounded"
 
 -- Helper function to get the appropriate shape
 -- Usage: beautiful.shape(cr, w, h) or beautiful.shape
 function theme.shape(cr, w, h)
-    if theme.shape_style == "rounded" then
-        gears.shape.rounded_rect(cr, w, h, theme.corner_radius)
-    else
-        gears.shape.rectangle(cr, w, h)
-    end
+  if theme.shape_style == "rounded" then
+    gears.shape.rounded_rect(cr, w, h, theme.corner_radius)
+  else
+    gears.shape.rectangle(cr, w, h)
+  end
 end
 
 -- Smaller radius shape for inner elements (buttons, toggles, etc.)
 function theme.shape_small(cr, w, h)
-    if theme.shape_style == "rounded" then
-        gears.shape.rounded_rect(cr, w, h, math.min(theme.corner_radius / 2, 6))
-    else
-        gears.shape.rectangle(cr, w, h)
-    end
+  if theme.shape_style == "rounded" then
+    gears.shape.rounded_rect(cr, w, h, math.min(theme.corner_radius / 2, 6))
+  else
+    gears.shape.rectangle(cr, w, h)
+  end
 end
 
 theme.bg_normal = color.bg
@@ -135,7 +137,7 @@ theme.border_color_marked = color.red
 -- notification_[border_color|border_width|shape|opacity]
 
 -- Notification popup styling (matching dashboard/launcher)
-theme.notification_bg = theme.bg_normal .. "F8"  -- Semi-transparent
+theme.notification_bg = theme.bg_normal .. "F8" -- Semi-transparent
 theme.notification_fg = theme.fg_normal
 theme.notification_border_color = theme.primary_color
 theme.notification_border_width = dpi(1)
@@ -146,14 +148,14 @@ theme.notification_icon_size = dpi(48)
 theme.notification_spacing = dpi(8)
 
 -- Action button styling
-theme.notification_action_bg_normal = color.grey2  -- #3c3836 - darker, subtler
+theme.notification_action_bg_normal = color.grey2 -- #3c3836 - darker, subtler
 theme.notification_action_bg_selected = theme.primary_color
 theme.notification_action_fg_normal = theme.fg_normal
 theme.notification_action_fg_selected = theme.bg_normal
 theme.notification_action_shape_normal = theme.shape_small
 theme.notification_action_shape_selected = theme.shape_small
 theme.notification_action_border_width = dpi(1)
-theme.notification_action_border_color = color.grey1  -- subtle border
+theme.notification_action_border_color = color.grey1 -- subtle border
 
 -- Lockscreen styling
 theme.lockscreen_bg = color.bg
@@ -179,9 +181,8 @@ theme.menu_width = dpi(100)
 
 --Titlebars
 -- Button icon switches based on shape_style
-local titlebar_icon = theme.shape_style == "rounded"
-    and theme_path .. "/titlebar/rounded_square.svg"
-    or theme_path .. "/titlebar/square.svg"
+local titlebar_icon = theme.shape_style == "rounded" and theme_path .. "/titlebar/rounded_square.svg"
+  or theme_path .. "/titlebar/square.svg"
 
 -- Unfocused (normal) = dimmed gray, Focused = colored
 theme.titlebar_close_button_normal = recolor(titlebar_icon, color.grey1)
@@ -513,11 +514,11 @@ theme.systray_hover_scale = 1.1
 theme.systray_hover_bg = color.grey2 .. "66"
 
 -- Urgent styling (when app needs attention)
-theme.systray_urgent_style = "dot"           -- "none", "dot", "ring", "glow"
+theme.systray_urgent_style = "dot" -- "none", "dot", "ring", "glow"
 theme.systray_urgent_color = theme.primary_color
 theme.systray_urgent_outline_color = color.bg
 theme.systray_urgent_position = "top_right"
-theme.systray_urgent_size = 0.25             -- ratio of icon size
+theme.systray_urgent_size = 0.25 -- ratio of icon size
 
 -- Overlay badges
 theme.systray_show_overlay = true
@@ -527,104 +528,106 @@ theme.systray_overlay_size = 0.33
 -- Per-app styling (function-based with debug logging)
 -- Using gruvbox colors throughout for visual harmony
 local systray_styles = {
-    -- Communication apps (gruvbox colors, not brand colors)
-    Discord = {
-        hover_scale = 1.15,
-        hover_bg = color.grey2 .. "66",
-        urgent_style = "dot",
-        urgent_color = color.soft_orange,
-        icon_change_triggers_urgent = true,
-    },
-    Slack = {
-        hover_scale = 1.15,
-        hover_bg = color.grey2 .. "66",
-        urgent_style = "dot",
-        urgent_color = color.soft_orange,
-        urgent_position = "top_right",
-        icon_change_triggers_urgent = true,
-        icon_override = "/usr/share/icons/Papirus/22x22/panel/slack-indicator.svg",
-    },
-    Telegram = {
-        hover_bg = color.grey2 .. "66",
-        urgent_style = "dot",
-        urgent_color = color.soft_orange,
-        icon_change_triggers_urgent = true,
-    },
-    Signal = {
-        hover_bg = color.grey2 .. "66",
-        urgent_style = "dot",
-        urgent_color = color.soft_orange,
-        icon_change_triggers_urgent = true,
-    },
+  -- Communication apps (gruvbox colors, not brand colors)
+  Discord = {
+    hover_scale = 1.15,
+    hover_bg = color.grey2 .. "66",
+    urgent_style = "dot",
+    urgent_color = color.soft_orange,
+    icon_change_triggers_urgent = true,
+  },
+  Slack = {
+    hover_scale = 1.15,
+    hover_bg = color.grey2 .. "66",
+    urgent_style = "dot",
+    urgent_color = color.soft_orange,
+    urgent_position = "top_right",
+    icon_change_triggers_urgent = true,
+    icon_override = "/usr/share/icons/Papirus/22x22/panel/slack-indicator.svg",
+  },
+  Telegram = {
+    hover_bg = color.grey2 .. "66",
+    urgent_style = "dot",
+    urgent_color = color.soft_orange,
+    icon_change_triggers_urgent = true,
+  },
+  Signal = {
+    hover_bg = color.grey2 .. "66",
+    urgent_style = "dot",
+    urgent_color = color.soft_orange,
+    icon_change_triggers_urgent = true,
+  },
 
-    -- Media apps (no urgent indicators)
-    Spotify = {
-        hover_scale = 1.15,
-        hover_bg = color.grey2 .. "66",
-        urgent_style = "none",
-    },
+  -- Media apps (no urgent indicators)
+  Spotify = {
+    hover_scale = 1.15,
+    hover_bg = color.grey2 .. "66",
+    urgent_style = "none",
+  },
 
-    -- System applets (gruvbox colors + symbolic icon for bluetooth)
-    ["nm-applet"] = {
-        hover_bg = color.grey2 .. "66",
-        urgent_style = "dot",
-        urgent_color = color.soft_yellow,
-    },
-    pasystray = {
-        hover_bg = color.grey2 .. "66",
-        urgent_style = "dot",
-        urgent_color = color.soft_red,
-    },
+  -- System applets (gruvbox colors + symbolic icon for bluetooth)
+  ["nm-applet"] = {
+    hover_bg = color.grey2 .. "66",
+    urgent_style = "dot",
+    urgent_color = color.soft_yellow,
+  },
+  pasystray = {
+    hover_bg = color.grey2 .. "66",
+    urgent_style = "dot",
+    urgent_color = color.soft_red,
+  },
 }
 
 -- Bluetooth style (used for any bluetooth app)
 -- Custom gruvbox-colored bluetooth icon
 local bluetooth_style = {
-    hover_bg = color.grey2 .. "66",
-    urgent_style = "dot",
-    urgent_color = color.soft_blue,
-    icon_override = os.getenv("HOME") .. "/.config/somewm/icons/bluetooth-gruvbox.svg",
+  hover_bg = color.grey2 .. "66",
+  urgent_style = "dot",
+  urgent_color = color.soft_blue,
+  icon_override = theme.icon_dir .. "/bluetooth-gruvbox.svg",
 }
 
--- Function-based style lookup with debug logging
+-- Set this to true and watch `~/.cache/somewm/stdout` to discover the `id` and
+-- `app_name` a tray app reports. That is how you find the key to add to
+-- `systray_styles` above.
+local debug_systray = false
+
 theme.systray_icon_style = function(item)
-    local id = item.id or ""
-    local app_name = item.app_name or ""
+  local id = item.id or ""
+  local app_name = item.app_name or ""
 
-    -- Debug: log all systray items (check ~/.cache/somewm/stdout)
+  if debug_systray then
     print(string.format("[systray] id=%q app_name=%q", id, app_name))
+  end
 
-    -- Look up by id first
-    if systray_styles[id] then
-        return systray_styles[id]
-    end
+  -- Look up by id first
+  if systray_styles[id] then
+    return systray_styles[id]
+  end
 
-    -- Then by app_name
-    if systray_styles[app_name] then
-        return systray_styles[app_name]
-    end
+  -- Then by app_name
+  if systray_styles[app_name] then
+    return systray_styles[app_name]
+  end
 
-    -- Special case for Slack (case-insensitive match)
-    if app_name:lower():find("slack") or id:lower():find("slack") then
-        return systray_styles.Slack
-    end
+  -- Special case for Slack (case-insensitive match)
+  if app_name:lower():find("slack") or id:lower():find("slack") then
+    return systray_styles.Slack
+  end
 
-    -- Special case for bluetooth (any variation)
-    if app_name:lower():find("blue") or id:lower():find("blue") then
-        return bluetooth_style
-    end
+  -- Special case for bluetooth (any variation)
+  if app_name:lower():find("blue") or id:lower():find("blue") then
+    return bluetooth_style
+  end
 
-    -- Write unmatched items to a file for debugging
-    local f = io.open("/tmp/systray-debug.log", "a")
-    if f then
-        f:write(string.format("[systray] UNMATCHED id=%q app_name=%q\n", id, app_name))
-        f:close()
-    end
+  if debug_systray then
+    print(string.format("[systray] UNMATCHED id=%q app_name=%q", id, app_name))
+  end
 
-    -- Default: apply subtle hover for any unmatched items
-    return {
-        hover_bg = color.grey2 .. "66",
-    }
+  -- Default: apply subtle hover for any unmatched items
+  return {
+    hover_bg = color.grey2 .. "66",
+  }
 end
 
 theme.taglist_bg_empty = color.bg
@@ -816,4 +819,4 @@ theme.wibar_width = nil
 
 return theme
 
--- vim: filetype=lua:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=80
+-- vim: filetype=lua:expandtab:shiftwidth=2:tabstop=8:softtabstop=2:textwidth=120
