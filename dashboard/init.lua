@@ -48,6 +48,17 @@ local function create_dashboard_widget()
   })
 end
 
+-- Docked top right, under the bar, on whatever screen the popup is on
+local function place(d)
+  awful.placement.top_right(d, {
+    margins = {
+      top = beautiful.wibar_height + beautiful.useless_gap * 3,
+      right = beautiful.useless_gap * 2,
+    },
+    parent = d.screen,
+  })
+end
+
 -- The modal controller owns visibility, click-outside/tag-change dismissal,
 -- Escape, and the dashboard::visible signal. The widget tree is built once
 -- (build_popup runs on first show); rebuilding it per open would also
@@ -67,19 +78,11 @@ local controller = modal.new({
       -- Placement lives on the popup itself, not in on_show: awful.popup
       -- re-applies it whenever the popup's size changes, which covers the
       -- first show, when the widget has not been measured yet.
-      placement = function(d)
-        awful.placement.top_right(d, {
-          margins = {
-            top = beautiful.wibar_height + beautiful.useless_gap * 3,
-            right = beautiful.useless_gap * 2,
-          },
-          parent = awful.screen.focused(),
-        })
-      end,
+      placement = place,
     })
   end,
   on_show = function(popup)
-    popup.screen = awful.screen.focused()
+    place(popup)
 
     -- Sync sections that mirror system state (volume, brightness, radios)
     sliders.refresh()

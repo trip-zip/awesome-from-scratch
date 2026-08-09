@@ -24,7 +24,6 @@ local modal = {}
 --   on_hide     optional function(popup): extra cleanup
 --   keypressed  optional function(mods, key): keys while open (Escape is
 --               already taken; it closes the modal)
---   grab_keys   optional, default true: set false for a mouse-only modal
 function modal.new(args)
   local self = { popup = nil }
   local visible = false
@@ -43,6 +42,9 @@ function modal.new(args)
       self.popup = args.build_popup()
     end
 
+    -- Every modal opens on the screen the user is looking at
+    self.popup.screen = awful.screen.focused()
+
     if args.on_show then
       args.on_show(self.popup)
     end
@@ -50,25 +52,23 @@ function modal.new(args)
     self.popup.visible = true
     visible = true
 
-    if args.grab_keys ~= false then
-      grabber = awful.keygrabber({
-        autostart = true,
-        stop_key = "Escape",
-        stop_callback = function()
-          -- The grabber is already stopped when this fires (Escape, or an
-          -- explicit stop from hide()). Clearing the reference first and
-          -- routing through hide() gives both paths one cleanup; hide()'s
-          -- visibility guard ends the re-entry.
-          grabber = nil
-          self.hide()
-        end,
-        keypressed_callback = function(_, mods, key, _)
-          if args.keypressed then
-            args.keypressed(mods, key)
-          end
-        end,
-      })
-    end
+    grabber = awful.keygrabber({
+      autostart = true,
+      stop_key = "Escape",
+      stop_callback = function()
+        -- The grabber is already stopped when this fires (Escape, or an
+        -- explicit stop from hide()). Clearing the reference first and
+        -- routing through hide() gives both paths one cleanup; hide()'s
+        -- visibility guard ends the re-entry.
+        grabber = nil
+        self.hide()
+      end,
+      keypressed_callback = function(_, mods, key, _)
+        if args.keypressed then
+          args.keypressed(mods, key)
+        end
+      end,
+    })
 
     awesome.emit_signal(args.name .. "::visible", true)
   end

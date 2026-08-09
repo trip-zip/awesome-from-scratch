@@ -114,6 +114,9 @@ local function create_menu_item(item)
   end))
 
   item_widget:connect_signal("mouse::enter", function()
+    if item.selectable_index == selected_index then
+      return
+    end
     selected_index = item.selectable_index
     mainmenu.refresh()
   end)
@@ -178,6 +181,18 @@ local function create_menu_widget()
   })
 end
 
+-- Where the menu opens: the mouse position at show time. One placement
+-- function, installed on the popup (so awful.popup re-applies it whenever
+-- the popup is resized, covering the not-yet-measured first show) and called
+-- from on_show (so a new anchor takes effect even when the size is unchanged).
+local anchor = { x = 0, y = 0 }
+
+local function place(d)
+  d.x = anchor.x
+  d.y = anchor.y
+  awful.placement.no_offscreen(d, { honor_workarea = true, margins = 10 })
+end
+
 -- The modal controller owns visibility, the keygrabber, and Escape; this
 -- module only describes content, cursor placement, and navigation keys.
 local controller = modal.new({
@@ -192,29 +207,14 @@ local controller = modal.new({
       shape = beautiful.shape,
       border_width = beautiful.border_width or 1,
       border_color = beautiful.primary_color,
+      placement = place,
     })
   end,
   on_show = function(popup)
     selected_index = 1
-
-    -- Position at mouse cursor
-    local coords = mouse.coords()
-    local s = awful.screen.focused()
-    popup.x = coords.x
-    popup.y = coords.y
-    popup.screen = s
-
-    -- Keep on screen
-    local geo = popup:geometry()
-    local screen_geo = s.geometry
-    if geo.x + geo.width > screen_geo.x + screen_geo.width then
-      popup.x = screen_geo.x + screen_geo.width - geo.width - 10
-    end
-    if geo.y + geo.height > screen_geo.y + screen_geo.height then
-      popup.y = screen_geo.y + screen_geo.height - geo.height - 10
-    end
-
+    anchor = mouse.coords()
     popup.widget = create_menu_widget()
+    place(popup)
   end,
   keypressed = function(_, key)
     if key == "Return" then

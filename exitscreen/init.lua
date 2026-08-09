@@ -113,6 +113,9 @@ local function create_button(option, index)
 
   -- Hover
   button:connect_signal("mouse::enter", function()
+    if selected_index == index then
+      return
+    end
     selected_index = index
     exitscreen.refresh()
   end)
@@ -189,8 +192,6 @@ local controller = modal.new({
   end,
   on_show = function(popup)
     selected_index = 1
-    local s = awful.screen.focused()
-    popup.screen = s
     awful.placement.maximize(popup)
     popup.widget = create_exitscreen_widget()
   end,

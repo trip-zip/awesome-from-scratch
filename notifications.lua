@@ -175,6 +175,16 @@ end
 -- controller supplies click-outside dismissal, so the old "connect a one-shot
 -- button::press handler after a 0.1s delay" workaround is gone.
 local picker_notif_data = nil
+local snooze_picker -- the modal controller, created below
+local picker_anchor = { x = 0, y = 0 }
+
+-- One placement function: installed on the popup so resizes re-run it, and
+-- called from on_show so a fresh anchor takes effect
+local function place_picker(d)
+  d.x = picker_anchor.x - 80
+  d.y = picker_anchor.y + 10
+  awful.placement.no_offscreen(d, { honor_workarea = true, margins = 10 })
+end
 
 local function build_picker_widget()
   local buttons_layout = wibox.layout.fixed.vertical()
@@ -206,7 +216,7 @@ local function build_picker_widget()
     })
 
     btn:add_button(awful.button({}, 1, function()
-      M.snooze_picker.hide()
+      snooze_picker.hide()
       snooze_notification(picker_notif_data, duration.seconds, duration.label)
     end))
 
@@ -243,7 +253,7 @@ local function build_picker_widget()
   })
 end
 
-M.snooze_picker = modal.new({
+snooze_picker = modal.new({
   name = "snooze_picker",
   build_popup = function()
     return awful.popup({
@@ -255,34 +265,20 @@ M.snooze_picker = modal.new({
       border_width = beautiful.border_width or 1,
       border_color = beautiful.primary_color,
       shape = beautiful.shape or gears.shape.rectangle,
+      placement = place_picker,
     })
   end,
   on_show = function(popup)
-    local s = awful.screen.focused()
-    popup.screen = s
+    picker_anchor = mouse.coords()
     popup.widget = build_picker_widget()
-
-    -- Position near mouse
-    local coords = mouse.coords()
-    popup.x = coords.x - 80
-    popup.y = coords.y + 10
-
-    -- Keep on screen
-    if popup.x + 200 > s.geometry.x + s.geometry.width then
-      popup.x = s.geometry.x + s.geometry.width - 210
-    end
-    if popup.x < s.geometry.x then
-      popup.x = s.geometry.x + 10
-    end
+    place_picker(popup)
   end,
 })
 
 local function show_snooze_picker(notif_data)
   picker_notif_data = notif_data
-  if M.snooze_picker.is_visible() then
-    M.snooze_picker.hide()
-  end
-  M.snooze_picker.show()
+  snooze_picker.hide() -- no-op when already hidden
+  snooze_picker.show()
 end
 
 -- Notification center configuration (following launcher/dashboard patterns)
@@ -680,6 +676,19 @@ local function create_popup_widget()
 end
 
 -- Show the notification center
+-- The notification center opens centered under the click point (mouse coords
+-- for multi-monitor reliability), tucked just below the bar. Same placement
+-- shape as the snooze picker: one function, installed on the popup and called
+-- from on_show.
+local center_anchor = { x = 0, y = 0 }
+
+local function place_center(d)
+  local wa = d.screen.workarea
+  d.x = center_anchor.x - d.width / 2
+  d.y = wa.y + (beautiful.useless_gap or 4)
+  awful.placement.no_offscreen(d, { honor_workarea = true, margins = beautiful.useless_gap or 4 })
+end
+
 -- The notification center is a modal like the launcher and dashboard: the
 -- controller owns visibility, Escape, click-outside/tag-change dismissal, and
 -- the notification_center::visible signal.
@@ -695,28 +704,13 @@ local center = modal.new({
       border_width = beautiful.border_width or 1,
       border_color = beautiful.primary_color,
       shape = beautiful.shape or gears.shape.rounded_rect,
+      placement = place_center,
     })
   end,
   on_show = function(popup)
-    local s = awful.screen.focused()
-    popup.screen = s
+    center_anchor = mouse.coords()
     popup.widget = create_popup_widget()
-
-    -- Position centered under the click point (use mouse coords for
-    -- multi-monitor reliability)
-    local coords = mouse.coords()
-    local popup_x = coords.x - (nc_config.width / 2)
-    local popup_y = (beautiful.wibar_height or 30) + (beautiful.useless_gap or 4)
-
-    -- Keep popup on screen
-    if popup_x < s.geometry.x then
-      popup_x = s.geometry.x + (beautiful.useless_gap or 4)
-    elseif popup_x + nc_config.width > s.geometry.x + s.geometry.width then
-      popup_x = s.geometry.x + s.geometry.width - nc_config.width - (beautiful.useless_gap or 4)
-    end
-
-    popup.x = popup_x
-    popup.y = s.geometry.y + popup_y
+    place_center(popup)
   end,
 })
 

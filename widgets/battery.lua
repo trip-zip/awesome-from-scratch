@@ -110,6 +110,10 @@ M.widget.tooltip = awful.tooltip({
 
 local function update()
   M.get_status(function(status)
+    -- Broadcast for every other battery display (the dashboard profile
+    -- listens), so the whole config shares this one 10-second poll
+    awesome.emit_signal("battery::update", status)
+
     -- No percentage means no battery: hide the widget rather than parking a
     -- permanent "N/A" in the bar.
     if not status.percentage then

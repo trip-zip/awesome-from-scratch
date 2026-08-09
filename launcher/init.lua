@@ -506,6 +506,9 @@ local function create_app_item(app, index)
 
   -- Hover
   item:connect_signal("mouse::enter", function()
+    if selected_index == index then
+      return
+    end
     selected_index = index
     launcher.refresh()
   end)
@@ -674,9 +677,7 @@ local controller = modal.new({
     selected_index = 1
     filter_apps()
 
-    local s = awful.screen.focused()
-    popup.screen = s
-    awful.placement.centered(popup, { parent = s })
+    awful.placement.centered(popup, { parent = popup.screen })
     popup.widget = create_launcher_widget()
   end,
   keypressed = function(_, key)

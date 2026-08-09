@@ -25,24 +25,16 @@ local function battery_line(status)
   return text
 end
 
--- Poll through the shared battery module so this section, the wibar widget,
--- and the lockscreen all read the battery the same way
-local function update_battery()
-  battery.get_status(function(status)
-    if battery_icon then
-      battery_icon.text = battery.level_icon(status.percentage or 0, status.charging)
-      battery_text.text = battery_line(status)
-    end
-  end)
+local function render_battery(status)
+  if battery_icon then
+    battery_icon.text = battery.level_icon(status.percentage or 0, status.charging)
+    battery_text.text = battery_line(status)
+  end
 end
 
--- Start battery update timer
-gears.timer({
-  timeout = 30,
-  autostart = true,
-  call_now = true,
-  callback = update_battery,
-})
+-- The shared battery module already polls every 10 seconds; this section
+-- just renders whatever it broadcasts instead of running its own poll
+awesome.connect_signal("battery::update", render_battery)
 
 -- Get greeting based on time of day
 local function get_greeting()
@@ -109,7 +101,8 @@ function profile.create()
     font = beautiful.font_size(11),
     widget = wibox.widget.textbox,
   })
-  update_battery()
+  -- Seed the display now; the broadcast keeps it fresh afterwards
+  battery.get_status(render_battery)
 
   local battery_widget = wibox.widget({
     {
