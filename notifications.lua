@@ -903,95 +903,64 @@ ruled.notification.connect_signal("request::rules", function()
   })
 end)
 
--- Handle notification display
-naughty.connect_signal("request::display", function(n)
-  -- Set resident for important notifications
-  if n.urgency == "critical" or n.app_name == "System" then
-    n.resident = true
-  end
-
-  -- Add to history
-  add_to_history(n)
-
-  -- Emit signal for unread count change
-  awesome.emit_signal("notification::unread_count", M.unread_count)
-
-  -- Check DND mode
-  if M.config.dnd_mode and n.urgency ~= "critical" then
-    return -- Don't display non-critical notifications in DND mode
-  end
-
-  -- Check focus mode
-  if M.config.focus_mode then
-    local c = client.focus
-    if c and c.fullscreen and n.urgency ~= "critical" then
-      return -- Don't show notifications over fullscreen apps
+-- Mark this notification's history entry as read (matched by id, with a
+-- title+message fallback for notifications that never got one)
+local function mark_read_in_history(n)
+  for _, h in ipairs(M.history) do
+    local id_match = n.id ~= nil and h.id == n.id
+    local content_match = h.title == n.title and h.message == n.message
+    if id_match or content_match then
+      if not h.is_read then
+        h.is_read = true
+        M.unread_count = math.max(0, M.unread_count - 1)
+        awesome.emit_signal("notification::unread_count", M.unread_count)
+      end
+      break
     end
   end
+end
 
-  -- Play sound
-  play_sound(n.urgency or "normal")
-
-  -- Add context-aware actions based on app_name
-  local app = (n.app_name or ""):lower()
+-- The action-button row under a notification, or nil if it has no actions
+local function build_actions_widget(n)
   if not n.actions or #n.actions == 0 then
-    local actions = {}
-    if app:match("discord") or app:match("slack") or app:match("teams") then
-      table.insert(actions, naughty.action({ name = "Open" }))
-      table.insert(actions, naughty.action({ name = "Mark Read" }))
-      table.insert(actions, naughty.action({ name = "Snooze" }))
-    elseif app:match("firefox") or app:match("chrome") or app:match("chromium") or app:match("brave") then
-      table.insert(actions, naughty.action({ name = "Open" }))
-      table.insert(actions, naughty.action({ name = "Snooze" }))
-    elseif app:match("thunderbird") or app:match("evolution") or app:match("mail") then
-      table.insert(actions, naughty.action({ name = "Read" }))
-      table.insert(actions, naughty.action({ name = "Snooze" }))
-    elseif app:match("calendar") or app:match("reminder") then
-      table.insert(actions, naughty.action({ name = "Snooze" }))
-      table.insert(actions, naughty.action({ name = "Dismiss" }))
-    end
-    if #actions > 0 then
-      n.actions = actions
-    end
+    return nil
   end
 
-  -- Build actions widget if notification has actions
-  local actions_widget = nil
-  if n.actions and #n.actions > 0 then
-    actions_widget = {
-      {
-        notification = n,
-        base_layout = wibox.widget({
-          spacing = 8,
-          layout = wibox.layout.flex.horizontal,
-        }),
-        widget_template = {
+  return {
+    {
+      notification = n,
+      base_layout = wibox.widget({
+        spacing = 8,
+        layout = wibox.layout.flex.horizontal,
+      }),
+      widget_template = {
+        {
           {
-            {
-              id = "text_role",
-              halign = "center",
-              valign = "center",
-              widget = wibox.widget.textbox,
-            },
-            margins = { left = 12, right = 12, top = 6, bottom = 6 },
-            widget = wibox.container.margin,
+            id = "text_role",
+            halign = "center",
+            valign = "center",
+            widget = wibox.widget.textbox,
           },
-          bg = beautiful.notification_action_bg_normal,
-          fg = beautiful.notification_action_fg_normal,
-          shape = gears.shape.rectangle,
-          shape_border_width = beautiful.notification_action_border_width or 1,
-          shape_border_color = beautiful.notification_action_border_color,
-          widget = wibox.container.background,
+          margins = { left = 12, right = 12, top = 6, bottom = 6 },
+          widget = wibox.container.margin,
         },
-        widget = naughty.list.actions,
+        bg = beautiful.notification_action_bg_normal,
+        fg = beautiful.notification_action_fg_normal,
+        shape = gears.shape.rectangle,
+        shape_border_width = beautiful.notification_action_border_width or 1,
+        shape_border_color = beautiful.notification_action_border_color,
+        widget = wibox.container.background,
       },
-      margins = { left = 8, right = 8, bottom = 8 },
-      widget = wibox.container.margin,
-    }
-  end
+      widget = naughty.list.actions,
+    },
+    margins = { left = 8, right = 8, bottom = 8 },
+    widget = wibox.container.margin,
+  }
+end
 
-  -- Always use custom widget template for consistent styling
-  n.widget_template = {
+-- The full notification layout: icon | title/message, actions underneath
+local function build_widget_template(n)
+  return {
     {
       {
         -- Icon
@@ -1026,7 +995,7 @@ naughty.connect_signal("request::display", function(n)
         layout = wibox.layout.fixed.horizontal,
       },
       -- Actions (if present)
-      actions_widget,
+      build_actions_widget(n),
       spacing = 4,
       layout = wibox.layout.fixed.vertical,
     },
@@ -1038,8 +1007,44 @@ naughty.connect_signal("request::display", function(n)
     border_color = beautiful.notification_border_color or beautiful.primary_color,
     widget = wibox.container.background,
   }
+end
 
-  -- Display the notification
+-- Should this notification be displayed right now? (DND and focus mode)
+local function should_display(n)
+  if M.config.dnd_mode and n.urgency ~= "critical" then
+    return false
+  end
+
+  if M.config.focus_mode then
+    local c = client.focus
+    if c and c.fullscreen and n.urgency ~= "critical" then
+      return false
+    end
+  end
+
+  return true
+end
+
+-- Handle notification display. Actions are attached by the
+-- ruled.notification rules above - this handler only records, filters, and
+-- renders.
+naughty.connect_signal("request::display", function(n)
+  -- Set resident for important notifications
+  if n.urgency == "critical" or n.app_name == "System" then
+    n.resident = true
+  end
+
+  -- Always record, even when DND swallows the popup
+  add_to_history(n)
+  awesome.emit_signal("notification::unread_count", M.unread_count)
+
+  if not should_display(n) then
+    return
+  end
+
+  play_sound(n.urgency or "normal")
+
+  n.widget_template = build_widget_template(n)
   naughty.layout.box({ notification = n })
 end)
 
@@ -1054,52 +1059,17 @@ naughty.connect_signal("invoked", function(n, a)
       end
     end
   elseif a.name == "Snooze" then
-    -- Show snooze picker with notification data
-    local notif_data = {
+    show_snooze_picker({
       title = n.title,
       message = n.message,
       app_name = n.app_name,
       urgency = n.urgency,
       icon = n.icon,
-    }
-    show_snooze_picker(notif_data)
-  elseif a.name == "Dismiss" then
-    -- Just dismiss - notification will close automatically
-    -- Mark as read in history
-    for _, h in ipairs(M.history) do
-      if h.title == n.title and h.message == n.message then
-        if not h.is_read then
-          h.is_read = true
-          M.unread_count = math.max(0, M.unread_count - 1)
-          awesome.emit_signal("notification::unread_count", M.unread_count)
-        end
-        break
-      end
-    end
-  elseif a.name == "Mark Read" or a.name == "Read" then
-    -- Mark notification as read in history
-    for _, h in ipairs(M.history) do
-      if h.title == n.title and h.message == n.message then
-        if not h.is_read then
-          h.is_read = true
-          M.unread_count = math.max(0, M.unread_count - 1)
-          awesome.emit_signal("notification::unread_count", M.unread_count)
-        end
-        break
-      end
-    end
-  elseif a.name == "Archive" then
-    -- Mark as read (archive is app-specific, we just acknowledge it)
-    for _, h in ipairs(M.history) do
-      if h.title == n.title and h.message == n.message then
-        if not h.is_read then
-          h.is_read = true
-          M.unread_count = math.max(0, M.unread_count - 1)
-          awesome.emit_signal("notification::unread_count", M.unread_count)
-        end
-        break
-      end
-    end
+    })
+  elseif a.name == "Dismiss" or a.name == "Mark Read" or a.name == "Read" or a.name == "Archive" then
+    -- Every acknowledge-style action does the same local thing: the history
+    -- entry is read. What "Archive" means is up to the sending app.
+    mark_read_in_history(n)
   elseif a.name == "Open Folder" then
     -- Open file manager to Downloads folder
     awful.spawn(filemanager or "xdg-open " .. os.getenv("HOME") .. "/Downloads")
