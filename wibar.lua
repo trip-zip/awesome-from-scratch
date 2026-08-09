@@ -49,7 +49,7 @@ return function(s)
         {
           widgets.volume,
           widgets.wifi,
-          widgets.battery,
+          widgets.battery.widget,
           spacing = dpi(10),
           layout = wibox.layout.fixed.horizontal,
         },

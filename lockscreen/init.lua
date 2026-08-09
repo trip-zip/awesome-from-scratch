@@ -5,6 +5,7 @@ local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")
 local wibox = require("wibox")
+local battery = require("widgets.battery")
 
 local M = {}
 local password = ""
@@ -59,61 +60,26 @@ local function get_greeting()
   return greeting_text .. ", " .. user
 end
 
--- Get battery icon based on percentage
-local function get_battery_icon(percent)
-  if percent >= 90 then
-    return "󰁹"
-  elseif percent >= 80 then
-    return "󰂂"
-  elseif percent >= 70 then
-    return "󰂁"
-  elseif percent >= 60 then
-    return "󰂀"
-  elseif percent >= 50 then
-    return "󰁿"
-  elseif percent >= 40 then
-    return "󰁾"
-  elseif percent >= 30 then
-    return "󰁽"
-  elseif percent >= 20 then
-    return "󰁼"
-  elseif percent >= 10 then
-    return "󰁻"
-  else
-    return "󰁺"
-  end
-end
-
--- Get battery color based on percentage
-local function get_battery_color(percent)
-  if percent > 50 then
-    return colors.soft_green
-  elseif percent > 20 then
-    return colors.soft_yellow
-  else
-    return colors.soft_red
-  end
-end
-
--- Update battery display
+-- Update battery display through the shared battery module (same reading,
+-- thresholds, and glyphs as the wibar widget and the dashboard)
 local function update_battery()
   if not battery_widget then
     return
   end
 
-  awful.spawn.easy_async_with_shell(
-    [[
-        cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || \
-        cat /sys/class/power_supply/BAT1/capacity 2>/dev/null || \
-        echo "?"
-    ]],
-    function(stdout)
-      local percent = tonumber(stdout:match("(%d+)")) or 0
-      local icon = get_battery_icon(percent)
-      battery_widget.markup =
-        string.format('<span foreground="%s">%s %d%%</span>', get_battery_color(percent), icon, percent)
+  battery.get_status(function(status)
+    if not status.percentage then
+      battery_widget.visible = false
+      return
     end
-  )
+    battery_widget.visible = true
+    battery_widget.markup = string.format(
+      '<span foreground="%s">%s %d%%</span>',
+      battery.level_color(status.percentage),
+      battery.level_icon(status.percentage, status.charging),
+      status.percentage
+    )
+  end)
 end
 
 -- Update the status line; errors show in red

@@ -1,86 +1,37 @@
-local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")
 local wibox = require("wibox")
 
-local profile = {}
+local battery = require("widgets.battery")
 
--- Battery state (updated by timer)
-local battery_state = {
-  percentage = "N/A",
-  status = "unknown",
-  time = "N/A",
-}
+local profile = {}
 
 -- Display widgets fed by the battery timer; set in create()
 local battery_icon, battery_text
 
-local function get_battery_icon()
-  local status = battery_state.status:lower()
-  if status:find("charging") then
-    return "󰂄" -- charging icon
-  elseif battery_state.percentage ~= "N/A" then
-    local pct = tonumber(battery_state.percentage:match("(%d+)")) or 0
-    if pct >= 90 then
-      return "󰁹"
-    elseif pct >= 70 then
-      return "󰂁"
-    elseif pct >= 50 then
-      return "󰁿"
-    elseif pct >= 30 then
-      return "󰁽"
-    elseif pct >= 10 then
-      return "󰁻"
-    else
-      return "󰁺"
-    end
+local function battery_line(status)
+  if not status.percentage then
+    return "No battery"
   end
-  return "󰁹"
-end
 
-local function get_battery_text()
-  local pct = battery_state.percentage
-  local status = battery_state.status:lower()
-  local time = battery_state.time
-
-  local text = pct
-  if status:find("charging") and time ~= "N/A" then
-    text = text .. " · " .. time .. " until full"
-  elseif status:find("discharging") and time ~= "N/A" then
-    text = text .. " · " .. time .. " remaining"
-  elseif status:find("full") or (not status:find("charging") and not status:find("discharging")) then
+  local text = status.percentage .. "%"
+  if status.charging and status.time_to_full then
+    text = text .. " · " .. status.time_to_full .. " until full"
+  elseif status.time_to_empty then
+    text = text .. " · " .. status.time_to_empty .. " remaining"
+  else
     text = text .. " · Plugged in"
   end
   return text
 end
 
--- Update battery info, then the display (if it has been built yet)
+-- Poll through the shared battery module so this section, the wibar widget,
+-- and the lockscreen all read the battery the same way
 local function update_battery()
-  local cmd = [[
-        if command -v upower >/dev/null 2>&1; then
-            upower -i $(upower -e | grep 'BAT') | grep -E "state|to full|to empty|percentage" | cut -d ':' -f2 | awk '{$1=$1};1'
-        else
-            if [ -f /sys/class/power_supply/BAT1/capacity ] && [ -f /sys/class/power_supply/BAT1/status ]; then
-                cat /sys/class/power_supply/BAT1/status
-                echo "N/A"
-                echo "$(cat /sys/class/power_supply/BAT1/capacity)%"
-            else
-                echo "unknown"
-                echo "N/A"
-                echo "N/A"
-            fi
-        fi
-    ]]
-
-  awful.spawn.easy_async_with_shell(cmd, function(stdout)
-    local data = gears.string.split(stdout, "\n")
-    battery_state.status = data[1] or "unknown"
-    battery_state.time = data[2] or "N/A"
-    battery_state.percentage = data[3] or "N/A"
-
+  battery.get_status(function(status)
     if battery_icon then
-      battery_icon.text = get_battery_icon()
-      battery_text.text = get_battery_text()
+      battery_icon.text = battery.level_icon(status.percentage or 0, status.charging)
+      battery_text.text = battery_line(status)
     end
   end)
 end
@@ -98,11 +49,12 @@ local function get_greeting()
   local hour = tonumber(os.date("%H"))
   local user = os.getenv("USER") or "user"
 
+  -- Same hour boundaries as the lockscreen greeting, on purpose
   if hour >= 5 and hour < 12 then
     return "Good morning, " .. user
-  elseif hour >= 12 and hour < 17 then
+  elseif hour >= 12 and hour < 18 then
     return "Good afternoon, " .. user
-  elseif hour >= 17 and hour < 21 then
+  elseif hour >= 18 and hour < 22 then
     return "Good evening, " .. user
   else
     return "Good night, " .. user
@@ -147,16 +99,17 @@ function profile.create()
 
   -- Battery indicator (updated by the module-level battery timer)
   battery_icon = wibox.widget({
-    text = get_battery_icon(),
+    text = "󰁿",
     font = beautiful.font_size(14),
     widget = wibox.widget.textbox,
   })
 
   battery_text = wibox.widget({
-    text = get_battery_text(),
+    text = "…",
     font = beautiful.font_size(11),
     widget = wibox.widget.textbox,
   })
+  update_battery()
 
   local battery_widget = wibox.widget({
     {
