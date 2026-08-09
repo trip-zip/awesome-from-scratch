@@ -38,8 +38,7 @@ local clock_widget = wibox.widget({
 })
 
 clock_widget:add_button(awful.button({}, 1, function()
-  local widget_geometry = mouse.current_widget_geometry
-  notifications.toggle_notif_list(widget_geometry)
+  notifications.toggle_notification_center()
 end))
 
 local set_clock = function()

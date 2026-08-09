@@ -63,7 +63,6 @@ M.active_notifications = {} -- Track currently active notifications
 -- Snooze storage and configuration
 M.snoozed_notifications = {} -- Store snoozed notifications with their timers
 M.snooze_durations = {
-  { label = "10 seconds", seconds = 10 }, -- For testing
   { label = "5 minutes", seconds = 5 * 60 },
   { label = "15 minutes", seconds = 15 * 60 },
   { label = "1 hour", seconds = 60 * 60 },
@@ -174,7 +173,7 @@ end
 -- Show snooze duration picker popup
 local snooze_picker_popup = nil
 
-local function show_snooze_picker(notif_data, anchor_geometry)
+local function show_snooze_picker(notif_data)
   -- Close existing picker if open
   if snooze_picker_popup then
     snooze_picker_popup.visible = false
@@ -295,7 +294,6 @@ end
 local nc_config = {
   width = 480,
   max_visible = 15,
-  item_height = 80,
   margin = 16,
   spacing = 8,
 }
@@ -417,7 +415,7 @@ local function create_group_header(group)
 end
 
 -- Helper: Create notification item widget
-local function create_notification_item(notif, index)
+local function create_notification_item(notif)
   local time_ago = format_time_ago(notif.timestamp)
   local is_unread = not notif.is_read
 
@@ -665,7 +663,7 @@ local function create_popup_widget()
           if total_items >= nc_config.max_visible then
             break
           end
-          list_layout:add(create_notification_item(notif, i))
+          list_layout:add(create_notification_item(notif))
           total_items = total_items + 1
         end
       end
@@ -1089,13 +1087,6 @@ naughty.connect_signal("request::display", function(n)
   naughty.layout.box({ notification = n })
 end)
 
--- Handle notification destruction
-naughty.connect_signal("destroyed", function(n, reason)
-  if reason == naughty.notification_closed_reason.dismissed_by_user then
-    -- User dismissed the notification
-  end
-end)
-
 -- Handle action button clicks
 naughty.connect_signal("invoked", function(n, a)
   if a.name == "Open" or a.name == "Reply" then
@@ -1171,18 +1162,18 @@ end
 
 function M.toggle_dnd_mode()
   M.set_dnd_mode(not M.config.dnd_mode)
-  naughty.notify({
+  naughty.notification({
     title = "DND Mode",
-    text = M.config.dnd_mode and "Enabled" or "Disabled",
+    message = M.config.dnd_mode and "Enabled" or "Disabled",
     timeout = 2,
   })
 end
 
 function M.toggle_focus_mode()
   M.config.focus_mode = not M.config.focus_mode
-  naughty.notify({
+  naughty.notification({
     title = "Focus Mode",
-    text = M.config.focus_mode and "Enabled" or "Disabled",
+    message = M.config.focus_mode and "Enabled" or "Disabled",
     timeout = 2,
   })
 end
@@ -1218,8 +1209,5 @@ function M.generate_sample_notifications()
     end)
   end
 end
-
--- Export old function for compatibility
-M.toggle_notif_list = M.toggle_notification_center
 
 return M
