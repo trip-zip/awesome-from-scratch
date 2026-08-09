@@ -64,18 +64,22 @@ local controller = modal.new({
       shape = beautiful.shape,
       border_width = config.border_width,
       border_color = config.border_color,
+      -- Placement lives on the popup itself, not in on_show: awful.popup
+      -- re-applies it whenever the popup's size changes, which covers the
+      -- first show, when the widget has not been measured yet.
+      placement = function(d)
+        awful.placement.top_right(d, {
+          margins = {
+            top = beautiful.wibar_height + beautiful.useless_gap * 3,
+            right = beautiful.useless_gap * 2,
+          },
+          parent = awful.screen.focused(),
+        })
+      end,
     })
   end,
   on_show = function(popup)
-    local s = awful.screen.focused()
-    popup.screen = s
-    awful.placement.top_right(popup, {
-      margins = {
-        top = beautiful.wibar_height + beautiful.useless_gap * 3,
-        right = beautiful.useless_gap * 2,
-      },
-      parent = s,
-    })
+    popup.screen = awful.screen.focused()
 
     -- Sync sections that mirror system state (volume, brightness, radios)
     sliders.refresh()
