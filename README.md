@@ -2,7 +2,9 @@
 
 A complete AwesomeWM/SomeWM configuration built from scratch, designed as both a fully-functional desktop and a learning resource. **100% native** - no rofi, no polybar, no conky.
 
-This repository is the companion to the [*Awesome From Scratch*](https://somewm.org/docs/tutorials/from-scratch/) tutorial series on somewm.org: thirteen chapters, each with a matching checkpoint branch, that build this configuration one feature at a time.
+This repository is the companion to the [*Awesome From Scratch*](https://somewm.org/docs/tutorials/from-scratch/) tutorial series on somewm.org: thirteen chapters, each with a matching checkpoint branch, that build this configuration one feature at a time. Read them in order; each chapter starts from the config the previous one finished.
+
+Targets **AwesomeWM** and the **SomeWM 1.4** series. See [Dependencies](#dependencies).
 
 ### Dashboard, Launcher & Tiling
 ![Dashboard and Launcher](screenshots/gruvbox-dashboard-launcher.png)
@@ -130,8 +132,16 @@ cp -r awesome-from-scratch ~/.config/awesome
 ## Dependencies
 
 **Required:**
-- [SomeWM](https://github.com/trip-zip/somewm) or AwesomeWM 4.3+
+- AwesomeWM 4.3+ (current master included), or [SomeWM](https://github.com/trip-zip/somewm) 1.4.x
 - JetBrainsMono Nerd Font
+
+**Supported targets.** This config and the tutorial series target **AwesomeWM** and the
+**SomeWM 1.4** series. Those are what the checkpoint branches are written and tested against.
+
+SomeWM 2.0 is unreleased, and its development line has begun removing long-deprecated `awful.*`
+functions. This config avoids everything removed so far, so it does run on current 2.0
+development builds, but 2.0 is not a tracked target: the default config it ships is a different
+file, and the series does not follow it.
 
 **Optional (for full functionality):**
 - wpctl (volume control)
