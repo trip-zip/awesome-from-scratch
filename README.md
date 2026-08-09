@@ -2,7 +2,7 @@
 
 A complete AwesomeWM/SomeWM configuration built from scratch, designed as both a fully-functional desktop and a learning resource. **100% native** - no rofi, no polybar, no conky.
 
-This repository is the companion to the [*Awesome From Scratch*](https://somewm.org/from-scratch) tutorial series on somewm.org: thirteen chapters, each with a matching checkpoint branch, that build this configuration one feature at a time.
+This repository is the companion to the [*Awesome From Scratch*](https://somewm.org/docs/tutorials/from-scratch/) tutorial series on somewm.org: thirteen chapters, each with a matching checkpoint branch, that build this configuration one feature at a time.
 
 ### Dashboard, Launcher & Tiling
 ![Dashboard and Launcher](screenshots/gruvbox-dashboard-launcher.png)
@@ -19,19 +19,19 @@ Each chapter of the series has a branch in this repo holding the finished code f
 
 | Branch | Chapter |
 |--------|---------|
-| [`00-default`](../../tree/00-default) | [The default config](https://somewm.org/from-scratch/chapters/00-default) |
-| [`01-theme`](../../tree/01-theme) | [Theme: palettes, shapes, recolored assets](https://somewm.org/from-scratch/chapters/01-theme) |
-| [`02-keybindings`](../../tree/02-keybindings) | [Keybindings: a table you can read and search](https://somewm.org/from-scratch/chapters/02-keybindings) |
-| [`03-widgets`](../../tree/03-widgets) | [Widgets: wrappers, clock, volume, battery, wifi](https://somewm.org/from-scratch/chapters/03-widgets) |
-| [`04-wibar`](../../tree/04-wibar) | [Wibar: our own bar, taglist with state](https://somewm.org/from-scratch/chapters/04-wibar) |
-| [`05-rules-titlebars`](../../tree/05-rules-titlebars) | [Client rules and titlebars](https://somewm.org/from-scratch/chapters/05-rules-titlebars) |
-| [`06-notifications`](../../tree/06-notifications) | [Notifications: routing, history, center](https://somewm.org/from-scratch/chapters/06-notifications) |
-| [`07-exitscreen`](../../tree/07-exitscreen) | [Exit screen: the modal pattern](https://somewm.org/from-scratch/chapters/07-exitscreen) |
-| [`08-mainmenu`](../../tree/08-mainmenu) | [Main menu](https://somewm.org/from-scratch/chapters/08-mainmenu) |
-| [`09-switcher`](../../tree/09-switcher) | [Window switcher](https://somewm.org/from-scratch/chapters/09-switcher) |
-| [`10-launcher`](../../tree/10-launcher) | [Launcher: a menubar replacement from scratch](https://somewm.org/from-scratch/chapters/10-launcher) |
-| [`11-dashboard`](../../tree/11-dashboard) | [Dashboard: the control center](https://somewm.org/from-scratch/chapters/11-dashboard) |
-| [`12-lockscreen`](../../tree/12-lockscreen) | [Lock screen](https://somewm.org/from-scratch/chapters/12-lockscreen) |
+| [`00-default`](../../tree/00-default) | [The default config](https://somewm.org/docs/tutorials/from-scratch/00-default) |
+| [`01-theme`](../../tree/01-theme) | [Theme: palettes, shapes, recolored assets](https://somewm.org/docs/tutorials/from-scratch/01-theme) |
+| [`02-keybindings`](../../tree/02-keybindings) | [Keybindings: a table you can read and search](https://somewm.org/docs/tutorials/from-scratch/02-keybindings) |
+| [`03-widgets`](../../tree/03-widgets) | [Widgets: wrappers, clock, volume, battery, wifi](https://somewm.org/docs/tutorials/from-scratch/03-widgets) |
+| [`04-wibar`](../../tree/04-wibar) | [Wibar: our own bar, taglist with state](https://somewm.org/docs/tutorials/from-scratch/04-wibar) |
+| [`05-rules-titlebars`](../../tree/05-rules-titlebars) | [Client rules and titlebars](https://somewm.org/docs/tutorials/from-scratch/05-rules-titlebars) |
+| [`06-notifications`](../../tree/06-notifications) | [Notifications: routing, history, center](https://somewm.org/docs/tutorials/from-scratch/06-notifications) |
+| [`07-exitscreen`](../../tree/07-exitscreen) | [Exit screen: the modal pattern](https://somewm.org/docs/tutorials/from-scratch/07-exitscreen) |
+| [`08-mainmenu`](../../tree/08-mainmenu) | [Main menu](https://somewm.org/docs/tutorials/from-scratch/08-mainmenu) |
+| [`09-switcher`](../../tree/09-switcher) | [Window switcher](https://somewm.org/docs/tutorials/from-scratch/09-switcher) |
+| [`10-launcher`](../../tree/10-launcher) | [Launcher: a menubar replacement from scratch](https://somewm.org/docs/tutorials/from-scratch/10-launcher) |
+| [`11-dashboard`](../../tree/11-dashboard) | [Dashboard: the control center](https://somewm.org/docs/tutorials/from-scratch/11-dashboard) |
+| [`12-lockscreen`](../../tree/12-lockscreen) | [Lock screen](https://somewm.org/docs/tutorials/from-scratch/12-lockscreen) |
 
 `12-lockscreen` is the last checkpoint; its tree is identical to `main`.
 
@@ -42,7 +42,7 @@ git checkout 04-wibar
 somewm-client test start --config "$PWD/rc.lua" --name afs
 ```
 
-That opens a nested SomeWM in a window; your real session is untouched. AwesomeWM users can do the same with Xephyr - see the [series introduction](https://somewm.org/from-scratch).
+That opens a nested SomeWM in a window; your real session is untouched. AwesomeWM users can do the same with Xephyr - see the [series introduction](https://somewm.org/docs/tutorials/from-scratch/).
 
 ## Features
 
