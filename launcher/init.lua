@@ -308,10 +308,12 @@ local function load_apps(on_done)
   end
 
   -- Desktop file directories
+  -- User directories first: dedup keeps the first copy of a filename it
+  -- sees, and XDG says user entries override system ones
   local desktop_dirs = {
-    "/usr/share/applications",
-    "/usr/local/share/applications",
     os.getenv("HOME") .. "/.local/share/applications",
+    "/usr/local/share/applications",
+    "/usr/share/applications",
   }
 
   -- Phase 1: Find all desktop files, off the main loop. find(1) complains

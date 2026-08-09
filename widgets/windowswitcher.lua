@@ -107,15 +107,20 @@ local function create_client_item(c, index)
   return item
 end
 
--- Create the client list widget
+-- Create the client list widget. With more clients than max_items, render a
+-- window of the list that follows the selection, so cycling past the bottom
+-- never moves the highlight off screen.
 local function create_client_list()
   local layout = wibox.layout.fixed.vertical()
   layout.spacing = 4
 
-  for i, c in ipairs(clients) do
-    if i <= config.max_items then
-      layout:add(create_client_item(c, i))
-    end
+  local first = 1
+  if #clients > config.max_items then
+    first = math.max(1, math.min(selected_index - config.max_items + 1, #clients - config.max_items + 1))
+  end
+
+  for i = first, math.min(#clients, first + config.max_items - 1) do
+    layout:add(create_client_item(clients[i], i))
   end
 
   return layout

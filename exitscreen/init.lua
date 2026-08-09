@@ -193,8 +193,8 @@ local controller = modal.new({
     popup.widget = create_exitscreen_widget()
   end,
   keypressed = function(_, key)
-    -- The labeled shortcut keys win over vim navigation, so the "[l]" shown
-    -- under Lock actually triggers Lock instead of moving the selection right
+    -- The labeled shortcut keys are checked before vim navigation, so the
+    -- key a button displays is the key that triggers it
     for i, option in ipairs(options) do
       if key == option.key then
         selected_index = i

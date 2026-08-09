@@ -6,7 +6,6 @@ local dpi = require("beautiful.xresources").apply_dpi
 
 return function(s)
   local wibar = awful.wibar({
-    expand = "none",
     position = "top",
     screen = s,
     widget = {
@@ -14,6 +13,10 @@ return function(s)
         widgets.menubutton,
         widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         widgets.taglist(s),
+        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
+        -- The prompt for Mod+R (run) and Mod+X (Lua): without a home in the
+        -- bar, prompts still run but type into an invisible textbox
+        s.mypromptbox,
         layout = wibox.layout.fixed.horizontal,
       },
       {

@@ -1071,8 +1071,8 @@ naughty.connect_signal("invoked", function(n, a)
     -- entry is read. What "Archive" means is up to the sending app.
     mark_read_in_history(n)
   elseif a.name == "Open Folder" then
-    -- Open file manager to Downloads folder
-    awful.spawn(filemanager or "xdg-open " .. os.getenv("HOME") .. "/Downloads")
+    -- Open the Downloads folder with whatever the system prefers
+    awful.spawn("xdg-open " .. os.getenv("HOME") .. "/Downloads")
   end
 end)
 

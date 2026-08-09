@@ -51,7 +51,7 @@ end
 -- The modal controller owns visibility, click-outside/tag-change dismissal,
 -- Escape, and the dashboard::visible signal. The widget tree is built once
 -- (build_popup runs on first show); rebuilding it per open would also
--- re-create each section's timers and signal connections — a leak.
+-- re-create each section's timers and signal connections - a leak.
 local controller = modal.new({
   name = "dashboard",
   build_popup = function()

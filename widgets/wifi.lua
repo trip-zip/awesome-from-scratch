@@ -35,7 +35,6 @@ local function update()
   -- I'll do a little check to see if it says "Not connected", if so, I'll set the svg to wifi-off.svg
   awful.spawn.easy_async_with_shell(get_ssid_cmd(), function(ssid)
     local ssid_string = string.gsub(ssid, "\n", "")
-    wifi_widget.tooltip.text = ssid_string
     local tbox = wifi_widget:get_children_by_id("text")[1]
     wifi_widget.tooltip.text = " " .. ssid_string
     tbox.text = " " .. ssid_string

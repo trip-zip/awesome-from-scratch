@@ -554,7 +554,8 @@ local systray_styles = {
     urgent_color = color.soft_orange,
     urgent_position = "top_right",
     icon_change_triggers_urgent = true,
-    icon_override = "/usr/share/icons/Papirus/22x22/panel/slack-indicator.svg",
+    -- icon_override can point any tray item at a file of your choosing, e.g.
+    -- an icon-theme SVG or something in this config's icons/ directory.
   },
   Telegram = {
     hover_bg = color.grey2 .. "66",
