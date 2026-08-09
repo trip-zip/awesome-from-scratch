@@ -12,12 +12,16 @@ local slider_config = {
   forced_height = 24,
 }
 
+-- Re-read functions collected per slider, so the dashboard can sync every
+-- slider with the real system value each time it opens.
+local refreshers = {}
+
 --- Create a labeled slider widget
 -- @tparam string icon The icon character
 -- @tparam string color The accent color
--- @tparam function get_cmd Command to get current value
--- @tparam function set_cmd Function that takes value and returns set command
--- @tparam string signal Signal to listen for updates
+-- @tparam string get_cmd Command to read the current system value
+-- @tparam function set_cmd Function that takes a value and returns the set command
+-- @tparam string signal Optional signal meaning "the value changed elsewhere, re-read it"
 local function create_slider(icon, color, get_cmd, set_cmd, signal)
   local slider = wibox.widget({
     bar_shape = gears.shape.rounded_bar,
@@ -52,33 +56,44 @@ local function create_slider(icon, color, get_cmd, set_cmd, signal)
     widget = wibox.widget.textbox,
   })
 
-  -- Update value display when slider changes
+  -- property::value fires for programmatic assignments too. Without this
+  -- guard, reading the system value and assigning it to the slider would
+  -- immediately write that same value back to the system.
+  local setting_programmatically = false
+
+  local function set_value(value)
+    setting_programmatically = true
+    slider.value = math.min(100, math.max(0, value))
+    setting_programmatically = false
+  end
+
+  -- Update value display when slider changes; only user drags hit the system
   slider:connect_signal("property::value", function()
     local value = math.floor(slider.value)
     value_widget.text = value .. "%"
 
-    -- Update system value
-    if set_cmd then
+    if set_cmd and not setting_programmatically then
       awful.spawn.with_shell(set_cmd(value))
     end
   end)
 
-  -- Get initial value
-  if get_cmd then
+  -- Sync the slider to the real system value
+  local function read_system_value()
+    if not get_cmd then
+      return
+    end
     awful.spawn.easy_async_with_shell(get_cmd, function(stdout)
-      local value = tonumber(stdout:match("(%d+)")) or 50
-      slider.value = math.min(100, math.max(0, value))
-      value_widget.text = math.floor(slider.value) .. "%"
+      set_value(tonumber(stdout:match("(%d+)")) or 50)
     end)
   end
 
-  -- Listen for external updates
+  read_system_value()
+  table.insert(refreshers, read_system_value)
+
+  -- External changes (e.g. the volume keybindings) announce themselves with a
+  -- bare signal; the payload is fetched fresh from the system.
   if signal then
-    awesome.connect_signal(signal, function(value)
-      if value then
-        slider.value = math.min(100, math.max(0, value))
-      end
-    end)
+    awesome.connect_signal(signal, read_system_value)
   end
 
   return wibox.widget({
@@ -111,7 +126,8 @@ function sliders.create()
     "volume::update"
   )
 
-  -- Brightness slider
+  -- Brightness slider. No signal: nothing else in the config changes
+  -- brightness, and the dashboard re-reads it on every open anyway.
   local brightness_slider = create_slider(
     "󰃟",
     beautiful.accent,
@@ -119,7 +135,7 @@ function sliders.create()
     function(value)
       return string.format("brightnessctl set %d%%", value)
     end,
-    "brightness::update"
+    nil
   )
 
   return wibox.widget({
@@ -150,6 +166,13 @@ function sliders.create()
     },
     layout = wibox.layout.fixed.vertical,
   })
+end
+
+--- Re-sync every slider with the system (called on dashboard open)
+function sliders.refresh()
+  for _, read_system_value in ipairs(refreshers) do
+    read_system_value()
+  end
 end
 
 return sliders

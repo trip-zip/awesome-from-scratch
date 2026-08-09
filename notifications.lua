@@ -1160,8 +1160,17 @@ naughty.connect_signal("invoked", function(n, a)
 end)
 
 -- Toggle functions
+function M.set_dnd_mode(state)
+  if M.config.dnd_mode == state then
+    return
+  end
+  M.config.dnd_mode = state
+  -- Anything mirroring DND state (e.g. the dashboard toggle) listens for this.
+  awesome.emit_signal("notifications::dnd_changed", state)
+end
+
 function M.toggle_dnd_mode()
-  M.config.dnd_mode = not M.config.dnd_mode
+  M.set_dnd_mode(not M.config.dnd_mode)
   naughty.notify({
     title = "DND Mode",
     text = M.config.dnd_mode and "Enabled" or "Disabled",

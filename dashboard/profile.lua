@@ -12,7 +12,49 @@ local battery_state = {
   time = "N/A",
 }
 
--- Update battery info
+-- Display widgets fed by the battery timer; set in create()
+local battery_icon, battery_text
+
+local function get_battery_icon()
+  local status = battery_state.status:lower()
+  if status:find("charging") then
+    return "󰂄" -- charging icon
+  elseif battery_state.percentage ~= "N/A" then
+    local pct = tonumber(battery_state.percentage:match("(%d+)")) or 0
+    if pct >= 90 then
+      return "󰁹"
+    elseif pct >= 70 then
+      return "󰂁"
+    elseif pct >= 50 then
+      return "󰁿"
+    elseif pct >= 30 then
+      return "󰁽"
+    elseif pct >= 10 then
+      return "󰁻"
+    else
+      return "󰁺"
+    end
+  end
+  return "󰁹"
+end
+
+local function get_battery_text()
+  local pct = battery_state.percentage
+  local status = battery_state.status:lower()
+  local time = battery_state.time
+
+  local text = pct
+  if status:find("charging") and time ~= "N/A" then
+    text = text .. " · " .. time .. " until full"
+  elseif status:find("discharging") and time ~= "N/A" then
+    text = text .. " · " .. time .. " remaining"
+  elseif status:find("full") or (not status:find("charging") and not status:find("discharging")) then
+    text = text .. " · Plugged in"
+  end
+  return text
+end
+
+-- Update battery info, then the display (if it has been built yet)
 local function update_battery()
   local cmd = [[
         if command -v upower >/dev/null 2>&1; then
@@ -35,6 +77,11 @@ local function update_battery()
     battery_state.status = data[1] or "unknown"
     battery_state.time = data[2] or "N/A"
     battery_state.percentage = data[3] or "N/A"
+
+    if battery_icon then
+      battery_icon.text = get_battery_icon()
+      battery_text.text = get_battery_text()
+    end
   end)
 end
 
@@ -98,53 +145,14 @@ function profile.create()
     end,
   })
 
-  -- Battery indicator
-  local function get_battery_icon()
-    local status = battery_state.status:lower()
-    if status:find("charging") then
-      return "󰂄" -- charging icon
-    elseif battery_state.percentage ~= "N/A" then
-      local pct = tonumber(battery_state.percentage:match("(%d+)")) or 0
-      if pct >= 90 then
-        return "󰁹"
-      elseif pct >= 70 then
-        return "󰂁"
-      elseif pct >= 50 then
-        return "󰁿"
-      elseif pct >= 30 then
-        return "󰁽"
-      elseif pct >= 10 then
-        return "󰁻"
-      else
-        return "󰁺"
-      end
-    end
-    return "󰁹"
-  end
-
-  local function get_battery_text()
-    local pct = battery_state.percentage
-    local status = battery_state.status:lower()
-    local time = battery_state.time
-
-    local text = pct
-    if status:find("charging") and time ~= "N/A" then
-      text = text .. " · " .. time .. " until full"
-    elseif status:find("discharging") and time ~= "N/A" then
-      text = text .. " · " .. time .. " remaining"
-    elseif status:find("full") or (not status:find("charging") and not status:find("discharging")) then
-      text = text .. " · Plugged in"
-    end
-    return text
-  end
-
-  local battery_icon = wibox.widget({
+  -- Battery indicator (updated by the module-level battery timer)
+  battery_icon = wibox.widget({
     text = get_battery_icon(),
     font = beautiful.font_size(14),
     widget = wibox.widget.textbox,
   })
 
-  local battery_text = wibox.widget({
+  battery_text = wibox.widget({
     text = get_battery_text(),
     font = beautiful.font_size(11),
     widget = wibox.widget.textbox,
@@ -159,17 +167,6 @@ function profile.create()
     },
     halign = "center",
     widget = wibox.container.place,
-  })
-
-  -- Update battery display periodically
-  gears.timer({
-    timeout = 30,
-    autostart = true,
-    call_now = true,
-    callback = function()
-      battery_icon.text = get_battery_icon()
-      battery_text.text = get_battery_text()
-    end,
   })
 
   -- User icon (optional - can use profile picture if available)

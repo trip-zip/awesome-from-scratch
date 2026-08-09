@@ -68,19 +68,12 @@ function dashboard.show()
 
   local s = awful.screen.focused()
 
+  -- Build the widget tree once. Rebuilding it on every open would also
+  -- re-create each section's timers and signal connections — a leak.
   if not dashboard_popup then
     dashboard_popup = awful.popup({
       widget = create_dashboard_widget(),
       screen = s,
-      placement = function(d)
-        awful.placement.top_right(d, {
-          margins = {
-            top = beautiful.wibar_height + beautiful.useless_gap * 3,
-            right = beautiful.useless_gap * 2,
-          },
-          parent = s,
-        })
-      end,
       ontop = true,
       visible = false,
       bg = "#00000000", -- Fully transparent (widget has its own bg)
@@ -88,12 +81,6 @@ function dashboard.show()
       border_width = config.border_width,
       border_color = config.border_color,
     })
-
-    -- Hide on click outside
-    dashboard_popup:connect_signal("mouse::leave", function()
-      -- Optional: auto-hide on mouse leave
-      -- dashboard.hide()
-    end)
   end
 
   -- Update screen placement
@@ -106,8 +93,9 @@ function dashboard.show()
     parent = s,
   })
 
-  -- Refresh widget content
-  dashboard_popup.widget = create_dashboard_widget()
+  -- Sync sections that mirror system state (volume, brightness, radios)
+  sliders.refresh()
+  toggles.refresh()
 
   dashboard_popup.visible = true
   dashboard_visible = true

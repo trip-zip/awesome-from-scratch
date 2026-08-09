@@ -2,6 +2,7 @@ local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")
 local wibox = require("wibox")
+local notifications = require("notifications")
 
 local toggles = {}
 
@@ -15,13 +16,30 @@ local toggle_states = {
   mic = true,
 }
 
+-- Re-read functions collected per toggle, so the dashboard can refresh all
+-- toggle states from the system every time it opens.
+local refreshers = {}
+
+-- Interpret a check command's output as on/off. Frontier patterns (%f) match
+-- whole words only, so "on" inside "disconnected" does not count as enabled.
+local function parse_enabled(stdout)
+  local out = stdout:lower()
+  return (
+    out:match("%f[%a]yes%f[%A]")
+    or out:match("%f[%a]on%f[%A]")
+    or out:match("%f[%a]enabled%f[%A]")
+    or out:match("^%s*1%s*$")
+  ) ~= nil
+end
+
 --- Create a toggle button
 -- @tparam string icon The icon character
 -- @tparam string label The button label
 -- @tparam string key The state key
 -- @tparam function on_toggle Callback when toggled (receives new state)
--- @tparam function check_cmd Optional command to check initial state
-local function create_toggle(icon, label, key, on_toggle, check_cmd)
+-- @tparam string check_cmd Optional command to read the real state
+-- @tparam string signal Optional signal that announces external state changes
+local function create_toggle(icon, label, key, on_toggle, check_cmd, signal)
   local active_color = beautiful.primary_color
   local inactive_color = beautiful.bg_focus
 
@@ -88,16 +106,34 @@ local function create_toggle(icon, label, key, on_toggle, check_cmd)
     update_visual()
   end)
 
-  -- Check initial state if command provided
+  -- Read the real state now and again whenever the dashboard refreshes
   if check_cmd then
-    awful.spawn.easy_async_with_shell(check_cmd, function(stdout)
-      local enabled = stdout:match("yes") or stdout:match("on") or stdout:match("enabled") or stdout:match("1")
-      toggle_states[key] = enabled ~= nil
+    local function read_state()
+      awful.spawn.easy_async_with_shell(check_cmd, function(stdout)
+        toggle_states[key] = parse_enabled(stdout)
+        update_visual()
+      end)
+    end
+    read_state()
+    table.insert(refreshers, read_state)
+  end
+
+  -- Mirror state changes made elsewhere (keybindings, other widgets)
+  if signal then
+    awesome.connect_signal(signal, function(state)
+      toggle_states[key] = state
       update_visual()
     end)
   end
 
   return container
+end
+
+--- Re-read every toggle's state from the system (called on dashboard open)
+function toggles.refresh()
+  for _, read_state in ipairs(refreshers) do
+    read_state()
+  end
 end
 
 --- Create the toggles section
@@ -120,10 +156,12 @@ function toggles.create()
     end
   end, "bluetoothctl show 2>/dev/null | grep -q 'Powered: yes' && echo on || echo off")
 
-  -- Do Not Disturb toggle
+  -- Do Not Disturb toggle: drives the notification module directly and
+  -- follows it when DND is toggled from anywhere else
+  toggle_states.dnd = notifications.config.dnd_mode
   local dnd_toggle = create_toggle("󰂛", "DND", "dnd", function(state)
-    awesome.emit_signal("notification::dnd", state)
-  end, nil)
+    notifications.set_dnd_mode(state)
+  end, nil, "notifications::dnd_changed")
 
   -- Night Light toggle
   local nightlight_toggle = create_toggle("󰖔", "Night", "nightlight", function(state)
