@@ -193,6 +193,21 @@ local controller = modal.new({
     popup.widget = create_exitscreen_widget()
   end,
   keypressed = function(_, key)
+    -- The labeled shortcut keys win over vim navigation, so the "[l]" shown
+    -- under Lock actually triggers Lock instead of moving the selection right
+    for i, option in ipairs(options) do
+      if key == option.key then
+        selected_index = i
+        exitscreen.refresh()
+        -- Small delay for visual feedback
+        gears.timer.start_new(0.15, function()
+          execute_selected()
+          return false
+        end)
+        return
+      end
+    end
+
     if key == "Return" then
       execute_selected()
     elseif key == "Left" or key == "h" then
@@ -201,20 +216,6 @@ local controller = modal.new({
     elseif key == "Right" or key == "l" then
       selected_index = math.min(#options, selected_index + 1)
       exitscreen.refresh()
-    else
-      -- Check for shortcut keys
-      for i, option in ipairs(options) do
-        if key == option.key then
-          selected_index = i
-          exitscreen.refresh()
-          -- Small delay for visual feedback
-          gears.timer.start_new(0.15, function()
-            execute_selected()
-            return false
-          end)
-          return
-        end
-      end
     end
   end,
 })
