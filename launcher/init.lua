@@ -28,25 +28,31 @@ end
 -- Icon cache for fast lookups across sessions.
 -- `get_cache_dir()` resolves to ~/.cache/somewm (or ~/.cache/awesome) and creates the
 -- directory if it is missing, so this cannot fail on a fresh machine.
+--
+-- The format is one "name<TAB>path" line per entry. Icon names cannot contain
+-- tabs or newlines, so nothing needs escaping; an empty path records a known
+-- miss so we never re-run the expensive search for an icon that isn't there.
 local icon_cache = {}
-local icon_cache_path = gears.filesystem.get_cache_dir() .. "launcher-icons.json"
+local icon_cache_path = gears.filesystem.get_cache_dir() .. "launcher-icons.cache"
 local icon_cache_dirty = false
 
 local function load_icon_cache()
   local file = io.open(icon_cache_path, "r")
-  if file then
-    local content = file:read("*all")
-    file:close()
-    local count = 0
-    -- Simple JSON parsing (icons are just key-value strings)
-    for name, path in content:gmatch('"([^"]+)":"([^"]*)"') do
+  if not file then
+    return false
+  end
+
+  local count = 0
+  for line in file:lines() do
+    local name, path = line:match("^([^\t]+)\t(.*)$")
+    if name then
       icon_cache[name] = path ~= "" and path or false -- false = known missing
       count = count + 1
     end
-    log("Loaded icon cache: %d entries", count)
-    return true
   end
-  return false
+  file:close()
+  log("Loaded icon cache: %d entries", count)
+  return true
 end
 
 local function save_icon_cache()
@@ -54,21 +60,15 @@ local function save_icon_cache()
     return
   end
   local file = io.open(icon_cache_path, "w")
-  if file then
-    file:write("{\n")
-    local first = true
-    for name, path in pairs(icon_cache) do
-      if not first then
-        file:write(",\n")
-      end
-      first = false
-      file:write(string.format('  "%s":"%s"', name, path or ""))
-    end
-    file:write("\n}\n")
-    file:close()
-    icon_cache_dirty = false
-    log("Saved icon cache")
+  if not file then
+    return
   end
+  for name, path in pairs(icon_cache) do
+    file:write(name, "\t", path or "", "\n")
+  end
+  file:close()
+  icon_cache_dirty = false
+  log("Saved icon cache")
 end
 
 -- State
@@ -194,6 +194,58 @@ local icon_overrides = {
   ["blueman-adapters"] = "blueman",
 }
 
+-- The flattened, priority-ordered list of directories an icon can live in.
+-- Built once: checking which base/theme/size/subdir combinations actually
+-- exist on this machine turns thousands of file stats per icon lookup into a
+-- short walk over a few dozen real directories.
+local icon_search_dirs = nil
+
+local function get_icon_search_dirs()
+  if icon_search_dirs then
+    return icon_search_dirs
+  end
+  icon_search_dirs = {}
+
+  local base_dirs = {
+    os.getenv("HOME") .. "/.local/share/icons",
+    os.getenv("HOME") .. "/.icons",
+    "/usr/share/icons",
+    "/usr/local/share/icons",
+  }
+  local themes = { beautiful.icon_theme or "hicolor", "Papirus", "Adwaita", "hicolor", "breeze", "gnome" }
+  local sizes = { "scalable", "256x256", "128x128", "96x96", "64x64", "48x48", "32x32", "24x24", "22x22" }
+  local subdirs = { "apps", "applications", "devices", "categories", "status", "mimetypes" }
+
+  local seen_theme = {}
+  for _, base in ipairs(base_dirs) do
+    if gears.filesystem.dir_readable(base) then
+      for _, theme_name in ipairs(themes) do
+        local theme_dir = base .. "/" .. theme_name
+        if not seen_theme[theme_dir] and gears.filesystem.dir_readable(theme_dir) then
+          seen_theme[theme_dir] = true
+          for _, size in ipairs(sizes) do
+            for _, subdir in ipairs(subdirs) do
+              local dir = theme_dir .. "/" .. size .. "/" .. subdir
+              if gears.filesystem.dir_readable(dir) then
+                table.insert(icon_search_dirs, dir)
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
+  for _, dir in ipairs({ "/usr/share/pixmaps", "/usr/local/share/pixmaps" }) do
+    if gears.filesystem.dir_readable(dir) then
+      table.insert(icon_search_dirs, dir)
+    end
+  end
+
+  log("icon search: %d real directories", #icon_search_dirs)
+  return icon_search_dirs
+end
+
 --- Find icon path from icon name (with persistent cache)
 local function find_icon(icon_name)
   if not icon_name then
@@ -218,40 +270,9 @@ local function find_icon(icon_name)
     return cached ~= false and cached or nil -- false means known missing
   end
 
-  -- Brute-force search (only on cache miss)
-  local icon_theme = beautiful.icon_theme or "hicolor"
-  local sizes = { "scalable", "256x256", "128x128", "96x96", "64x64", "48x48", "32x32", "24x24", "22x22" }
-  local base_dirs = {
-    os.getenv("HOME") .. "/.local/share/icons",
-    os.getenv("HOME") .. "/.icons",
-    "/usr/share/icons",
-    "/usr/local/share/icons",
-  }
-  local themes = { icon_theme, "Papirus", "Adwaita", "hicolor", "breeze", "gnome" }
-  local subdirs = { "apps", "applications", "devices", "categories", "status", "mimetypes" }
+  -- Walk the real icon directories (only on cache miss)
   local extensions = { ".svg", ".png", ".xpm", "" }
-
-  -- Search through theme directories
-  for _, base in ipairs(base_dirs) do
-    for _, theme_name in ipairs(themes) do
-      for _, size in ipairs(sizes) do
-        for _, subdir in ipairs(subdirs) do
-          for _, ext in ipairs(extensions) do
-            local path = base .. "/" .. theme_name .. "/" .. size .. "/" .. subdir .. "/" .. icon_name .. ext
-            if gears.filesystem.file_readable(path) then
-              icon_cache[icon_name] = path
-              icon_cache_dirty = true
-              return path
-            end
-          end
-        end
-      end
-    end
-  end
-
-  -- Fallback to pixmaps
-  local pixmap_dirs = { "/usr/share/pixmaps", "/usr/local/share/pixmaps" }
-  for _, dir in ipairs(pixmap_dirs) do
+  for _, dir in ipairs(get_icon_search_dirs()) do
     for _, ext in ipairs(extensions) do
       local path = dir .. "/" .. icon_name .. ext
       if gears.filesystem.file_readable(path) then
@@ -268,20 +289,24 @@ local function find_icon(icon_name)
   return nil
 end
 
---- Load applications from .desktop files
-local function load_apps()
+--- Load applications from .desktop files.
+-- The directory walk runs asynchronously so the first launcher open never
+-- blocks the compositor; `on_done` fires once the app list is ready.
+local apps_loading = false
+
+local function load_apps(on_done)
+  if apps_loading then
+    return
+  end
+  apps_loading = true
+
   local load_start = os.clock()
   log("load_apps() START")
 
   -- Load icon cache from disk
-  local cache_loaded = load_icon_cache()
-  if cache_loaded then
+  if load_icon_cache() then
     log("Using cached icons")
   end
-
-  all_apps = {}
-  local icons_found = 0
-  local icons_missing = 0
 
   -- Desktop file directories
   local desktop_dirs = {
@@ -290,57 +315,62 @@ local function load_apps()
     os.getenv("HOME") .. "/.local/share/applications",
   }
 
-  local seen = {} -- Avoid duplicates
-  local desktop_files = {}
-
-  -- Phase 1: Find all desktop files
+  -- Phase 1: Find all desktop files, off the main loop. find(1) complains
+  -- about directories that don't exist; stderr is simply ignored.
   local find_start = os.clock()
+  local cmd = { "find" }
   for _, dir in ipairs(desktop_dirs) do
-    local handle = io.popen('find "' .. dir .. '" -name "*.desktop" 2>/dev/null')
-    if handle then
-      for path in handle:lines() do
-        table.insert(desktop_files, path)
-      end
-      handle:close()
-    end
+    table.insert(cmd, dir)
   end
-  log_time("  find command", find_start)
-  log("  - found %d .desktop files", #desktop_files)
+  table.insert(cmd, "-name")
+  table.insert(cmd, "*.desktop")
 
-  -- Phase 2: Parse files and resolve icons
-  local parse_start = os.clock()
-  for _, path in ipairs(desktop_files) do
-    local basename = path:match("([^/]+)$")
-    if not seen[basename] then
-      seen[basename] = true
-      local app = parse_desktop_file(path)
-      if app then
-        local resolved_icon = find_icon(app.icon)
-        if resolved_icon then
-          icons_found = icons_found + 1
-        else
-          icons_missing = icons_missing + 1
+  awful.spawn.easy_async(cmd, function(stdout)
+    log_time("  find command", find_start)
+
+    all_apps = {}
+    local seen = {} -- Avoid duplicates
+    local icons_found = 0
+    local icons_missing = 0
+
+    -- Phase 2: Parse files and resolve icons
+    local parse_start = os.clock()
+    for path in stdout:gmatch("[^\n]+") do
+      local basename = path:match("([^/]+)$")
+      if basename and not seen[basename] then
+        seen[basename] = true
+        local app = parse_desktop_file(path)
+        if app then
+          local resolved_icon = find_icon(app.icon)
+          if resolved_icon then
+            icons_found = icons_found + 1
+          else
+            icons_missing = icons_missing + 1
+          end
+          app.icon = resolved_icon
+          table.insert(all_apps, app)
         end
-        app.icon = resolved_icon
-        table.insert(all_apps, app)
       end
     end
-  end
-  log_time("  parse + icons", parse_start)
-  log("  - icons found: %d, missing: %d", icons_found, icons_missing)
+    log_time("  parse + icons", parse_start)
+    log("  - icons found: %d, missing: %d", icons_found, icons_missing)
 
-  -- Sort alphabetically by default
-  local sort_start = os.clock()
-  table.sort(all_apps, function(a, b)
-    return a.name:lower() < b.name:lower()
+    -- Sort alphabetically by default
+    table.sort(all_apps, function(a, b)
+      return a.name:lower() < b.name:lower()
+    end)
+
+    log_time("load_apps() TOTAL", load_start)
+    log("  - loaded %d apps", #all_apps)
+
+    -- Save icon cache if modified
+    save_icon_cache()
+
+    apps_loading = false
+    if on_done then
+      on_done()
+    end
   end)
-  log_time("  sort", sort_start)
-
-  log_time("load_apps() TOTAL", load_start)
-  log("  - loaded %d apps", #all_apps)
-
-  -- Save icon cache if modified
-  save_icon_cache()
 end
 
 --- Filter apps based on search text
@@ -378,15 +408,14 @@ local function filter_apps()
   selected_index = math.min(selected_index, math.max(1, #filtered_apps))
 end
 
--- Gruvbox accent colors for initial-based icons
+-- Theme accent colors for initial-based fallback icons
 local initial_colors = {
-  "#d65d0e", -- orange
-  "#458588", -- blue
-  "#98971a", -- green
-  "#b16286", -- purple
-  "#689d6a", -- aqua
-  "#d79921", -- yellow
-  "#cc241d", -- red
+  beautiful.primary_color,
+  beautiful.highlight,
+  beautiful.active,
+  beautiful.accent,
+  beautiful.urgent,
+  beautiful.highlight_hover,
 }
 
 -- Get a consistent color for an app based on its name
@@ -425,7 +454,7 @@ local function create_app_item(app, index)
           valign = "center",
           widget = wibox.widget.textbox,
         },
-        fg = "#282828", -- Dark text on colored background
+        fg = beautiful.bg_normal, -- Dark text on colored background
         widget = wibox.container.background,
       },
       bg = bg_color,
@@ -524,7 +553,7 @@ local function create_results_list()
   if #filtered_apps == 0 then
     return wibox.widget({
       {
-        text = "No applications found",
+        text = apps_loading and "Loading applications..." or "No applications found",
         font = beautiful.font_size(12),
         halign = "center",
         widget = wibox.widget.textbox,
@@ -625,14 +654,12 @@ local function start_keygrabber()
     autostart = true,
     stop_key = "Escape",
     stop_callback = function()
-      -- Don't call hide() here - it causes recursion
-      -- Just do visual cleanup since keygrabber already stopped
-      if launcher_popup then
-        launcher_popup.visible = false
-      end
-      launcher_visible = false
+      -- The grabber is already stopped when this runs (Escape, or an
+      -- explicit stop from hide()). Clearing the reference first and
+      -- routing through hide() means both paths share one cleanup, and
+      -- hide()'s visibility guard stops the second entry.
       keygrabber = nil
-      awesome.emit_signal("launcher::visible", false)
+      launcher.hide()
     end,
     keypressed_callback = function(_, _, key, _)
       if key == "Return" then
@@ -671,9 +698,14 @@ function launcher.show()
     return
   end
 
-  -- Load apps if not already loaded
+  -- Load apps if not already loaded; the list fills in when the async scan
+  -- finishes (the popup shows "Loading applications..." until then)
   if #all_apps == 0 then
-    load_apps()
+    load_apps(function()
+      if launcher_visible then
+        launcher.refresh()
+      end
+    end)
   else
     log("Using cached apps (%d apps)", #all_apps)
   end
@@ -723,7 +755,8 @@ function launcher.hide()
     return
   end
 
-  -- Set this first to prevent recursion from stop_callback
+  -- Flip the flag before stopping the grabber: stopping re-enters hide()
+  -- via stop_callback, and this guard ends that second call immediately
   launcher_visible = false
 
   local kg = keygrabber
