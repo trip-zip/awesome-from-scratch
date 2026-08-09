@@ -52,6 +52,13 @@ local client_helpers = {
     c.maximized_horizontal = not c.maximized_horizontal
     c:raise()
   end,
+  toggle_floating = function(c)
+    c.floating = not c.floating
+  end,
+  move_to_master = function(c)
+    -- The first visible client on the screen is the master.
+    c:swap(awful.client.visible(c.screen)[1])
+  end,
 }
 
 local media_helpers = {
@@ -116,19 +123,19 @@ local global_keys = {
 
 local client_keys = {
   -- modkey only modifier
-  {{ modkey },            "f",      client_helpers.toggle_fullscreen,                  "toggle fullscreen",         "client" },
-  {{ modkey },            "m",      client_helpers.toggle_maximized,                   "(un)maximize",              "client" },
-  {{ modkey },            "n",      client_helpers.minimize,                           "minimize",                  "client" },
-  {{ modkey },            "o",      function (c) c:move_to_screen() end,               "move to screen",            "client" },
-  {{ modkey },            "q",      function (c) c:kill() end,                         "close",                     "client" },
-  {{ modkey },            "t",      function (c) c.ontop = not c.ontop end,            "toggle keep on top",        "client" },
+  {{ modkey },            "f",      client_helpers.toggle_fullscreen,       "toggle fullscreen",         "client" },
+  {{ modkey },            "m",      client_helpers.toggle_maximized,        "(un)maximize",              "client" },
+  {{ modkey },            "n",      client_helpers.minimize,                "minimize",                  "client" },
+  {{ modkey },            "o",      function (c) c:move_to_screen() end,    "move to screen",            "client" },
+  {{ modkey },            "q",      function (c) c:kill() end,              "close",                     "client" },
+  {{ modkey },            "t",      function (c) c.ontop = not c.ontop end, "toggle keep on top",        "client" },
   --modkey ctrl modifier
-  {{ modkey, "Control" }, "m",      client_helpers.toggle_maximized_vert,              "(un)maximize vertically",   "client" },
-  {{ modkey, "Control" }, "space",  awful.client.floating.toggle,                      "toggle floating",           "client" },
-  {{ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end, "move to master",            "client" },
+  {{ modkey, "Control" }, "m",      client_helpers.toggle_maximized_vert,   "(un)maximize vertically",   "client" },
+  {{ modkey, "Control" }, "space",  client_helpers.toggle_floating,         "toggle floating",           "client" },
+  {{ modkey, "Control" }, "Return", client_helpers.move_to_master,          "move to master",            "client" },
   --modkey shift modifier
-  {{ modkey, "Shift"   }, "c",      function (c) c:kill() end,                         "close",                     "client" },
-  {{ modkey, "Shift"   }, "m",      client_helpers.toggle_maximized_horiz,             "(un)maximize horizontally", "client" },
+  {{ modkey, "Shift"   }, "c",      function (c) c:kill() end,              "close",                     "client" },
+  {{ modkey, "Shift"   }, "m",      client_helpers.toggle_maximized_horiz,  "(un)maximize horizontally", "client" },
 }
 -- stylua: ignore end
 
