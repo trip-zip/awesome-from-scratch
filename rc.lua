@@ -75,9 +75,22 @@ filemanager = "thunar" --While I'm in here, may as well make this a variable
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
 modkey = "Mod4"
+
+-- The workspaces, defined once. Each tag carries the icon the taglist renders
+-- for it (files in icons/); the demo rules further down route apps to tags by
+-- these names, so rename in both places or a rule will quietly stop matching.
+local tags = {
+  { name = "code", icon = "terminal.svg" },
+  { name = "web", icon = "chrome.svg" },
+  { name = "chat", icon = "slack.svg" },
+  { name = "db", icon = "server.svg" },
+  { name = "games", icon = "play.svg" },
+}
 -- }}}
 
 -- {{{ Menu
+local wibar = require("wibar")
+
 -- @DOC_MENU@
 -- Create a launcher widget and a main menu
 myawesomemenu = {
@@ -173,49 +186,16 @@ end)
 -- }}}
 
 -- {{{ Wibar
-local widgets = require("widgets")
-
--- Keyboard map indicator and switcher
-mykeyboardlayout = awful.widget.keyboardlayout()
-
--- Create a textclock widget
-mytextclock = wibox.widget.textclock()
-
 -- @DOC_FOR_EACH_SCREEN@
 screen.connect_signal("request::desktop_decoration", function(s)
-  -- Restore saved tags if this output was previously removed
-  local output_name = s.output and s.output.name
-  local restore = output_name and awful.permissions.saved_tags[output_name]
-  if restore then
-    awful.permissions.saved_tags[output_name] = nil
-    -- Pass 1: recreate tags and build per-client tag lists
-    local client_tags = {}
-    for _, td in ipairs(restore) do
-      local t = awful.tag.add(td.name, {
-        screen = s,
-        layout = td.layout,
-        master_width_factor = td.master_width_factor,
-        master_count = td.master_count,
-        gap = td.gap,
-        selected = td.selected,
-      })
-      for _, c in ipairs(td.clients) do
-        if c.valid then
-          if not client_tags[c] then
-            client_tags[c] = {}
-          end
-          table.insert(client_tags[c], t)
-        end
-      end
-    end
-    -- Pass 2: move clients and assign full tag lists
-    for c, tags in pairs(client_tags) do
-      c:move_to_screen(s)
-      c:tags(tags)
-    end
-  else
-    -- Each screen has its own tag table.
-    awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
+  -- Create this screen's tags from the table defined at the top
+  for i, t in ipairs(tags) do
+    awful.tag.add(t.name, {
+      screen = s,
+      layout = awful.layout.layouts[1],
+      selected = i == 1,
+      icon_name = t.icon,
+    })
   end
 
   -- Create a promptbox for each screen
@@ -241,85 +221,9 @@ screen.connect_signal("request::desktop_decoration", function(s)
     },
   })
 
-  -- Create a taglist widget
-  s.mytaglist = awful.widget.taglist({
-    screen = s,
-    filter = awful.widget.taglist.filter.all,
-    buttons = {
-      awful.button({}, 1, function(t)
-        t:view_only()
-      end),
-      awful.button({ modkey }, 1, function(t)
-        if client.focus then
-          client.focus:move_to_tag(t)
-        end
-      end),
-      awful.button({}, 3, awful.tag.viewtoggle),
-      awful.button({ modkey }, 3, function(t)
-        if client.focus then
-          client.focus:toggle_tag(t)
-        end
-      end),
-      awful.button({}, 4, function(t)
-        awful.tag.viewprev(t.screen)
-      end),
-      awful.button({}, 5, function(t)
-        awful.tag.viewnext(t.screen)
-      end),
-    },
-  })
-
-  -- @TASKLIST_BUTTON@
-  -- Create a tasklist widget
-  s.mytasklist = awful.widget.tasklist({
-    screen = s,
-    filter = awful.widget.tasklist.filter.currenttags,
-    buttons = {
-      awful.button({}, 1, function(c)
-        c:activate({ context = "tasklist", action = "toggle_minimization" })
-      end),
-      awful.button({}, 3, function()
-        awful.menu.client_list({ theme = { width = 250 } })
-      end),
-      awful.button({}, 4, function()
-        awful.client.focus.byidx(-1)
-      end),
-      awful.button({}, 5, function()
-        awful.client.focus.byidx(1)
-      end),
-    },
-  })
-
-  -- @DOC_WIBAR@
-  -- Create the wibox
-  s.mywibox = awful.wibar({
-    position = "top",
-    screen = s,
-    -- @DOC_SETUP_WIDGETS@
-    widget = {
-      layout = wibox.layout.align.horizontal,
-      { -- Left widgets
-        layout = wibox.layout.fixed.horizontal,
-        mylauncher,
-        s.mytaglist,
-        s.mypromptbox,
-      },
-      s.mytasklist, -- Middle widget
-      { -- Right widgets
-        layout = wibox.layout.fixed.horizontal,
-        mykeyboardlayout,
-        wibox.widget.systray(),
-        widgets.volume,
-        widgets.wifi,
-        widgets.battery.widget,
-        widgets.clock,
-        s.mylayoutbox,
-      },
-    },
-  })
+  s.mywibox = wibar(s)
 end)
 
--- }}}
 -- {{{ Mouse bindings
 -- @DOC_ROOT_BUTTONS@
 awful.mouse.append_global_mousebindings({
