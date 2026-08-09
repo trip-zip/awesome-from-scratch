@@ -258,19 +258,19 @@ def derive_notifications():
     src = main_file("notifications.lua")
     src = must_sub(src, 'local modal = require("modal")\n', "", "modal require")
 
-    src = must_sub(
-        src,
-        '-- Snooze duration picker: a small modal anchored near the mouse. The modal\n'
-        '-- controller supplies click-outside dismissal, so the old "connect a one-shot\n'
-        '-- button::press handler after a 0.1s delay" workaround is gone.\n'
-        "local picker_notif_data = nil\n",
+    header = re.search(
+        r"-- Snooze duration picker: a small modal anchored near the mouse\. .*?"
+        r"local function place_picker\(d\)\n.*?\nend\n",
+        src, re.S)
+    assert header, "picker header"
+    src = src.replace(
+        header.group(0),
         "-- Snooze duration picker: a small popup anchored near the mouse\n"
         "local picker_notif_data = nil\n"
-        "local snooze_picker_popup = nil\n",
-        "picker header")
+        "local snooze_picker_popup = nil\n")
 
     old_picker = re.search(
-        r"M\.snooze_picker = modal\.new\(\{.*?\n\}\)\n\n"
+        r"snooze_picker = modal\.new\(\{.*?\n\}\)\n\n"
         r"local function show_snooze_picker\(notif_data\)\n.*?\nend\n",
         src, re.S)
     assert old_picker, "picker modal block"
@@ -329,7 +329,7 @@ end
     src = must_sub(
         src,
         """    btn:add_button(awful.button({}, 1, function()
-      M.snooze_picker.hide()
+      snooze_picker.hide()
       snooze_notification(picker_notif_data, duration.seconds, duration.label)
     end))""",
         """    btn:add_button(awful.button({}, 1, function()
@@ -338,7 +338,7 @@ end
     end))""",
         "picker button hide")
 
-    start = src.index("-- The notification center is a modal like")
+    start = src.index("-- The notification center opens centered under the click point")
     end_ = src.index("-- Setup notification rules")
     new_center = """-- The notification center popup: show/hide/toggle, plus dismissal when you
 -- click a client or switch tags. The same lifecycle the dashboard hand-rolls;
