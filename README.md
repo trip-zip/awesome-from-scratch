@@ -1,17 +1,17 @@
-# 09-switcher
+# 10-launcher
 
-Checkpoint 9 of *Awesome From Scratch*: **window switcher**.
+Checkpoint 10 of *Awesome From Scratch*: **menubar replacement from scratch**.
 
-Read the chapter: <https://somewm.org/docs/tutorials/from-scratch/09-switcher>
+Read the chapter: <https://somewm.org/docs/tutorials/from-scratch/10-launcher>
 
 ## Run this checkpoint
 
 ```bash
-git checkout 09-switcher
+git checkout 10-launcher
 somewm-client test start --config "$PWD/rc.lua" --name afs
 ```
 
 That opens a nested SomeWM in a window. Your real session is untouched.
 
-Previous: [`08-mainmenu`](../../tree/08-mainmenu)  
-Next: [`10-launcher`](../../tree/10-launcher)
+Previous: [`09-switcher`](../../tree/09-switcher)  
+Next: [`11-dashboard`](../../tree/11-dashboard)
