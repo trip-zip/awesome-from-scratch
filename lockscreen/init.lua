@@ -84,11 +84,11 @@ end
 -- Get battery color based on percentage
 local function get_battery_color(percent)
   if percent > 50 then
-    return colors.soft_green or "#b8bb26"
+    return colors.soft_green
   elseif percent > 20 then
-    return colors.soft_yellow or "#fabd2f"
+    return colors.soft_yellow
   else
-    return colors.soft_red or "#fb4934"
+    return colors.soft_red
   end
 end
 
@@ -114,16 +114,16 @@ local function update_battery()
 end
 
 function M.init()
-  -- Gruvbox colors (fallbacks if theme not loaded)
-  colors.bg = beautiful.lockscreen_bg or beautiful.bg_normal or "#282828"
-  colors.fg = beautiful.lockscreen_fg or beautiful.fg_normal or "#ebdbb2"
-  colors.grey1 = "#928374" -- Gruvbox gray
-  colors.grey2 = beautiful.lockscreen_input_bg or beautiful.bg_focus or "#3c3836"
-  colors.orange = beautiful.primary_color or "#d65d0e"
-  colors.soft_orange = beautiful.primary_color_hover or "#fe8019"
-  colors.soft_red = "#fb4934"
-  colors.soft_green = "#b8bb26"
-  colors.soft_yellow = "#fabd2f"
+  -- Local shorthand for the theme colors this module uses
+  colors.bg = beautiful.lockscreen_bg or beautiful.bg_normal
+  colors.fg = beautiful.lockscreen_fg or beautiful.fg_normal
+  colors.grey1 = beautiful.fg_dim
+  colors.grey2 = beautiful.lockscreen_input_bg or beautiful.bg_focus
+  colors.orange = beautiful.primary_color
+  colors.soft_orange = beautiful.primary_color_hover
+  colors.soft_red = beautiful.urgent_hover
+  colors.soft_green = beautiful.active_hover
+  colors.soft_yellow = beautiful.accent_hover
 
   -- Greeting widget (time-based)
   greeting = wibox.widget({

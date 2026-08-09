@@ -21,7 +21,7 @@ local clock_widget = wibox.widget({
         font = (beautiful.font and beautiful.font:match("^[^,]+") or "sans") .. " Bold 7",
         widget = wibox.widget.textbox,
       },
-      bg = beautiful.bg_urgent or "#ff0000",
+      bg = beautiful.bg_urgent,
       fg = "#ffffff",
       shape = gears.shape.circle,
       forced_width = 12,

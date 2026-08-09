@@ -76,6 +76,9 @@ theme.accent = color.yellow
 theme.accent_hover = color.soft_yellow
 theme.highlight = color.blue
 theme.highlight_hover = color.soft_blue
+theme.urgent = color.red
+theme.urgent_hover = color.soft_red
+theme.fg_dim = color.grey1 -- secondary text: dates, hints, muted status lines
 
 -- Global shape setting: "rectangle" or "rounded"
 -- Change this single setting to switch all widget corners

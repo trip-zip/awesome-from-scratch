@@ -22,7 +22,7 @@ local function create_slider(icon, color, get_cmd, set_cmd, signal)
   local slider = wibox.widget({
     bar_shape = gears.shape.rounded_bar,
     bar_height = slider_config.bar_height,
-    bar_color = beautiful.bg_focus or "#3c3836",
+    bar_color = beautiful.bg_focus,
     bar_active_color = color,
     handle_shape = gears.shape.circle,
     handle_width = slider_config.handle_width,
@@ -103,7 +103,7 @@ function sliders.create()
   -- Volume slider
   local volume_slider = create_slider(
     "󰕾",
-    beautiful.primary_color or "#d65d0e",
+    beautiful.primary_color,
     [[wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk '{print int($2*100)}' || echo 50]],
     function(value)
       return string.format("wpctl set-volume @DEFAULT_AUDIO_SINK@ %d%%", value)
@@ -114,7 +114,7 @@ function sliders.create()
   -- Brightness slider
   local brightness_slider = create_slider(
     "󰃟",
-    beautiful.accent or "#d79921",
+    beautiful.accent,
     [[brightnessctl -m 2>/dev/null | cut -d',' -f4 | tr -d '%' || echo 50]],
     function(value)
       return string.format("brightnessctl set %d%%", value)
@@ -142,7 +142,7 @@ function sliders.create()
       {
         orientation = "horizontal",
         forced_height = 1,
-        color = (beautiful.fg_normal or "#ebdbb2") .. "33",
+        color = beautiful.fg_normal .. "33",
         widget = wibox.widget.separator,
       },
       top = 16,

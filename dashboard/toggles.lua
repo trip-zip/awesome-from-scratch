@@ -22,8 +22,8 @@ local toggle_states = {
 -- @tparam function on_toggle Callback when toggled (receives new state)
 -- @tparam function check_cmd Optional command to check initial state
 local function create_toggle(icon, label, key, on_toggle, check_cmd)
-  local active_color = beautiful.primary_color or "#d65d0e"
-  local inactive_color = beautiful.bg_focus or "#3c3836"
+  local active_color = beautiful.primary_color
+  local inactive_color = beautiful.bg_focus
 
   local icon_widget = wibox.widget({
     text = icon,
@@ -81,8 +81,7 @@ local function create_toggle(icon, label, key, on_toggle, check_cmd)
 
   -- Hover effect
   container:connect_signal("mouse::enter", function()
-    container.bg = toggle_states[key] and (beautiful.primary_color_hover or "#fe8019")
-      or (beautiful.bg_minimize or "#928374")
+    container.bg = toggle_states[key] and beautiful.primary_color_hover or beautiful.bg_minimize
   end)
 
   container:connect_signal("mouse::leave", function()
@@ -185,7 +184,7 @@ function toggles.create()
       {
         orientation = "horizontal",
         forced_height = 1,
-        color = (beautiful.fg_normal or "#ebdbb2") .. "33",
+        color = beautiful.fg_normal .. "33",
         widget = wibox.widget.separator,
       },
       top = 16,

@@ -58,7 +58,7 @@ local function create_client_item(c, index)
         fg = "#282828",
         widget = wibox.container.background,
       },
-      bg = beautiful.primary_color or "#d65d0e",
+      bg = beautiful.primary_color,
       shape = gears.shape.rectangle,
       forced_width = config.icon_size,
       forced_height = config.icon_size,
@@ -97,7 +97,7 @@ local function create_client_item(c, index)
       margins = 6,
       widget = wibox.container.margin,
     },
-    bg = is_selected and (beautiful.primary_color or "#d65d0e") or "transparent",
+    bg = is_selected and beautiful.primary_color or "transparent",
     fg = is_selected and beautiful.bg_normal or beautiful.fg_normal,
     shape = beautiful.shape_small,
     forced_height = config.item_height,
@@ -131,7 +131,7 @@ local function create_popup_widget()
         halign = "center",
         widget = wibox.widget.textbox,
       },
-      fg = (beautiful.fg_normal or "#ebdbb2") .. "88",
+      fg = beautiful.fg_normal .. "88",
       widget = wibox.container.background,
     })
   end
@@ -149,7 +149,7 @@ local function create_popup_widget()
         {
           orientation = "horizontal",
           forced_height = 2,
-          color = beautiful.primary_color or "#d65d0e",
+          color = beautiful.primary_color,
           widget = wibox.widget.separator,
         },
         -- Client list
@@ -164,7 +164,7 @@ local function create_popup_widget()
       margins = config.margin,
       widget = wibox.container.margin,
     },
-    bg = (beautiful.bg_normal or "#282828") .. "F8",
+    bg = beautiful.bg_normal .. "F8",
     shape = beautiful.shape,
     forced_width = config.width,
     widget = wibox.container.background,
@@ -217,7 +217,7 @@ function windowswitcher.show()
       visible = false,
       bg = "#00000000",
       border_width = beautiful.border_width or 1,
-      border_color = beautiful.primary_color or "#d65d0e",
+      border_color = beautiful.primary_color,
       shape = beautiful.shape,
     })
   end

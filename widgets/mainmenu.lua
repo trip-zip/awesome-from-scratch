@@ -125,8 +125,8 @@ local function create_menu_item(item, index)
       right = config.margin,
       widget = wibox.container.margin,
     },
-    bg = is_selected and (beautiful.primary_color or "#d65d0e") or "transparent",
-    fg = is_selected and (beautiful.bg_normal or "#282828") or (beautiful.fg_normal or "#ebdbb2"),
+    bg = is_selected and beautiful.primary_color or "transparent",
+    fg = is_selected and beautiful.bg_normal or beautiful.fg_normal,
     shape = beautiful.shape_small,
     forced_height = config.item_height,
     widget = wibox.container.background,
@@ -158,7 +158,7 @@ local function create_separator()
       {
         orientation = "horizontal",
         forced_height = 1,
-        color = (beautiful.fg_normal or "#ebdbb2") .. "33",
+        color = beautiful.fg_normal .. "33",
         widget = wibox.widget.separator,
       },
       left = config.margin + config.icon_width + 8,
@@ -200,7 +200,7 @@ local function create_menu_widget()
       margins = config.margin,
       widget = wibox.container.margin,
     },
-    bg = (beautiful.bg_normal or "#282828") .. "F5",
+    bg = beautiful.bg_normal .. "F5",
     shape = beautiful.shape,
     forced_width = config.width,
     forced_height = height,
@@ -273,7 +273,7 @@ function mainmenu.show()
       bg = "#00000000",
       shape = beautiful.shape,
       border_width = beautiful.border_width or 1,
-      border_color = beautiful.primary_color or "#d65d0e",
+      border_color = beautiful.primary_color,
     })
   end
 

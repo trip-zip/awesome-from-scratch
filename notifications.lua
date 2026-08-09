@@ -188,7 +188,7 @@ local function show_snooze_picker(notif_data, anchor_geometry)
   buttons_layout.spacing = 4
 
   for _, duration in ipairs(M.snooze_durations) do
-    local fg_color = beautiful.fg_normal or "#ebdbb2"
+    local fg_color = beautiful.fg_normal
     local btn = wibox.widget({
       {
         {
@@ -207,7 +207,7 @@ local function show_snooze_picker(notif_data, anchor_geometry)
         margins = 10,
         widget = wibox.container.margin,
       },
-      bg = beautiful.bg_normal or "#282828",
+      bg = beautiful.bg_normal,
       fg = fg_color,
       shape = beautiful.shape_small or gears.shape.rectangle,
       widget = wibox.container.background,
@@ -221,12 +221,12 @@ local function show_snooze_picker(notif_data, anchor_geometry)
 
     -- Hover effect
     btn:connect_signal("mouse::enter", function()
-      btn.bg = beautiful.primary_color or "#d65d0e"
-      btn.fg = beautiful.bg_normal or "#282828"
+      btn.bg = beautiful.primary_color
+      btn.fg = beautiful.bg_normal
     end)
     btn:connect_signal("mouse::leave", function()
-      btn.bg = beautiful.bg_normal or "#282828"
-      btn.fg = beautiful.fg_normal or "#ebdbb2"
+      btn.bg = beautiful.bg_normal
+      btn.fg = beautiful.fg_normal
     end)
 
     buttons_layout:add(btn)
@@ -247,7 +247,7 @@ local function show_snooze_picker(notif_data, anchor_geometry)
       margins = 12,
       widget = wibox.container.margin,
     },
-    bg = (beautiful.bg_normal or "#282828") .. "F8",
+    bg = beautiful.bg_normal .. "F8",
     shape = beautiful.shape or gears.shape.rectangle,
     widget = wibox.container.background,
   })
@@ -259,7 +259,7 @@ local function show_snooze_picker(notif_data, anchor_geometry)
     visible = true,
     bg = "#00000000",
     border_width = beautiful.border_width or 1,
-    border_color = beautiful.primary_color or "#d65d0e",
+    border_color = beautiful.primary_color,
     shape = beautiful.shape or gears.shape.rectangle,
   })
 
@@ -361,7 +361,7 @@ local function create_group_header(group)
   local is_expanded = expanded_groups[group.app_name]
   local chevron = is_expanded and "▼" or "▶"
   local unread_badge = group.unread_count > 0
-      and " <span foreground='" .. (beautiful.primary_color or "#d65d0e") .. "'>(" .. group.unread_count .. ")</span>"
+      and " <span foreground='" .. beautiful.primary_color .. "'>(" .. group.unread_count .. ")</span>"
     or ""
 
   local header = wibox.widget({
@@ -374,7 +374,7 @@ local function create_group_header(group)
             .. gears.string.xml_escape(group.app_name)
             .. "</b>"
             .. " <span foreground='"
-            .. (beautiful.fg_normal or "#ebdbb2")
+            .. beautiful.fg_normal
             .. "88'>"
             .. #group.notifications
             .. " notifications</span>"
@@ -392,8 +392,8 @@ local function create_group_header(group)
       margins = 10,
       widget = wibox.container.margin,
     },
-    bg = beautiful.bg_focus or "#504945",
-    fg = beautiful.fg_normal or "#ebdbb2",
+    bg = beautiful.bg_focus,
+    fg = beautiful.fg_normal,
     shape = beautiful.shape_small or gears.shape.rounded_rect,
     widget = wibox.container.background,
   })
@@ -405,9 +405,9 @@ local function create_group_header(group)
   end))
 
   -- Hover effect
-  local default_bg = beautiful.bg_focus or "#504945"
+  local default_bg = beautiful.bg_focus
   header:connect_signal("mouse::enter", function()
-    header.bg = beautiful.primary_color or "#d65d0e"
+    header.bg = beautiful.primary_color
   end)
   header:connect_signal("mouse::leave", function()
     header.bg = default_bg
@@ -421,13 +421,13 @@ local function create_notification_item(notif, index)
   local time_ago = format_time_ago(notif.timestamp)
   local is_unread = not notif.is_read
 
-  local item_bg = is_unread and (beautiful.bg_normal or "#282828") or (beautiful.bg_minimize or "#1d2021")
+  local item_bg = is_unread and beautiful.bg_normal or beautiful.bg_minimize
   if notif.urgency == "critical" and is_unread then
-    item_bg = beautiful.bg_urgent or "#cc241d"
+    item_bg = beautiful.bg_urgent
   end
 
   -- Snooze button
-  local fg_color = beautiful.fg_normal or "#ebdbb2"
+  local fg_color = beautiful.fg_normal
   local snooze_btn = wibox.widget({
     {
       {
@@ -440,7 +440,7 @@ local function create_notification_item(notif, index)
       margins = 6,
       widget = wibox.container.margin,
     },
-    bg = beautiful.bg_focus or "#3c3836",
+    bg = beautiful.bg_focus,
     fg = fg_color,
     shape = gears.shape.rectangle,
     forced_width = 32,
@@ -453,7 +453,7 @@ local function create_notification_item(notif, index)
   end))
 
   snooze_btn:connect_signal("mouse::enter", function()
-    snooze_btn.bg = beautiful.primary_color or "#d65d0e"
+    snooze_btn.bg = beautiful.primary_color
   end)
   snooze_btn:connect_signal("mouse::leave", function()
     snooze_btn.bg = "transparent"
@@ -466,9 +466,7 @@ local function create_notification_item(notif, index)
           -- Row 1: Title + time
           {
             {
-              markup = (
-                is_unread and "<span foreground='" .. (beautiful.primary_color or "#d65d0e") .. "'>● </span>" or ""
-              )
+              markup = (is_unread and "<span foreground='" .. beautiful.primary_color .. "'>● </span>" or "")
                 .. "<b>"
                 .. gears.string.xml_escape(notif.title or "Notification")
                 .. "</b>",
@@ -518,7 +516,7 @@ local function create_notification_item(notif, index)
 
   -- Hover effect
   item:connect_signal("mouse::enter", function()
-    item.bg = beautiful.bg_focus or "#504945"
+    item.bg = beautiful.bg_focus
   end)
   item:connect_signal("mouse::leave", function()
     item.bg = item_bg
@@ -542,8 +540,8 @@ local function create_header()
       margins = 4,
       widget = wibox.container.margin,
     },
-    bg = beautiful.bg_minimize or "#1d2021",
-    fg = beautiful.fg_normal or "#ebdbb2",
+    bg = beautiful.bg_minimize,
+    fg = beautiful.fg_normal,
     shape = beautiful.shape_small or gears.shape.rounded_rect,
     forced_width = 80,
     forced_height = 26,
@@ -578,7 +576,7 @@ local function create_header()
       widget = wibox.container.margin,
     },
     bg = "#cc241d",
-    fg = beautiful.fg_urgent or "#ffffff",
+    fg = beautiful.fg_urgent,
     shape = beautiful.shape_small or gears.shape.rounded_rect,
     forced_width = 80,
     forced_height = 26,
@@ -622,7 +620,7 @@ local function create_popup_widget()
   layout:add(wibox.widget({
     orientation = "horizontal",
     forced_height = 1,
-    color = beautiful.border_color or "#504945",
+    color = beautiful.bg_focus,
     widget = wibox.widget.separator,
   }))
 
@@ -636,7 +634,7 @@ local function create_popup_widget()
           valign = "center",
           widget = wibox.widget.textbox,
         },
-        fg = (beautiful.fg_normal or "#ebdbb2") .. "88",
+        fg = beautiful.fg_normal .. "88",
         widget = wibox.container.background,
       },
       forced_height = 100,
@@ -683,7 +681,7 @@ local function create_popup_widget()
       margins = nc_config.margin,
       widget = wibox.container.margin,
     },
-    bg = (beautiful.bg_normal or "#282828") .. "F8",
+    bg = beautiful.bg_normal .. "F8",
     shape = beautiful.shape or gears.shape.rounded_rect,
     forced_width = nc_config.width,
     widget = wibox.container.background,
@@ -713,7 +711,7 @@ function M.show_notification_center()
       visible = false,
       bg = "#00000000",
       border_width = beautiful.border_width or 1,
-      border_color = beautiful.primary_color or "#d65d0e",
+      border_color = beautiful.primary_color,
       shape = beautiful.shape or gears.shape.rounded_rect,
     })
   end
@@ -795,8 +793,8 @@ ruled.notification.connect_signal("request::rules", function()
   ruled.notification.append_rule({
     rule = { urgency = "critical" },
     properties = {
-      bg = beautiful.bg_urgent or "#ff0000",
-      fg = beautiful.fg_urgent or "#ffffff",
+      bg = beautiful.bg_urgent,
+      fg = beautiful.fg_urgent,
       timeout = 0, -- Never timeout
       border_color = "#ff0000",
       position = M.config.positions.top_middle,
@@ -1024,11 +1022,11 @@ naughty.connect_signal("request::display", function(n)
             margins = { left = 12, right = 12, top = 6, bottom = 6 },
             widget = wibox.container.margin,
           },
-          bg = beautiful.notification_action_bg_normal or "#3c3836",
-          fg = beautiful.notification_action_fg_normal or "#ebdbb2",
+          bg = beautiful.notification_action_bg_normal,
+          fg = beautiful.notification_action_fg_normal,
           shape = gears.shape.rectangle,
           shape_border_width = beautiful.notification_action_border_width or 1,
-          shape_border_color = beautiful.notification_action_border_color or "#928374",
+          shape_border_color = beautiful.notification_action_border_color,
           widget = wibox.container.background,
         },
         widget = naughty.list.actions,

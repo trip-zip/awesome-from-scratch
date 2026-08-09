@@ -99,7 +99,7 @@ local function create_button(option, index)
       margins = 16,
       widget = wibox.container.margin,
     },
-    bg = is_selected and (beautiful.primary_color or "#d65d0e") or (beautiful.bg_focus or "#3c3836"),
+    bg = is_selected and beautiful.primary_color or beautiful.bg_focus,
     fg = is_selected and beautiful.bg_normal or beautiful.fg_normal,
     shape = beautiful.shape,
     forced_width = config.button_size,
@@ -159,7 +159,7 @@ local function create_exitscreen_widget()
       valign = "center",
       widget = wibox.container.place,
     },
-    bg = (beautiful.bg_normal or "#282828") .. "E8",
+    bg = beautiful.bg_normal .. "E8",
     fg = beautiful.fg_normal,
     widget = wibox.container.background,
   })

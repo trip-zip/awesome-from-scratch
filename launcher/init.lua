@@ -460,7 +460,7 @@ local function create_app_item(app, index)
       margins = 8,
       widget = wibox.container.margin,
     },
-    bg = is_selected and (beautiful.primary_color or "#d65d0e") or "transparent",
+    bg = is_selected and beautiful.primary_color or "transparent",
     fg = is_selected and beautiful.bg_normal or beautiful.fg_normal,
     shape = beautiful.shape_small,
     forced_height = config.item_height,
@@ -493,7 +493,7 @@ local function create_search_input()
           font = "JetBrainsMono Nerd Font 18",
           widget = wibox.widget.textbox,
         },
-        fg = beautiful.primary_color or "#d65d0e",
+        fg = beautiful.primary_color,
         widget = wibox.container.background,
       },
       {
@@ -509,7 +509,7 @@ local function create_search_input()
       {
         orientation = "horizontal",
         forced_height = 2,
-        color = beautiful.primary_color or "#d65d0e",
+        color = beautiful.primary_color,
         widget = wibox.widget.separator,
       },
       top = 8,
@@ -529,7 +529,7 @@ local function create_results_list()
         halign = "center",
         widget = wibox.widget.textbox,
       },
-      fg = (beautiful.fg_normal or "#ebdbb2") .. "88",
+      fg = beautiful.fg_normal .. "88",
       widget = wibox.container.background,
     })
   end
@@ -585,7 +585,7 @@ local function create_launcher_widget()
       margins = config.margin,
       widget = wibox.container.margin,
     },
-    bg = (beautiful.bg_normal or "#282828") .. "F8",
+    bg = beautiful.bg_normal .. "F8",
     shape = beautiful.shape,
     forced_width = config.width,
     forced_height = max_height,
@@ -698,7 +698,7 @@ function launcher.show()
       visible = false,
       bg = "#00000000",
       border_width = beautiful.border_width or 1,
-      border_color = beautiful.primary_color or "#d65d0e",
+      border_color = beautiful.primary_color,
       shape = beautiful.shape,
     })
     log_time("  create popup", popup_start)
