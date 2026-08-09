@@ -2,7 +2,7 @@
 
 Checkpoint {{NN}} of *Awesome From Scratch*: **{{TITLE}}**.
 
-Read the chapter: <https://somewm.org/from-scratch/chapters/{{BRANCH}}>
+Read the chapter: <https://somewm.org/docs/tutorials/from-scratch/{{BRANCH}}>
 
 ## Run this checkpoint
 
