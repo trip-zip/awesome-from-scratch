@@ -1,0 +1,5 @@
+rc.lua	rc.lua@06
+keybindings.lua	keybindings.lua@07
+widgets/init.lua	widgets-init.lua@07
+wibar.lua	wibar.lua@07
+exitscreen/init.lua	exitscreen-init.lua@07

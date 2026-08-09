@@ -1,0 +1,5 @@
+rc.lua	rc.lua@06
+keybindings.lua	keybindings.lua@06
+widgets/init.lua	widgets-init.lua@04
+wibar.lua	wibar.lua@04
+notifications.lua	notifications.lua@06

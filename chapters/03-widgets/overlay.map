@@ -1,0 +1,4 @@
+rc.lua	rc.lua@03
+keybindings.lua	keybindings.lua@02
+widgets/init.lua	widgets-init.lua@03
+widgets/clock.lua	clock.lua@03

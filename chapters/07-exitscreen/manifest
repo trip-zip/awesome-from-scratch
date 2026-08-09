@@ -1,0 +1,14 @@
+.gitignore
+.stylua.toml
+theme
+wallpapers
+icons
+widgets/wrappers.lua
+widgets/volume.lua
+widgets/battery.lua
+widgets/wifi.lua
+widgets/taglist.lua
+widgets/clock.lua
+widgets/power.lua
+modal.lua
+notifications.lua

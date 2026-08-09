@@ -1,0 +1,13 @@
+00-default	00-default: the stock somewm config
+01-theme	01-theme: palettes, shapes, recolored assets
+02-keybindings	02-keybindings: a table you can read and search
+03-widgets	03-widgets: wrappers, clock, volume, battery, wifi
+04-wibar	04-wibar: our own bar, taglist with state
+05-rules-titlebars	05-rules-titlebars: client rules and titlebars
+06-notifications	06-notifications: routing, history, center
+07-exitscreen	07-exitscreen: the modal pattern
+08-mainmenu	08-mainmenu: main menu and its bar button
+09-switcher	09-switcher: window switcher
+10-launcher	10-launcher: menubar replacement from scratch
+11-dashboard	11-dashboard: the control center
+12-lockscreen	12-lockscreen: lock screen
