@@ -65,6 +65,7 @@ return function(s)
     screen = s,
     widget = {
       {
+        widgets.menubutton,
         widgets.taglist(s),
         -- The prompt for Mod+R (run) and Mod+X (Lua): without a home in the
         -- bar, prompts still run but type into an invisible textbox
