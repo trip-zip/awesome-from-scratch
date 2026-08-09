@@ -58,6 +58,8 @@ return function(s)
     widget = wibox.container.place,
   })
 
+  table.insert(right, widgets.power)
+
   local wibar = awful.wibar({
     position = "top",
     screen = s,

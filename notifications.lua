@@ -12,6 +12,7 @@ local wibox = require("wibox")
 local ruled = require("ruled")
 local naughty = require("naughty")
 local beautiful = require("beautiful")
+local modal = require("modal")
 
 -- Module table
 local M = {}
@@ -170,9 +171,20 @@ local function snooze_notification(notif_data, duration_seconds, duration_label)
   })
 end
 
--- Snooze duration picker: a small popup anchored near the mouse
+-- Snooze duration picker: a small modal anchored near the mouse. The modal
+-- controller supplies click-outside dismissal, so the old "connect a one-shot
+-- button::press handler after a 0.1s delay" workaround is gone.
 local picker_notif_data = nil
-local snooze_picker_popup = nil
+local snooze_picker -- the modal controller, created below
+local picker_anchor = { x = 0, y = 0 }
+
+-- One placement function: installed on the popup so resizes re-run it, and
+-- called from on_show so a fresh anchor takes effect
+local function place_picker(d)
+  d.x = picker_anchor.x - 80
+  d.y = picker_anchor.y + 10
+  awful.placement.no_offscreen(d, { honor_workarea = true, margins = 10 })
+end
 
 local function build_picker_widget()
   local buttons_layout = wibox.layout.fixed.vertical()
@@ -204,7 +216,7 @@ local function build_picker_widget()
     })
 
     btn:add_button(awful.button({}, 1, function()
-      M.hide_snooze_picker()
+      snooze_picker.hide()
       snooze_notification(picker_notif_data, duration.seconds, duration.label)
     end))
 
@@ -241,54 +253,32 @@ local function build_picker_widget()
   })
 end
 
-M.hide_snooze_picker = function()
-  if snooze_picker_popup then
-    snooze_picker_popup.visible = false
-    snooze_picker_popup = nil
-  end
-end
+snooze_picker = modal.new({
+  name = "snooze_picker",
+  build_popup = function()
+    return awful.popup({
+      widget = build_picker_widget(),
+      screen = awful.screen.focused(),
+      ontop = true,
+      visible = false,
+      bg = "#00000000",
+      border_width = beautiful.border_width or 1,
+      border_color = beautiful.primary_color,
+      shape = beautiful.shape or gears.shape.rectangle,
+      placement = place_picker,
+    })
+  end,
+  on_show = function(popup)
+    picker_anchor = mouse.coords()
+    popup.widget = build_picker_widget()
+    place_picker(popup)
+  end,
+})
 
 local function show_snooze_picker(notif_data)
   picker_notif_data = notif_data
-  M.hide_snooze_picker()
-
-  local s = awful.screen.focused()
-  snooze_picker_popup = awful.popup({
-    widget = build_picker_widget(),
-    screen = s,
-    ontop = true,
-    visible = true,
-    bg = "#00000000",
-    border_width = beautiful.border_width or 1,
-    border_color = beautiful.primary_color,
-    shape = beautiful.shape or gears.shape.rectangle,
-  })
-
-  -- Position near mouse
-  local coords = mouse.coords()
-  snooze_picker_popup.x = coords.x - 80
-  snooze_picker_popup.y = coords.y + 10
-
-  -- Keep on screen
-  if snooze_picker_popup.x + 200 > s.geometry.x + s.geometry.width then
-    snooze_picker_popup.x = s.geometry.x + s.geometry.width - 210
-  end
-  if snooze_picker_popup.x < s.geometry.x then
-    snooze_picker_popup.x = s.geometry.x + 10
-  end
-
-  -- Close on click outside. The handler has to be connected *after* this
-  -- click finishes (hence the timer), and has to disconnect itself - an
-  -- awkward dance every popup in this config ends up re-inventing.
-  gears.timer.start_new(0.1, function()
-    local close_handler
-    close_handler = function()
-      M.hide_snooze_picker()
-      client.disconnect_signal("button::press", close_handler)
-    end
-    client.connect_signal("button::press", close_handler)
-    return false
-  end)
+  snooze_picker.hide() -- no-op when already hidden
+  snooze_picker.show()
 end
 
 -- Notification center configuration (following launcher/dashboard patterns)
@@ -686,95 +676,54 @@ local function create_popup_widget()
 end
 
 -- Show the notification center
--- The notification center popup: show/hide/toggle, plus dismissal when you
--- click a client or switch tags. The same lifecycle the dashboard hand-rolls;
--- keep an eye on how similar this shape is.
-local notification_popup = nil
-local popup_visible = false
+-- The notification center opens centered under the click point (mouse coords
+-- for multi-monitor reliability), tucked just below the bar. Same placement
+-- shape as the snooze picker: one function, installed on the popup and called
+-- from on_show.
+local center_anchor = { x = 0, y = 0 }
 
-function M.show_notification_center()
-  if popup_visible then
-    return
-  end
+local function place_center(d)
+  local wa = d.screen.workarea
+  d.x = center_anchor.x - d.width / 2
+  d.y = wa.y + (beautiful.useless_gap or 4)
+  awful.placement.no_offscreen(d, { honor_workarea = true, margins = beautiful.useless_gap or 4 })
+end
 
-  local s = awful.screen.focused()
-
-  if not notification_popup then
-    notification_popup = awful.popup({
+-- The notification center is a modal like the launcher and dashboard: the
+-- controller owns visibility, Escape, click-outside/tag-change dismissal, and
+-- the notification_center::visible signal.
+local center = modal.new({
+  name = "notification_center",
+  build_popup = function()
+    return awful.popup({
       widget = create_popup_widget(),
-      screen = s,
+      screen = awful.screen.focused(),
       ontop = true,
       visible = false,
       bg = "#00000000",
       border_width = beautiful.border_width or 1,
       border_color = beautiful.primary_color,
       shape = beautiful.shape or gears.shape.rounded_rect,
+      placement = place_center,
     })
-  end
+  end,
+  on_show = function(popup)
+    center_anchor = mouse.coords()
+    popup.widget = create_popup_widget()
+    place_center(popup)
+  end,
+})
 
-  notification_popup.screen = s
-  notification_popup.widget = create_popup_widget()
-
-  -- Position centered under the click point (use mouse coords for
-  -- multi-monitor reliability)
-  local coords = mouse.coords()
-  local popup_x = coords.x - (nc_config.width / 2)
-  local popup_y = (beautiful.wibar_height or 30) + (beautiful.useless_gap or 4)
-
-  -- Keep popup on screen
-  if popup_x < s.geometry.x then
-    popup_x = s.geometry.x + (beautiful.useless_gap or 4)
-  elseif popup_x + nc_config.width > s.geometry.x + s.geometry.width then
-    popup_x = s.geometry.x + s.geometry.width - nc_config.width - (beautiful.useless_gap or 4)
-  end
-
-  notification_popup.x = popup_x
-  notification_popup.y = s.geometry.y + popup_y
-
-  notification_popup.visible = true
-  popup_visible = true
-  awesome.emit_signal("notification_center::visible", true)
-end
-
-function M.hide_notification_center()
-  if not popup_visible then
-    return
-  end
-
-  if notification_popup then
-    notification_popup.visible = false
-  end
-  popup_visible = false
-  awesome.emit_signal("notification_center::visible", false)
-end
-
-function M.toggle_notification_center()
-  if popup_visible then
-    M.hide_notification_center()
-  else
-    M.show_notification_center()
-  end
-end
+M.show_notification_center = center.show
+M.hide_notification_center = center.hide
+M.toggle_notification_center = center.toggle
 
 -- Refresh popup content (safe to call any time; does nothing while hidden)
 refresh_popup = function()
-  if notification_popup and popup_visible then
-    notification_popup.widget = create_popup_widget()
+  if center.popup and center.is_visible() then
+    center.popup.widget = create_popup_widget()
   end
 end
-
--- Close on click outside (the dashboard does the same dance)
-client.connect_signal("button::press", function()
-  if popup_visible then
-    M.hide_notification_center()
-  end
-end)
-
-tag.connect_signal("property::selected", function()
-  if popup_visible then
-    M.hide_notification_center()
-  end
-end)
 
 -- Setup notification rules
 ruled.notification.connect_signal("request::rules", function()
