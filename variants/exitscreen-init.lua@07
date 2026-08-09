@@ -129,11 +129,13 @@ local function create_exitscreen_widget()
           halign = "center",
           widget = wibox.widget.textbox,
         },
-        -- Buttons
+        -- Buttons. unpack() must be the LAST field in the constructor: Lua
+        -- adjusts a multi-value expression to a single value anywhere else,
+        -- which would silently render only the first button.
         {
-          unpack(buttons),
-          spacing = config.spacing,
           layout = wibox.layout.fixed.horizontal,
+          spacing = config.spacing,
+          unpack(buttons),
         },
         -- Hint
         {
