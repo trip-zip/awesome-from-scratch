@@ -196,23 +196,61 @@ def derive_wibar():
     no_menubutton = must_sub(
         src,
         """        widgets.menubutton,
-        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         widgets.taglist(s),""",
-        """        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
-        widgets.taglist(s),""",
+        """        widgets.taglist(s),""",
         "wibar menubutton")
     (VAR / "wibar.lua@07").write_text(no_menubutton)
     print("wibar.lua@07")
 
     no_power = must_sub(
         no_menubutton,
-        """        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
-        widgets.power,
-        layout = wibox.layout.fixed.horizontal,""",
-        """        layout = wibox.layout.fixed.horizontal,""",
+        "  table.insert(right, widgets.power)\n\n",
+        "",
         "wibar power")
     (VAR / "wibar.lua@04").write_text(no_power)
     print("wibar.lua@04")
+
+
+# --------------------------------------------------------------------------
+# theme.lua@01: main's theme minus the widget vocabulary, which chapter 03
+# introduces alongside the widgets that consume it
+# --------------------------------------------------------------------------
+def derive_theme():
+    src = main_file("theme/theme.lua")
+
+    icon_helper = '''
+-- Resolve an icon name under icon_dir and tint it to a theme color, so every
+-- widget asks for icons the same way and the "icons/" join lives in one place.
+-- Callers pass a bare name: beautiful.icon("volume-2.svg").
+--
+-- Memoized because gears.color.recolor_image duplicates the cairo surface and
+-- re-runs a mask on every call - only the loaded file is cached, not the
+-- recolored result - and widgets recolor on every update.
+local icon_cache = {}
+function theme.icon(name, tint)
+  tint = tint or theme.fg_normal
+  local key = name .. "|" .. tostring(tint)
+  if not icon_cache[key] then
+    icon_cache[key] = recolor(theme.icon_dir .. "/" .. name, tint)
+  end
+  return icon_cache[key]
+end
+'''
+    metrics = '''
+-- Bar widget metrics. Every status widget in widgets/ reads these instead of
+-- hardcoding its own numbers, which is what keeps four independently written
+-- widgets looking like they belong to the same bar. They derive from
+-- wibar_height, so rescaling the bar rescales its contents with it.
+theme.widget_icon_margins = theme.wibar_height / 4 -- padding above/below an icon
+theme.widget_icon_spacing = dpi(4) -- gap between an icon and its own label
+theme.widget_spacing = dpi(10) -- gap between neighbouring widgets
+theme.widget_group_spacing = theme.wibar_height * 0.5 -- gap between groups in the bar
+'''
+
+    s = must_sub(src, icon_helper, "", "theme icon helper")
+    s = must_sub(s, metrics, "", "theme widget metrics")
+    (VAR / "theme.lua@01").write_text(s)
+    print("theme.lua@01")
 
 
 # --------------------------------------------------------------------------
@@ -439,6 +477,7 @@ end)
 derive_keybindings()
 derive_rc()
 derive_wibar()
+derive_theme()
 derive_menus()
 derive_notifications()
 print("done")

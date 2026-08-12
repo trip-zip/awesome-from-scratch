@@ -3,7 +3,6 @@
 theme
 wallpapers
 icons
-widgets/wrappers.lua
 widgets/volume.lua
 widgets/battery.lua
 widgets/wifi.lua

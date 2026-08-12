@@ -5,5 +5,4 @@ return {
   taglist = require("widgets.taglist"),
   volume = require("widgets.volume"),
   wifi = require("widgets.wifi"),
-  wrappers = require("widgets.wrappers"),
 }

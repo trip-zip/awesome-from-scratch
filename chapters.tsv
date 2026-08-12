@@ -1,7 +1,7 @@
 00-default	00-default: the stock somewm config
 01-theme	01-theme: palettes, shapes, recolored assets
 02-keybindings	02-keybindings: a table you can read and search
-03-widgets	03-widgets: wrappers, clock, volume, battery, wifi
+03-widgets	03-widgets: the widget tree, clock, volume, battery, wifi
 04-wibar	04-wibar: our own bar, taglist with state
 05-rules-titlebars	05-rules-titlebars: client rules and titlebars
 06-notifications	06-notifications: routing, history, center
