@@ -5,18 +5,72 @@ local widgets = require("widgets")
 local dpi = require("beautiful.xresources").apply_dpi
 
 return function(s)
+  -- The right-hand section is assembled rather than written as one literal,
+  -- because the systray is only on one screen. Building the array with
+  -- table.insert keeps it free of holes: a nil sitting in the middle of a
+  -- declarative table makes the layout's child count undefined.
+  local right = {
+    spacing = beautiful.widget_group_spacing,
+    layout = wibox.layout.fixed.horizontal,
+  }
+
+  -- The systray is a single system-wide widget: it can only live in one bar,
+  -- so on a multi-monitor setup only the primary screen gets one. A
+  -- margin-background-margin sandwich gives it an inset chip look.
+  if s == screen.primary then
+    table.insert(right, {
+      {
+        {
+          wibox.widget.systray(),
+          margins = dpi(4),
+          widget = wibox.container.margin,
+        },
+        bg = beautiful.bg_focus,
+        shape = beautiful.shape_small,
+        widget = wibox.container.background,
+      },
+      left = dpi(8),
+      right = dpi(8),
+      top = dpi(4),
+      bottom = dpi(4),
+      widget = wibox.container.margin,
+    })
+  end
+
+  -- The status readouts, spaced as a group of their own
+  table.insert(right, {
+    widgets.volume,
+    widgets.wifi,
+    widgets.battery.widget,
+    spacing = beautiful.widget_spacing,
+    layout = wibox.layout.fixed.horizontal,
+  })
+
+  table.insert(right, {
+    {
+      s.mylayoutbox,
+      forced_height = beautiful.wibar_height * 0.6,
+      forced_width = beautiful.wibar_height * 0.6,
+      widget = wibox.container.constraint,
+    },
+    halign = "center",
+    valign = "center",
+    widget = wibox.container.place,
+  })
+
+  table.insert(right, widgets.power)
+
   local wibar = awful.wibar({
     position = "top",
     screen = s,
     widget = {
       {
         widgets.menubutton,
-        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         widgets.taglist(s),
-        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
         -- The prompt for Mod+R (run) and Mod+X (Lua): without a home in the
         -- bar, prompts still run but type into an invisible textbox
         s.mypromptbox,
+        spacing = beautiful.widget_group_spacing,
         layout = wibox.layout.fixed.horizontal,
       },
       {
@@ -26,52 +80,7 @@ return function(s)
         expand = "none",
         layout = wibox.layout.align.horizontal,
       },
-      {
-        -- Styled systray container with subtle inset appearance
-        {
-          {
-            {
-              wibox.widget.systray(),
-              margins = dpi(4),
-              widget = wibox.container.margin,
-            },
-            bg = beautiful.bg_focus,
-            shape = beautiful.shape_small,
-            widget = wibox.container.background,
-          },
-          left = dpi(8),
-          right = dpi(8),
-          top = dpi(4),
-          bottom = dpi(4),
-          widget = wibox.container.margin,
-        },
-        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
-        -- The status readouts. `icon_with_text` puts no gap after its label, so three of
-        -- them in a row collide. Give the group its own spacing rather than changing the
-        -- wrapper, which every other widget in the bar also uses.
-        {
-          widgets.volume,
-          widgets.wifi,
-          widgets.battery.widget,
-          spacing = dpi(10),
-          layout = wibox.layout.fixed.horizontal,
-        },
-        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
-        {
-          {
-            s.mylayoutbox,
-            forced_height = beautiful.wibar_height * 0.6,
-            forced_width = beautiful.wibar_height * 0.6,
-            widget = wibox.container.constraint,
-          },
-          halign = "center",
-          valign = "center",
-          widget = wibox.container.place,
-        },
-        widgets.wrappers.vertical_separator(beautiful.wibar_height * 0.5),
-        widgets.power,
-        layout = wibox.layout.fixed.horizontal,
-      },
+      right,
       layout = wibox.layout.align.horizontal,
     },
   })

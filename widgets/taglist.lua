@@ -1,8 +1,10 @@
 local beautiful = require("beautiful")
-local gears = require("gears")
 local awful = require("awful")
 local wibox = require("wibox")
 
+-- `modkey` is the global rc.lua sets before any of this loads, the same one
+-- keybindings.lua reads. The buttons below are built when the taglist is
+-- created per screen, long after rc.lua has set it.
 return function(s)
   local taglist_buttons = {
     awful.button({}, 1, function(t)
@@ -49,7 +51,7 @@ return function(s)
       indicator.bg = beautiful.bg_normal
     end
 
-    w.image = gears.color.recolor_image(beautiful.icon_dir .. "/" .. icon_name, color)
+    w.image = beautiful.icon(icon_name, color)
   end
 
   return awful.widget.taglist({
@@ -64,13 +66,12 @@ return function(s)
         bg = beautiful.bg_normal,
         widget = wibox.container.background,
       },
-      nil,
       {
         {
           id = "icon_role",
           widget = wibox.widget.imagebox,
         },
-        margins = beautiful.wibar_height * 0.25,
+        margins = beautiful.widget_icon_margins,
         widget = wibox.container.margin,
       },
       layout = wibox.layout.fixed.vertical,

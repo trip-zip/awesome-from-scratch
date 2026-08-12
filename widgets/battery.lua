@@ -1,16 +1,13 @@
 local awful = require("awful")
 local gears = require("gears")
-local recolor = require("gears").color.recolor_image
+local wibox = require("wibox")
 local beautiful = require("beautiful")
-local wrappers = require("widgets.wrappers")
 
 -- The one battery implementation in this config. The wibar shows M.widget;
 -- the dashboard profile and the lockscreen call M.get_status() and share the
 -- same thresholds through M.level_color() / M.level_icon(), so all three
 -- always agree about what the battery is doing.
 local M = {}
-
-local icon_color = beautiful.fg_normal
 
 --[[
   Read the battery by KEY, not by line number.
@@ -61,9 +58,11 @@ function M.get_status(cb)
   end)
 end
 
---- Theme color for a charge level: fine, getting low, act now
+--- Theme color for a charge level: fine, getting low, act now.
+--- Callers may pass a nil percentage (no battery), so treat that as "fine"
+--- rather than throwing on the comparison.
 function M.level_color(percent)
-  if percent > 50 then
+  if not percent or percent > 50 then
     return beautiful.active_hover
   elseif percent > 20 then
     return beautiful.accent_hover
@@ -102,8 +101,29 @@ end
 -- The wibar widget: recolored SVG icon + percentage, tooltip with the time
 -- estimate. I only have 2 icons - charging, and regular battery. If it's
 -- doing anything but charging, it's regular battery.
-local battery_icon = wrappers.image_widget("/battery.svg", icon_color)
-M.widget = wrappers.icon_with_text(battery_icon)
+--
+-- Both mutable parts carry an id, so building the widget and updating it later
+-- go through the same door: get_children_by_id.
+M.widget = wibox.widget({
+  {
+    {
+      id = "icon",
+      image = beautiful.icon("battery.svg"),
+      halign = "center",
+      valign = "center",
+      widget = wibox.widget.imagebox,
+    },
+    margins = beautiful.widget_icon_margins,
+    widget = wibox.container.margin,
+  },
+  {
+    id = "text",
+    widget = wibox.widget.textbox,
+  },
+  spacing = beautiful.widget_icon_spacing,
+  layout = wibox.layout.fixed.horizontal,
+})
+
 M.widget.tooltip = awful.tooltip({
   objects = { M.widget },
 })
@@ -122,11 +142,9 @@ local function update()
     end
     M.widget.visible = true
 
-    local tbox = M.widget:get_children_by_id("text")[1]
-    tbox.text = " " .. status.percentage .. "%"
-
-    battery_icon.image =
-      recolor(beautiful.icon_dir .. (status.charging and "/battery-charging.svg" or "/battery.svg"), icon_color)
+    M.widget:get_children_by_id("text")[1].text = status.percentage .. "%"
+    M.widget:get_children_by_id("icon")[1].image =
+      beautiful.icon(status.charging and "battery-charging.svg" or "battery.svg")
 
     if status.charging and status.time_to_full then
       M.widget.tooltip.text = "Time to full: " .. status.time_to_full

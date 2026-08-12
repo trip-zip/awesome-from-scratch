@@ -1,16 +1,30 @@
 local awful = require("awful")
 local gears = require("gears")
-local recolor = require("gears").color.recolor_image
+local wibox = require("wibox")
 local beautiful = require("beautiful")
-local wrappers = require("widgets.wrappers")
 
-local icon_color = beautiful.fg_normal
-local background_color = beautiful.accent
-local background_color_hover = beautiful.accent_hover
+-- Both mutable parts carry an id, so building the widget and updating it later
+-- go through the same door: get_children_by_id.
+local wifi_widget = wibox.widget({
+  {
+    {
+      id = "icon",
+      image = beautiful.icon("wifi.svg"),
+      halign = "center",
+      valign = "center",
+      widget = wibox.widget.imagebox,
+    },
+    margins = beautiful.widget_icon_margins,
+    widget = wibox.container.margin,
+  },
+  {
+    id = "text",
+    widget = wibox.widget.textbox,
+  },
+  spacing = beautiful.widget_icon_spacing,
+  layout = wibox.layout.fixed.horizontal,
+})
 
-local wifi = wrappers.image_widget("/wifi.svg", icon_color)
--- local wifi_widget = wrappers.square_icon(wifi, background_color, background_color_hover)
-local wifi_widget = wrappers.icon_with_text(wifi)
 wifi_widget.tooltip = awful.tooltip({
   objects = { wifi_widget },
 })
@@ -35,14 +49,11 @@ local function update()
   -- I'll do a little check to see if it says "Not connected", if so, I'll set the svg to wifi-off.svg
   awful.spawn.easy_async_with_shell(get_ssid_cmd(), function(ssid)
     local ssid_string = string.gsub(ssid, "\n", "")
-    local tbox = wifi_widget:get_children_by_id("text")[1]
-    wifi_widget.tooltip.text = " " .. ssid_string
-    tbox.text = " " .. ssid_string
-    if string.find(ssid, "Not connected") or ssid == "" then
-      wifi.image = recolor(beautiful.icon_dir .. "/wifi-off.svg", icon_color)
-    else
-      wifi.image = recolor(beautiful.icon_dir .. "/wifi.svg", icon_color)
-    end
+    local connected = ssid_string ~= "" and not string.find(ssid_string, "Not connected")
+
+    wifi_widget:get_children_by_id("text")[1].text = connected and ssid_string or ""
+    wifi_widget.tooltip.text = connected and ssid_string or "Not connected"
+    wifi_widget:get_children_by_id("icon")[1].image = beautiful.icon(connected and "wifi.svg" or "wifi-off.svg")
   end)
 end
 

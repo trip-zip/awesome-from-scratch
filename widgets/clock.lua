@@ -2,58 +2,67 @@ local awful = require("awful")
 local gears = require("gears")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
-local wrappers = require("widgets.wrappers")
+local dpi = require("beautiful.xresources").apply_dpi
 local notifications = require("notifications")
 
-local clock = wrappers.image_widget("/clock.svg", beautiful.fg_normal)
-local clock_widget_base = wrappers.icon_with_text(clock)
-
--- Create a widget with badge for unread notifications
+-- Icon, time, and an unread-notification badge in one row. Every mutable part
+-- carries an id, so building the widget and updating it later go through the
+-- same door: get_children_by_id.
 local clock_widget = wibox.widget({
   {
-    clock_widget_base,
     {
-      {
-        id = "badge",
-        text = "",
-        align = "center",
-        valign = "center",
-        font = (beautiful.font and beautiful.font:match("^[^,]+") or "sans") .. " Bold 7",
-        widget = wibox.widget.textbox,
-      },
-      bg = beautiful.bg_urgent,
-      fg = "#ffffff",
-      shape = gears.shape.circle,
-      forced_width = 12,
-      forced_height = 12,
-      visible = false,
-      widget = wibox.container.background,
-      id = "badge_container",
+      id = "icon",
+      image = beautiful.icon("clock.svg"),
+      halign = "center",
+      valign = "center",
+      widget = wibox.widget.imagebox,
     },
-    layout = wibox.layout.fixed.horizontal,
-    spacing = 2,
+    margins = beautiful.widget_icon_margins,
+    widget = wibox.container.margin,
   },
-  widget = wibox.container.constraint,
-  strategy = "max",
+  {
+    id = "text",
+    widget = wibox.widget.textbox,
+  },
+  {
+    {
+      id = "badge",
+      text = "",
+      align = "center",
+      valign = "center",
+      font = beautiful.font_size(7, "Bold"),
+      widget = wibox.widget.textbox,
+    },
+    id = "badge_container",
+    bg = beautiful.bg_urgent,
+    fg = beautiful.fg_urgent,
+    shape = gears.shape.circle,
+    forced_width = dpi(12),
+    forced_height = dpi(12),
+    visible = false,
+    widget = wibox.container.background,
+  },
+  spacing = beautiful.widget_icon_spacing,
+  layout = wibox.layout.fixed.horizontal,
 })
 
 clock_widget:add_button(awful.button({}, 1, function()
   notifications.toggle_notification_center()
 end))
 
-local set_clock = function()
-  local time = " " .. os.date("%I:%M")
-  local tbox = clock_widget_base:get_children_by_id("text")[1]
-  tbox.text = time
+local function set_clock()
+  clock_widget:get_children_by_id("text")[1].text = os.date("%I:%M")
+end
 
-  -- Update unread badge
+local function set_badge()
   local badge_container = clock_widget:get_children_by_id("badge_container")[1]
   local badge_text = clock_widget:get_children_by_id("badge")[1]
+  local count = notifications.unread_count or 0
 
-  if badge_container and badge_text and notifications.unread_count and notifications.unread_count > 0 then
-    badge_text.text = tostring(math.min(notifications.unread_count, 99))
+  if count > 0 then
+    badge_text.text = tostring(math.min(count, 99))
     badge_container.visible = true
-  elseif badge_container then
+  else
     badge_container.visible = false
   end
 end
@@ -62,14 +71,12 @@ gears.timer({
   timeout = 5,
   autostart = true,
   call_now = true,
-  callback = function()
-    set_clock()
-  end,
+  callback = set_clock,
 })
 
--- Update badge when unread count changes
-awesome.connect_signal("notification::unread_count", function(count)
-  set_clock()
-end)
+-- Update the badge when the unread count changes, rather than re-running the
+-- clock formatting for something that has nothing to do with the time.
+set_badge()
+awesome.connect_signal("notification::unread_count", set_badge)
 
 return clock_widget
