@@ -137,6 +137,9 @@ FADE_COMMENT = """      -- Uncomment to fade every window slightly. It looks nic
 
 def derive_rc():
     main_rc = main_file("rc.lua")
+    wallpaper_pattern = r"^local function set_wallpaper\(s\)\n.*?^end\n"
+    wallpaper = re.search(wallpaper_pattern, main_rc, re.S | re.M)
+    assert wallpaper, "main wallpaper function"
     tags_block = re.search(r"\n-- The workspaces, defined once.*?^}\n", main_rc, re.S | re.M).group(0)
     tag_create = re.search(
         r"  -- Create this screen's tags from the table defined at the top\n.*?  end\n\n", main_rc, re.S
@@ -147,6 +150,9 @@ def derive_rc():
         s = git_show(f"{OLD}~{depth}", "rc.lua")
 
         if n >= 1:
+            s, count = re.subn(
+                wallpaper_pattern, lambda _: wallpaper.group(0), s, flags=re.S | re.M)
+            assert count == 1, f"wallpaper function @{nn}"
             s = s.replace('config_dir .. "theme/spaceman.jpg"', 'config_dir .. "wallpapers/spaceman.jpg"')
             s = s.replace(WALLPAPER_COMMENT, "")
         if n >= 2:

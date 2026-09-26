@@ -161,10 +161,20 @@ local wallpapers = {
 local function set_wallpaper(s)
   local wp = wallpapers[s.index] or wallpapers[1]
   if wp and gears.filesystem.file_readable(wp) then
-    gears.wallpaper.maximized(wp, s, true)
+    awful.wallpaper({
+      screen = s,
+      bg = "#282828",
+      widget = {
+        image = wp,
+        upscale = true,
+        downscale = true,
+        halign = "center",
+        valign = "center",
+        widget = wibox.widget.imagebox,
+      },
+    })
   else
-    -- Fallback to gruvbox dark color
-    gears.wallpaper.set("#282828")
+    awful.wallpaper({ screen = s, bg = "#282828" })
   end
 end
 
