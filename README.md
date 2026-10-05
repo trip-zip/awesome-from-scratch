@@ -138,7 +138,8 @@ cp -r awesome-from-scratch ~/.config/awesome
 **Supported targets.** This config and the tutorial series target **AwesomeWM git master** and the
 **SomeWM 1.4** series. Those are what the checkpoint branches are written and tested against.
 AwesomeWM 4.3 is not supported: every chapter, including `00-default`, uses APIs that only exist
-on master (`ruled`, the `request::` signals, `awful.keyboard`, `awful.wallpaper`).
+on master (`ruled`, `awful.keyboard`, `awful.wallpaper`, and the newer `request::` signals such as
+`request::rules`).
 
 SomeWM 2.0 is unreleased, and its development line has begun removing long-deprecated `awful.*`
 functions. This config avoids everything removed so far, so it does run on current 2.0
