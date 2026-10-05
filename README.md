@@ -132,11 +132,13 @@ cp -r awesome-from-scratch ~/.config/awesome
 ## Dependencies
 
 **Required:**
-- AwesomeWM 4.3+ (current master included), or [SomeWM](https://github.com/trip-zip/somewm) 1.4.x
+- AwesomeWM git master (the unreleased 4.4; 4.3 is not supported), or [SomeWM](https://github.com/trip-zip/somewm) 1.4.x
 - JetBrainsMono Nerd Font
 
-**Supported targets.** This config and the tutorial series target **AwesomeWM** and the
+**Supported targets.** This config and the tutorial series target **AwesomeWM git master** and the
 **SomeWM 1.4** series. Those are what the checkpoint branches are written and tested against.
+AwesomeWM 4.3 is not supported: every chapter, including `00-default`, uses APIs that only exist
+on master (`ruled`, the `request::` signals, `awful.keyboard`, `awful.wallpaper`).
 
 SomeWM 2.0 is unreleased, and its development line has begun removing long-deprecated `awful.*`
 functions. This config avoids everything removed so far, so it does run on current 2.0
