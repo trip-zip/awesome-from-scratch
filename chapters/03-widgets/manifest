@@ -6,3 +6,4 @@ icons
 widgets/volume.lua
 widgets/battery.lua
 widgets/wifi.lua
+LICENSE

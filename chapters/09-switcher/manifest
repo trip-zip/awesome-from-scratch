@@ -15,3 +15,4 @@ widgets/init.lua
 modal.lua
 notifications.lua
 wibar.lua
+LICENSE

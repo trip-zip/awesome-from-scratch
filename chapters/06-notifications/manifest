@@ -8,3 +8,4 @@ widgets/battery.lua
 widgets/wifi.lua
 widgets/taglist.lua
 widgets/clock.lua
+LICENSE

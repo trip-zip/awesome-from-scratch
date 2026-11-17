@@ -11,3 +11,4 @@ widgets/clock.lua
 widgets/power.lua
 modal.lua
 notifications.lua
+LICENSE

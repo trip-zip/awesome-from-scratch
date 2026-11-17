@@ -7,3 +7,4 @@ widgets/volume.lua
 widgets/battery.lua
 widgets/wifi.lua
 widgets/taglist.lua
+LICENSE

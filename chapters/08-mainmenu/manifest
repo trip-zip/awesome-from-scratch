@@ -13,3 +13,4 @@ widgets/menubutton.lua
 modal.lua
 notifications.lua
 wibar.lua
+LICENSE
