@@ -191,4 +191,4 @@ wallpapers/         Default wallpapers
 
 ## License
 
-MIT
+MIT, see [LICENSE](LICENSE).
